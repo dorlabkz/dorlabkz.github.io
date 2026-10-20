@@ -6,6 +6,11 @@ on:
   schedule:
     - cron: "0 3 */2 * *"   # tous les 2 jours à 8 h (heure du Kazakhstan)
   workflow_dispatch:         # bouton « Run workflow » pour tester à la main
+    inputs:
+      test_panne:
+        description: "Simuler une panne (pour tester l'alerte Telegram)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -16,6 +21,7 @@ jobs:
     steps:
       - name: Réveiller la base
         run: |
+          if [ "${{ inputs.test_panne }}" = "true" ]; then echo "Panne simulée pour le test"; exit 1; fi
           URL=$(grep -o 'https://[a-z0-9]*\.supabase\.co' <(curl -fsS https://raw.githubusercontent.com/${{ github.repository }}/main/config.js))
           KEY=$(grep -o 'eyJ[A-Za-z0-9._-]*' <(curl -fsS https://raw.githubusercontent.com/${{ github.repository }}/main/config.js))
           for i in 1 2 3; do
@@ -45,5 +51,5 @@ jobs:
           if [ -n "$TG_TOKEN" ] && [ -n "$TG_CHAT" ]; then
             curl -s "https://api.telegram.org/bot$TG_TOKEN/sendMessage" \
               --data-urlencode "chat_id=$TG_CHAT" \
-              --data-urlencode "text=⚠️ DorLabKZ : la base Supabase ne répond pas (peut-être en pause). Va sur supabase.com → projet dorlabkz → Restore project. Détails : ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" > /dev/null
+              --data-urlencode "text=⚠️ DorLabKZ${{ inputs.test_panne && ' (TEST, tout va bien)' || '' }} : la base Supabase ne répond pas (peut-être en pause). Va sur supabase.com → projet dorlabkz → Restore project. Détails : ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" > /dev/null
           fi
