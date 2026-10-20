@@ -1,0 +1,49 @@
+# DorLabKZ — garde la base Supabase éveillée (le plan gratuit se met en pause après ~7 jours sans activité)
+# Tous les 2 jours : une petite requête à la base. En cas d'échec : alerte Telegram (+ e-mail de GitHub).
+name: Réveil Supabase
+
+on:
+  schedule:
+    - cron: "0 3 */2 * *"   # tous les 2 jours à 8 h (heure du Kazakhstan)
+  workflow_dispatch:         # bouton « Run workflow » pour tester à la main
+
+permissions:
+  contents: write
+
+jobs:
+  reveil:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Réveiller la base
+        run: |
+          URL=$(grep -o 'https://[a-z0-9]*\.supabase\.co' <(curl -fsS https://raw.githubusercontent.com/${{ github.repository }}/main/config.js))
+          KEY=$(grep -o 'eyJ[A-Za-z0-9._-]*' <(curl -fsS https://raw.githubusercontent.com/${{ github.repository }}/main/config.js))
+          for i in 1 2 3; do
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" "$URL/rest/v1/labs?select=id&limit=1" -H "apikey: $KEY" -H "Authorization: Bearer $KEY")
+            echo "Tentative $i : HTTP $CODE"
+            if [ "$CODE" = "200" ]; then exit 0; fi
+            sleep 30
+          done
+          echo "La base ne répond pas (HTTP $CODE)"; exit 1
+
+      - name: Garder le robot actif (GitHub coupe les robots après 60 jours sans activité)
+        if: success()
+        run: |
+          if [ "$(date -u +%d)" = "01" ]; then
+            git clone -q --depth 1 "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" r && cd r
+            date -u +"%Y-%m-%d %H:%M UTC" > .github/derniere-verification.txt
+            git config user.name "dorlabkz-robot"; git config user.email "robot@users.noreply.github.com"
+            git add .github/derniere-verification.txt && git commit -qm "Vérification mensuelle" && git push -q
+          fi
+
+      - name: Alerte Telegram si échec
+        if: failure()
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT: ${{ secrets.TG_CHAT }}
+        run: |
+          if [ -n "$TG_TOKEN" ] && [ -n "$TG_CHAT" ]; then
+            curl -s "https://api.telegram.org/bot$TG_TOKEN/sendMessage" \
+              --data-urlencode "chat_id=$TG_CHAT" \
+              --data-urlencode "text=⚠️ DorLabKZ : la base Supabase ne répond pas (peut-être en pause). Va sur supabase.com → projet dorlabkz → Restore project. Détails : ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" > /dev/null
+          fi
