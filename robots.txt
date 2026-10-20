@@ -1,0 +1,23 @@
+# DorLabKZ — © 2026 DorLabKZ. Contenu protégé par le droit d'auteur.
+# Les robots d'IA ne sont pas autorisés à aspirer ce site.
+User-agent: GPTBot
+User-agent: ChatGPT-User
+User-agent: OAI-SearchBot
+User-agent: ClaudeBot
+User-agent: Claude-Web
+User-agent: anthropic-ai
+User-agent: Google-Extended
+User-agent: CCBot
+User-agent: PerplexityBot
+User-agent: Bytespider
+User-agent: Applebot-Extended
+User-agent: meta-externalagent
+User-agent: FacebookBot
+User-agent: Amazonbot
+User-agent: cohere-ai
+User-agent: Diffbot
+User-agent: YandexAdditional
+Disallow: /
+
+User-agent: *
+Allow: /
