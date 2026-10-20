@@ -1,0 +1,1018 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>DorLabKZ</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;700&family=Golos+Text:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}img{max-width:100%}
+/* Layout: lab logbook — sticky tab strip (test types) + language switch; each tab = method guide, input sheet, results with norm check; last tabs: protocol, unit converter */
+:root{
+  --bg:#F1F0EC; --sheet:#FFFFFF; --ink:#1D2328; --muted:#5F6870; --line:#D9D7D0; --soft:#F6F5F1;
+  --accent:#A65B12; --accent-ink:#FFFFFF; --ok:#1E7A46; --bad:#B8322A; --na:#8A8F94;
+  --asph:#6E6A63; --bitu:#2E2A26; --water:#CFE2EE;
+  --display:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Golos Text",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#15181B; --sheet:#1E2226; --ink:#E8E6E1; --muted:#9AA1A8; --line:#343A40; --soft:#252A2F;
+  --accent:#E09A4F; --accent-ink:#15181B; --ok:#4CC27F; --bad:#F07368; --na:#7D848A; --asph:#7C7F84; --bitu:#0C0D0E; --water:#1F3A4D; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15181B; --sheet:#1E2226; --ink:#E8E6E1; --muted:#9AA1A8; --line:#343A40; --soft:#252A2F;
+  --accent:#E09A4F; --accent-ink:#15181B; --ok:#4CC27F; --bad:#F07368; --na:#7D848A; --asph:#7C7F84; --bitu:#0C0D0E; --water:#1F3A4D; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.5;padding-block:0 40px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.pad{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:860px;margin:0 auto}
+header.top{padding-block:18px 10px}
+.hrow{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(22px,5vw,30px);margin:0;letter-spacing:.01em;line-height:1.1}
+.sub{color:var(--muted);margin:4px 0 0;font-size:13px;max-width:60ch}
+.lang{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex:none}
+.lang button{font:600 12.5px var(--mono);background:var(--sheet);color:var(--muted);border:0;padding:7px 11px;cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+nav .row{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+nav .row button{font:600 14px var(--display);letter-spacing:.02em;background:none;border:0;color:var(--muted);padding:12px 12px 10px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+nav .row button[aria-selected="true"]{color:var(--ink);border-color:var(--accent)}
+main{padding-block:16px}
+.panel{display:grid;gap:16px}
+.card{background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:12px;min-width:0}
+h2{font-family:var(--display);font-weight:700;font-size:18px;margin:0}
+h3{font-family:var(--display);font-weight:500;font-size:14px;margin:0;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.hint{color:var(--muted);font-size:12.5px;margin:0}
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+label.f{display:grid;gap:3px;font-size:12.5px;color:var(--muted);min-width:0}
+input,select{font:inherit;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:7px 8px;width:100%;min-width:0}
+input.num{font-family:var(--mono);text-align:right}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{font-weight:600;color:var(--muted);font-size:12px;background:var(--soft)}
+tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td input{min-width:70px}
+td.res{font-family:var(--mono);font-weight:500}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.pill.ok{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+.pill.bad{background:color-mix(in srgb,var(--bad) 15%,transparent);color:var(--bad)}
+.pill.na{background:color-mix(in srgb,var(--na) 15%,transparent);color:var(--na)}
+.req{display:flex;gap:4px;align-items:center}
+.req input{width:66px;padding:4px 6px;font-size:12.5px}
+.formula{font-family:var(--mono);font-size:12px;color:var(--muted);margin:0}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+button.b{font:600 13.5px var(--body);border-radius:8px;padding:9px 14px;border:1px solid var(--line);background:var(--sheet);color:var(--ink);cursor:pointer}
+button.b.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.summary{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font-size:13px}
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font:11px var(--mono)}
+.note{border-left:3px solid var(--accent);padding:8px 12px;background:var(--soft);font-size:12.5px;color:var(--muted);border-radius:0 6px 6px 0}
+/* Method guide */
+details.method{border:1px solid var(--line);border-radius:10px;background:var(--soft)}
+details.method summary{cursor:pointer;padding:12px 14px;font:700 15px var(--display);list-style:none;display:flex;justify-content:space-between;gap:10px}
+details.method summary::-webkit-details-marker{display:none}
+details.method summary::after{content:"+";font-family:var(--mono);color:var(--accent)}
+details.method[open] summary::after{content:"−"}
+.mbody{padding:0 14px 14px;display:grid;gap:10px}
+.equip{font-size:12.5px;color:var(--muted);margin:0}
+ol.steps{margin:0;padding:0;list-style:none;display:grid;gap:8px;counter-reset:s}
+ol.steps li{display:grid;grid-template-columns:28px 1fr;gap:10px;counter-increment:s;font-size:13.5px}
+ol.steps li::before{content:counter(s);font:600 12px var(--mono);width:24px;height:24px;border-radius:50%;background:var(--sheet);border:1px solid var(--line);display:grid;place-items:center;color:var(--accent)}
+.tag{font:600 11.5px var(--mono);background:var(--accent);color:var(--accent-ink);border-radius:4px;padding:1px 6px;white-space:nowrap}
+/* Protocol */
+.ph{display:grid;gap:2px;text-align:center;border-bottom:2px solid var(--ink);padding-bottom:10px}
+.ph b{font-family:var(--display);font-size:17px;letter-spacing:.04em}
+.kv{display:grid;grid-template-columns:minmax(110px,max-content) 1fr;gap:4px 14px;font-size:13px}
+.kv span{min-width:0;overflow-wrap:anywhere}
+.kv span:nth-child(odd){color:var(--muted)}
+.final{font-family:var(--display);font-weight:700;font-size:16px;margin:0}
+.sign{display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:12.5px;color:var(--muted)}
+.sign div{border-top:1px solid var(--line);padding-top:4px}
+.conv{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:end}
+.conv .eq{font:600 16px var(--mono);color:var(--muted);padding-bottom:8px}
+/* Schemas */
+.schwrap{overflow-x:auto;background:var(--sheet);border:1px solid var(--line);border-radius:8px;padding:8px}
+.sch{display:block;width:100%;min-width:540px;height:auto}
+.sch text{fill:var(--muted);font:12.5px var(--body)}
+.sch .ln{stroke:var(--ink);fill:none;stroke-width:1.5}
+.sch .eq{fill:var(--sheet);stroke:var(--ink);stroke-width:1.5}
+.sch .sp{fill:var(--asph);stroke:var(--ink);stroke-width:1.2}
+.sch .bit{fill:var(--bitu);stroke:var(--ink);stroke-width:1}
+.sch .wt{fill:var(--water)}
+.sch .disp{fill:var(--accent)}
+.sch .dt{fill:var(--accent-ink);font:600 12px var(--mono)}
+.sch .tg{fill:var(--accent);font:600 14px var(--mono)}
+.sch .ar{stroke:var(--accent);stroke-width:2;fill:none}
+.sch .mesh{stroke:var(--muted);stroke-dasharray:3 3;fill:none}
+.sch .ball{fill:var(--muted);stroke:var(--ink)}
+.sch .agg{fill:var(--asph);stroke:var(--ink);stroke-width:.6}
+.sch .hot{fill:var(--accent);opacity:.22}
+.sch .heat{stroke:var(--bad);fill:none;stroke-width:2}
+.sch .lbl{font:600 12px var(--mono);fill:var(--muted)}
+#dlab-ah path{fill:var(--accent)}
+/* Accounts, journal, documents */
+.userbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--muted);padding-top:8px}
+.userbar:empty{display:none}
+.userbar b{color:var(--ink)}
+.role{font:600 10.5px var(--mono);text-transform:uppercase;letter-spacing:.06em;padding:2px 6px;border-radius:4px;background:var(--soft);border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.banner{border:1px dashed var(--line);border-radius:6px;padding:4px 10px}
+.gate{max-width:440px;margin:24px auto 40px;display:grid;gap:14px}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{flex:1;font:600 13px var(--body);padding:8px;border:0;background:var(--sheet);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.err{color:var(--bad);font-size:13px;margin:0}
+.okmsg{color:var(--ok);font-size:13px;margin:0}
+button.b.sm,label.b.sm{padding:5px 10px;font-size:12.5px}
+button.b:disabled{opacity:.5;cursor:default}
+label.b{font:600 13.5px var(--body);border-radius:8px;padding:9px 14px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer;width:max-content}
+.sitefoot{padding-top:24px;padding-bottom:24px;font-size:12px;color:var(--muted);text-align:center}
+.rpick{margin:6px 0 10px;border:1px solid var(--line);border-radius:10px;padding:8px 12px}.rpick summary{cursor:pointer;font-weight:600;padding:4px 0}.rpick fieldset{border:0;margin:8px 0 0;padding:0;display:grid;gap:6px}.rpick legend{font-size:13px;color:var(--muted);font-weight:600;padding:0;margin-bottom:2px}.rpick label{display:flex;gap:8px;align-items:flex-start;font-size:14px;cursor:pointer}.rpick input{width:18px;height:18px;flex:none;accent-color:var(--accent);margin-top:1px}
+.kchips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}.kchips .chip{border:1px solid var(--line);background:none;color:var(--ink);border-radius:999px;padding:6px 12px;font:inherit;font-size:14px;cursor:pointer}.kchips .chip.on{border-color:var(--accent);color:var(--accent);font-weight:600}.kchips .chip b{margin-left:4px;color:var(--muted)}.ktag{font-size:12px;padding:2px 8px;border-radius:10px;border:1px solid var(--line);white-space:nowrap}.ktag.k-asph{border-color:var(--asph,var(--line))}.ktag.k-bit{border-color:var(--bitu,var(--line))}.ktag.k-gr{border-color:var(--accent)}
+.jrow{cursor:pointer}.jrow:hover td,.jrow:focus-visible td{background:var(--soft)}
+.code{font:600 17px var(--mono);letter-spacing:.12em;color:var(--ink)}
+.cur{font-size:13px;color:var(--muted);margin:0}
+.pill.wait{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
+button.link{background:none;border:0;padding:0;font:inherit;color:var(--accent);cursor:pointer;text-align:left;text-decoration:underline}
+textarea{font:inherit;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:7px 8px;width:100%;resize:vertical}
+label.f.wide{grid-column:1/-1}
+.notes{white-space:pre-wrap;font-size:13px;margin:0}
+.mxt td input{min-width:56px}
+.pdfsheet{--bg:#fff;--sheet:#fff;--ink:#111;--muted:#444;--line:#bbb;--soft:#f2f2f2;--ok:#1E7A46;--bad:#B8322A;--na:#666;--accent:#A65B12;background:#fff;color:#111;width:186mm;display:grid;gap:10px;font-family:var(--body);font-size:12px}
+.pdfsheet .tbl{overflow:visible}
+@media (max-width:520px){.sign{grid-template-columns:1fr}.card{padding:14px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top pad"><div class="wrap hrow">
+  <div><h1 id="t_title"></h1><p class="sub" id="t_sub"></p></div>
+  <div class="lang" role="group" aria-label="Language">
+    <button data-lang="ru">RU</button><button data-lang="fr">FR</button><button data-lang="en">EN</button><button data-lang="kk">ҚАЗ</button><button data-lang="zh">中文</button>
+  </div>
+</div><div class="wrap userbar" id="userbar"></div></header>
+
+<div class="pad"><div class="wrap" id="gate" hidden></div></div>
+
+<nav class="tabs pad"><div class="wrap row" role="tablist" id="tabs"></div></nav>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><marker id="dlab-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z"/></marker></defs></svg>
+<main class="pad"><div class="wrap" id="main"></div></main>
+<footer class="pad sitefoot"><div class="wrap">© 2026 DorLabKZ. Все права защищены · Tous droits réservés · All rights reserved.</div></footer>
+
+<script src="config.js"></script>
+<script src="lang-extra.js"></script>
+<script src="advisor.js"></script>
+<script src="lib-engine.js"></script>
+<script src="guide.js"></script>
+<script src="brand.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+(function(){
+"use strict";
+var KEY="dorlab-v2";
+var $=function(id){return document.getElementById(id)};
+function num(v){if(v===undefined||v===null)return NaN;v=String(v).replace(",",".").trim();return v===""?NaN:Number(v)}
+function f(x,d){return isFinite(x)?x.toFixed(d):"—"}
+function avg(a){a=a.filter(isFinite);return a.length?a.reduce(function(s,x){return s+x},0)/a.length:NaN}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+
+/* =================== TEXTS =================== */
+var T={
+ru:{title:"DorLabKZ · журнал испытаний",sub:"Асфальтобетон, битум, зерновой состав и ЩМА: методика по шагам, расчёт, проверка по требованиям, протокол.",
+ tabs:{ab:"Асфальтобетон",bit:"Битум",gr:"Зерновой состав / ЩМА",pr:"Протокол",cv:"Единицы"},
+ method:"Методика: как провести испытание и куда записать результат",equip:"Оборудование",
+ ok:"Соответствует",bad:"Не соответствует",na:"Нет данных",repeat:"Повторить",ref:"справочно",min:"мин",max:"макс",notLess:"не менее",notMore:"не более",
+ sample:"Образец",det:"Определение",massUnit:"Единица массы",loadUnit:"Единица нагрузки",
+ abH:"Физико-механические свойства",abHint:"Методы по СТ РК 1218 (аналог ГОСТ 12801). Три параллельных образца, результат — среднее.",
+ mixType:"Вид смеси",types:{A:"Плотный, тип А",B:"Плотный, тип Б",V:"Плотный, тип В",SMA:"ЩМА (ГОСТ 31015)"},
+ rw:"Плотность воды ρw, г/см³",rho:"Истинная плотность смеси ρ, г/см³",rhom:"Истинная плотность мин. части ρм, г/см³",q:"Битум сверх 100 % мин. части q, %",d:"Диаметр образца d, мм",
+ weighH:"Взвешивания",wcols:["m — сухой на воздухе","m₁ — после 30 мин в воде, на воздухе","m₂ — в воде","m₃ — после водонасыщения, на воздухе"],
+ loadH:"Разрушающая нагрузка P",pcols:["при 50 °C","при 20 °C","при 0 °C","20 °C после водонасыщения"],
+ resH:"Результаты и соответствие",rcols:["Показатель","Результат","Требование (мин – макс)","Вывод"],
+ abRows:{rhoM:"Средняя плотность ρm, г/см³",Vres:"Остаточная пористость, %",Vmin:"Пористость минеральной части, %",W:"Водонасыщение, % по объёму",R50:"Предел прочности при 50 °C, МПа",R20:"Предел прочности при 20 °C, МПа",R0:"Предел прочности при 0 °C, МПа",Kw:"Коэффициент водостойкости"},
+ abNote:"Требования заполнены по ГОСТ 9128 / ГОСТ 31015 для марки I как отправная точка. Сверьте со своей редакцией СТ РК 1225 и проектом — каждое поле можно изменить.",
+ unitNote:"Все массы в таблице — в одной единице. Нагрузка пересчитывается в кН автоматически.",
+ bitH:"Нефтяной дорожный битум",grade:"Марка",penH:"Глубина проникания иглы при 25 °C, 0,1 мм",penF:"3 определения · допустимое расхождение: до 49 — 2; 50–149 — 4; 150–249 — 6; 250+ — 8 ед.",
+ kishH:"Температура размягчения (КиШ), °C",kishF:"2 определения · расхождение не более 1 °C",ductH:"Растяжимость при 25 °C, см",ductF:"3 определения · отклонение от среднего не более 10 %",
+ bcols:["Показатель","Результат","Сходимость","Требование","Вывод"],bitRows:{pen:"Глубина проникания иглы при 25 °C, 0,1 мм",kish:"Температура размягчения, °C",duct:"Растяжимость при 25 °C, см"},
+ tolTxt:"допуск",dev:"откл.",bitNote:"Пределы марок — по ГОСТ 22245. Если работаете по СТ РК 1373, измените пределы в таблице.",
+ grH:"Зерновой состав минеральной части",grHint:"Введите массу остатков на ситах. Пределы проходов — из вашего рецепта (здесь пример).",total:"Масса навески",
+ gcols:["Сито, мм","Остаток","Частный, %","Полный, %","Проход, %","Мин","Макс","Вывод"],bottom:"дно",loss:"Потери при рассеве",lossT:"сумма остатков сравнивается с навеской",axis:"сито, мм (лог.)",
+ bcH:"Содержание битума (выжигание / экстрагирование)",m0:"Масса смеси до",m1b:"Масса мин. части после",target:"По рецепту, % сверх 100",tol:"Допуск ±, %",
+ qOver:"Сверх 100 % мин. части",qMass:"По массе смеси",reqW:"Требование",
+ drH:"Стекание вяжущего (ЩМА, ГОСТ 31015)",drm:"Масса смеси m",drm1:"Стакан пустой m₁",drm2:"Стакан после удаления смеси m₂",drmax:"Не более, %",drV:"Стекание",
+ prH:"Данные протокола",lab:"Лаборатория",no:"№ протокола",date:"Дата испытания",obj:"Объект",src:"Место отбора пробы",who:"Лаборант",
+ copy:"Копировать протокол",reset:"Сбросить к примеру",copyHint:"Скопированный текст вставляется в Word или Excel как таблица.",copied:"Протокол скопирован. Вставьте в Word или Excel.",copyFail:"Не удалось скопировать автоматически — выделите текст ниже:",resetDone:"Данные заменены примером.",
+ protoT:"ПРОТОКОЛ ИСПЫТАНИЙ №",material:"Материал",methods:"Методы",mixWord:"Асфальтобетонная смесь",bitWord:"битум",
+ pcolsP:["Материал","Показатель","Результат","Требование","Вывод"],matAB:"Асфальтобетон",matBit:"Битум",matMin:"Мин. часть",matMix:"Смесь",matSMA:"ЩМА",
+ grRow:"Зерновой состав (проходы по ситам)",grOut:"сит вне пределов",grIn:"в пределах",byRecipe:"по рецепту",bcRow:"Содержание битума, % сверх 100 % мин. части",drRow:"Стекание вяжущего, %",
+ concl:"Заключение",passAll:"Проба соответствует требованиям по испытанным показателям",failN:"Проба НЕ соответствует требованиям",ind:"показ.",naNote:"показ. без требования или без данных — в заключении не учтены.",
+ tester:"Испытание провёл",head:"Заведующий лабораторией",example:"Пример: участок км 12+400",labDef:"Дорожная лаборатория",srcDef:"АБЗ, кузов автосамосвала",
+ cvH:"Перевод единиц",cvHint:"Для весов, пресса и прочности. Введите значение слева.",cvMass:"Масса",cvForce:"Сила (нагрузка пресса)",cvStress:"Напряжение (прочность)",
+ units:{g:"г",kg:"кг",t:"т",N:"Н",kN:"кН",kgf:"кгс",tf:"тс",MPa:"МПа",kgfcm2:"кгс/см²"}},
+fr:{title:"DorLabKZ · journal d'essais",sub:"Enrobé, bitume, granulométrie et SMA : méthode pas à pas, calcul, vérification aux exigences, procès-verbal.",
+ tabs:{ab:"Enrobé",bit:"Bitume",gr:"Granulométrie / SMA",pr:"Procès-verbal",cv:"Unités"},
+ method:"Méthode : comment faire l'essai et où noter le résultat",equip:"Matériel",
+ ok:"Conforme",bad:"Non conforme",na:"Pas de données",repeat:"À refaire",ref:"pour info",min:"min",max:"max",notLess:"au moins",notMore:"au plus",
+ sample:"Éprouvette",det:"Mesure",massUnit:"Unité de masse",loadUnit:"Unité de charge",
+ abH:"Propriétés physico-mécaniques",abHint:"Méthodes selon СТ РК 1218 (équivalent ГОСТ 12801). Trois éprouvettes parallèles, le résultat est la moyenne.",
+ mixType:"Type d'enrobé",types:{A:"Dense, type А",B:"Dense, type Б",V:"Dense, type В",SMA:"SMA / ЩМА (ГОСТ 31015)"},
+ rw:"Masse volumique de l'eau ρw, g/cm³",rho:"Masse volumique réelle du mélange ρ, g/cm³",rhom:"Masse volumique réelle de la partie minérale ρм, g/cm³",q:"Bitume en plus de 100 % de minéral q, %",d:"Diamètre de l'éprouvette d, mm",
+ weighH:"Pesées",wcols:["m — sèche, à l'air","m₁ — après 30 min dans l'eau, à l'air","m₂ — dans l'eau","m₃ — après saturation, à l'air"],
+ loadH:"Charge de rupture P",pcols:["à 50 °C","à 20 °C","à 0 °C","20 °C après saturation"],
+ resH:"Résultats et conformité",rcols:["Caractéristique","Résultat","Exigence (min – max)","Conclusion"],
+ abRows:{rhoM:"Masse volumique moyenne ρm, g/cm³",Vres:"Porosité résiduelle, %",Vmin:"Porosité de la partie minérale, %",W:"Absorption d'eau, % en volume",R50:"Résistance en compression à 50 °C, MPa",R20:"Résistance en compression à 20 °C, MPa",R0:"Résistance en compression à 0 °C, MPa",Kw:"Coefficient de tenue à l'eau"},
+ abNote:"Les exigences viennent de ГОСТ 9128 / ГОСТ 31015 (marque I) comme point de départ. Vérifie-les avec ton édition de СТ РК 1225 et le projet : chaque champ se modifie.",
+ unitNote:"Toutes les masses du tableau dans la même unité. La charge est convertie en kN automatiquement.",
+ bitH:"Bitume routier de pétrole",grade:"Grade",penH:"Pénétration de l'aiguille à 25 °C, 0,1 mm",penF:"3 mesures · écart admis : jusqu'à 49 — 2 ; 50–149 — 4 ; 150–249 — 6 ; 250+ — 8 unités",
+ kishH:"Point de ramollissement (bille et anneau), °C",kishF:"2 mesures · écart au plus 1 °C",ductH:"Ductilité à 25 °C, cm",ductF:"3 mesures · écart à la moyenne au plus 10 %",
+ bcols:["Caractéristique","Résultat","Répétabilité","Exigence","Conclusion"],bitRows:{pen:"Pénétration à 25 °C, 0,1 mm",kish:"Point de ramollissement, °C",duct:"Ductilité à 25 °C, cm"},
+ tolTxt:"tolérance",dev:"écart",bitNote:"Limites des grades selon ГОСТ 22245. Si tu travailles selon СТ РК 1373, modifie les limites dans le tableau.",
+ grH:"Granulométrie de la partie minérale",grHint:"Saisis la masse des refus sur chaque tamis. Les limites des passants viennent de ta formule (ici un exemple).",total:"Masse de l'échantillon",
+ gcols:["Tamis, mm","Refus","Partiel, %","Cumulé, %","Passant, %","Min","Max","Conclusion"],bottom:"fond",loss:"Perte au tamisage",lossT:"somme des refus comparée à la masse de départ",axis:"tamis, mm (log)",
+ bcH:"Teneur en bitume (calcination / extraction)",m0:"Masse du mélange avant",m1b:"Masse minérale après",target:"Formule, % en plus de 100",tol:"Tolérance ±, %",
+ qOver:"En plus de 100 % de minéral",qMass:"En masse du mélange",reqW:"Exigence",
+ drH:"Égouttage du liant (SMA, ГОСТ 31015)",drm:"Masse du mélange m",drm1:"Bécher vide m₁",drm2:"Bécher après vidage m₂",drmax:"Au plus, %",drV:"Égouttage",
+ prH:"Données du procès-verbal",lab:"Laboratoire",no:"N° du PV",date:"Date d'essai",obj:"Chantier",src:"Lieu de prélèvement",who:"Laborantin",
+ copy:"Copier le PV",reset:"Revenir à l'exemple",copyHint:"Le texte copié se colle dans Word ou Excel sous forme de tableau.",copied:"PV copié. Colle-le dans Word ou Excel.",copyFail:"Copie automatique impossible — sélectionne le texte ci-dessous :",resetDone:"Données remplacées par l'exemple.",
+ protoT:"PROCÈS-VERBAL D'ESSAIS N°",material:"Matériau",methods:"Méthodes",mixWord:"Enrobé",bitWord:"bitume",
+ pcolsP:["Matériau","Caractéristique","Résultat","Exigence","Conclusion"],matAB:"Enrobé",matBit:"Bitume",matMin:"Partie minérale",matMix:"Mélange",matSMA:"SMA",
+ grRow:"Granulométrie (passants par tamis)",grOut:"tamis hors limites",grIn:"dans les limites",byRecipe:"selon formule",bcRow:"Teneur en bitume, % en plus de 100 % de minéral",drRow:"Égouttage du liant, %",
+ concl:"Conclusion",passAll:"L'échantillon est conforme pour les caractéristiques testées",failN:"L'échantillon N'EST PAS conforme",ind:"caract.",naNote:"caract. sans exigence ou sans données — non prises en compte.",
+ tester:"Essai réalisé par",head:"Chef de laboratoire",example:"Exemple : tronçon km 12+400",labDef:"Laboratoire routier",srcDef:"Centrale d'enrobage, benne du camion",
+ cvH:"Conversion d'unités",cvHint:"Pour la balance, la presse et la résistance. Saisis la valeur à gauche.",cvMass:"Masse",cvForce:"Force (charge de la presse)",cvStress:"Contrainte (résistance)",
+ units:{g:"g",kg:"kg",t:"t",N:"N",kN:"kN",kgf:"kgf",tf:"tf",MPa:"MPa",kgfcm2:"kgf/cm²"}},
+en:{title:"DorLabKZ · test log",sub:"Asphalt concrete, bitumen, grading and SMA: step-by-step method, calculation, compliance check, test report.",
+ tabs:{ab:"Asphalt",bit:"Bitumen",gr:"Grading / SMA",pr:"Report",cv:"Units"},
+ method:"Method: how to run the test and where to record the result",equip:"Equipment",
+ ok:"Compliant",bad:"Non-compliant",na:"No data",repeat:"Repeat",ref:"for reference",min:"min",max:"max",notLess:"at least",notMore:"at most",
+ sample:"Specimen",det:"Reading",massUnit:"Mass unit",loadUnit:"Load unit",
+ abH:"Physical and mechanical properties",abHint:"Methods per СТ РК 1218 (equivalent to ГОСТ 12801). Three parallel specimens; the result is the mean.",
+ mixType:"Mix type",types:{A:"Dense, type А",B:"Dense, type Б",V:"Dense, type В",SMA:"SMA (ГОСТ 31015)"},
+ rw:"Water density ρw, g/cm³",rho:"Maximum density of mix ρ, g/cm³",rhom:"True density of mineral part ρм, g/cm³",q:"Bitumen over 100 % mineral q, %",d:"Specimen diameter d, mm",
+ weighH:"Weighings",wcols:["m — dry, in air","m₁ — after 30 min in water, in air","m₂ — in water","m₃ — after saturation, in air"],
+ loadH:"Failure load P",pcols:["at 50 °C","at 20 °C","at 0 °C","20 °C after saturation"],
+ resH:"Results and compliance",rcols:["Property","Result","Requirement (min – max)","Verdict"],
+ abRows:{rhoM:"Bulk density ρm, g/cm³",Vres:"Residual porosity, %",Vmin:"Voids in mineral aggregate, %",W:"Water saturation, % by volume",R50:"Compressive strength at 50 °C, MPa",R20:"Compressive strength at 20 °C, MPa",R0:"Compressive strength at 0 °C, MPa",Kw:"Water resistance coefficient"},
+ abNote:"Requirements are pre-filled from ГОСТ 9128 / ГОСТ 31015 (grade I) as a starting point. Check them against your edition of СТ РК 1225 and the design — every field is editable.",
+ unitNote:"Use the same unit for all masses in the table. Load is converted to kN automatically.",
+ bitH:"Paving-grade petroleum bitumen",grade:"Grade",penH:"Needle penetration at 25 °C, 0.1 mm",penF:"3 readings · allowed spread: up to 49 — 2; 50–149 — 4; 150–249 — 6; 250+ — 8 units",
+ kishH:"Softening point (ring and ball), °C",kishF:"2 readings · spread at most 1 °C",ductH:"Ductility at 25 °C, cm",ductF:"3 readings · deviation from mean at most 10 %",
+ bcols:["Property","Result","Repeatability","Requirement","Verdict"],bitRows:{pen:"Penetration at 25 °C, 0.1 mm",kish:"Softening point, °C",duct:"Ductility at 25 °C, cm"},
+ tolTxt:"limit",dev:"dev.",bitNote:"Grade limits per ГОСТ 22245. If you work to СТ РК 1373, edit the limits in the table.",
+ grH:"Grading of the mineral part",grHint:"Enter the mass retained on each sieve. Passing limits come from your job mix (example shown).",total:"Sample mass",
+ gcols:["Sieve, mm","Retained","Partial, %","Cumulative, %","Passing, %","Min","Max","Verdict"],bottom:"pan",loss:"Sieving loss",lossT:"sum of retained vs. starting mass",axis:"sieve, mm (log)",
+ bcH:"Binder content (ignition / extraction)",m0:"Mix mass before",m1b:"Mineral mass after",target:"Job mix, % over 100",tol:"Tolerance ±, %",
+ qOver:"Over 100 % mineral",qMass:"By mass of mix",reqW:"Requirement",
+ drH:"Binder drainage (SMA, ГОСТ 31015)",drm:"Mix mass m",drm1:"Empty beaker m₁",drm2:"Beaker after emptying m₂",drmax:"At most, %",drV:"Drainage",
+ prH:"Report details",lab:"Laboratory",no:"Report No.",date:"Test date",obj:"Project",src:"Sampling point",who:"Technician",
+ copy:"Copy report",reset:"Reset to example",copyHint:"The copied text pastes into Word or Excel as a table.",copied:"Report copied. Paste it into Word or Excel.",copyFail:"Automatic copy failed — select the text below:",resetDone:"Data replaced with the example.",
+ protoT:"TEST REPORT No.",material:"Material",methods:"Methods",mixWord:"Asphalt mix",bitWord:"bitumen",
+ pcolsP:["Material","Property","Result","Requirement","Verdict"],matAB:"Asphalt",matBit:"Bitumen",matMin:"Mineral part",matMix:"Mix",matSMA:"SMA",
+ grRow:"Grading (passing per sieve)",grOut:"sieves out of limits",grIn:"within limits",byRecipe:"per job mix",bcRow:"Binder content, % over 100 % mineral",drRow:"Binder drainage, %",
+ concl:"Conclusion",passAll:"The sample complies for the properties tested",failN:"The sample does NOT comply",ind:"prop.",naNote:"prop. without a requirement or data — not counted.",
+ tester:"Tested by",head:"Head of laboratory",example:"Example: section km 12+400",labDef:"Road laboratory",srcDef:"Asphalt plant, truck body",
+ cvH:"Unit converter",cvHint:"For the balance, the press and strength. Enter a value on the left.",cvMass:"Mass",cvForce:"Force (press load)",cvStress:"Stress (strength)",
+ units:{g:"g",kg:"kg",t:"t",N:"N",kN:"kN",kgf:"kgf",tf:"tf",MPa:"MPa",kgfcm2:"kgf/cm²"}}
+};
+
+/* ---------- texts: accounts, journal, documents, mix design, PDF ---------- */
+var T2={
+ru:{tabs:{jr:"Журнал",mx:"Подбор состава",docs:"Документы"},
+ welcome:"Вход в DorLabKZ",welcomeHint:"Доступ к лаборатории — по коду приглашения.",login:"Вход",signup:"Регистрация",email:"E-mail",password:"Пароль (не менее 6 символов)",fullname:"Имя и фамилия",doLogin:"Войти",doSignup:"Создать аккаунт",checkMail:"Письмо отправлено. Подтвердите адрес по ссылке, затем войдите.",logout:"Выйти",
+ joinLab:"Присоединиться к лаборатории",joinHint:"Попросите код приглашения у заведующего лабораторией.",inviteCode:"Код приглашения",doJoin:"Присоединиться",createLab:"Создать свою лабораторию",createHint:"Вы станете заведующим и сможете приглашать сотрудников.",labName:"Название лаборатории",doCreate:"Создать",
+ roles:{head:"Зав. лабораторией",tech:"Лаборант",admin:"Администратор"},adminNote:"Режим администратора: только просмотр. Изменения делают сотрудники лаборатории.",allLabs:"Все лаборатории",labW:"Лаборатория",openW:"Открыть",labPick:"Лаборатория для просмотра",created:"Создана",offline:"Демо-режим: база не подключена, данные хранятся только в этом браузере.",
+ jrH:"Испытания лаборатории",newTest:"Новое испытание",empty:"Испытаний пока нет. Заполните вкладки и нажмите «Сохранить» на вкладке «Протокол».",statusW:"Статус",
+ st:{draft:"Черновик",submitted:"На проверке",approved:"Утверждено"},cloudH:"Сохранение в журнал",save:"Сохранить",submit:"Отправить на проверку",approve:"Утвердить",reopen:"Вернуть на доработку",del:"Удалить",confirmQ:"Точно удалить?",saved:"Сохранено в журнал.",
+ current:"Текущее испытание",unsaved:"новое, ещё не сохранено",by:"Автор",you:"вы",locked:"Протокол утверждён. Изменить его может только заведующий лабораторией.",
+ membersH:"Сотрудники",invite:"Код приглашения",inviteHint:"Отправьте код новому сотруднику: после регистрации он вводит его и попадает в вашу лабораторию как лаборант.",copyW:"Копировать",copiedW:"Скопировано",regen:"Новый код",remove:"Исключить",
+ docsH:"Документы лаборатории",docsHint:"Файлы видят только сотрудники вашей лаборатории. До 20 МБ на файл.",upload:"Загрузить файлы",uploading:"Загрузка…",uploaded:"Загружено.",fileW:"Файл",sizeW:"Размер",noDocs:"Документов пока нет.",
+ norms:"Нормативные документы",notes:"Примечания",conclOv:"Заключение своими словами (если пусто — формируется автоматически)",pdf:"Скачать PDF",pdfShare:"PDF в документы лаборатории",pdfWait:"Создаю PDF…",pdfDone:"PDF сохранён в документах лаборатории.",approvedBy:"Утвердил",notesW:"Примечания",
+ mxH:"Подбор зернового состава минеральной части",mxHint:"Шаблоны из вашей таблицы Excel (19 видов смесей). Измените проходы фракций и их доли — состав смеси пересчитывается сразу.",mxSrc:"Карьер / поставщик",passH:"Полные проходы фракций, % (по ситам, мм)",frac:"Фракция",share:"Доля, %",sumPct:"Сумма долей",must100:"должна быть 100 %",addFr:"+ Фракция",resultH:"Полные проходы смеси, %",blend:"Смесь",verdictW:"Вывод",mxRow:"Подбор зернового состава",mxFormula:"Проход смеси на сите = Σ (доля фракции × проход фракции / 100)",
+ errs:{invalid_code:"Неверный код приглашения.",head_only:"Это может сделать только заведующий лабораторией.",approved_locked:"Протокол утверждён — изменить его может только заведующий.",own_role:"Нельзя изменить собственную роль.","Invalid login credentials":"Неверный e-mail или пароль.","Email not confirmed":"Адрес не подтверждён — откройте письмо и нажмите ссылку."}},
+fr:{tabs:{jr:"Journal",mx:"Formulation",docs:"Documents"},
+ welcome:"Connexion à DorLabKZ",welcomeHint:"L'accès à un laboratoire se fait par code d'invitation.",login:"Connexion",signup:"Inscription",email:"E-mail",password:"Mot de passe (6 caractères min.)",fullname:"Prénom et nom",doLogin:"Se connecter",doSignup:"Créer le compte",checkMail:"E-mail envoyé. Confirme ton adresse avec le lien, puis connecte-toi.",logout:"Déconnexion",
+ joinLab:"Rejoindre un laboratoire",joinHint:"Demande le code d'invitation au chef de labo.",inviteCode:"Code d'invitation",doJoin:"Rejoindre",createLab:"Créer mon laboratoire",createHint:"Tu deviens chef de labo et tu peux inviter des collègues.",labName:"Nom du laboratoire",doCreate:"Créer",
+ roles:{head:"Chef de labo",tech:"Laborantin",admin:"Administrateur"},adminNote:"Mode administrateur : lecture seule. Les modifications sont faites par les membres du labo.",allLabs:"Tous les laboratoires",labW:"Laboratoire",openW:"Ouvrir",labPick:"Laboratoire à consulter",created:"Créé le",offline:"Mode démo : base non connectée, les données restent dans ce navigateur.",
+ jrH:"Essais du laboratoire",newTest:"Nouvel essai",empty:"Aucun essai pour l'instant. Remplis les onglets puis clique « Enregistrer » dans l'onglet Procès-verbal.",statusW:"Statut",
+ st:{draft:"Brouillon",submitted:"À vérifier",approved:"Validé"},cloudH:"Enregistrement au journal",save:"Enregistrer",submit:"Envoyer pour vérification",approve:"Valider",reopen:"Renvoyer en correction",del:"Supprimer",confirmQ:"Confirmer ?",saved:"Enregistré au journal.",
+ current:"Essai en cours",unsaved:"nouveau, pas encore enregistré",by:"Auteur",you:"toi",locked:"Procès-verbal validé. Seul le chef de labo peut le modifier.",
+ membersH:"Membres",invite:"Code d'invitation",inviteHint:"Envoie ce code à un nouveau collègue : après son inscription, il le saisit et rejoint ton labo comme laborantin.",copyW:"Copier",copiedW:"Copié",regen:"Nouveau code",remove:"Retirer",
+ docsH:"Documents du laboratoire",docsHint:"Seuls les membres de ton labo voient ces fichiers. 20 Mo max par fichier.",upload:"Envoyer des fichiers",uploading:"Envoi…",uploaded:"Envoyé.",fileW:"Fichier",sizeW:"Taille",noDocs:"Aucun document pour l'instant.",
+ norms:"Documents normatifs",notes:"Remarques",conclOv:"Conclusion rédigée (vide = conclusion automatique)",pdf:"Télécharger le PDF",pdfShare:"PDF dans les documents du labo",pdfWait:"Création du PDF…",pdfDone:"PDF enregistré dans les documents du labo.",approvedBy:"Validé par",notesW:"Remarques",
+ mxH:"Formulation granulométrique de la partie minérale",mxHint:"Modèles repris de ton fichier Excel (19 types de mélanges). Modifie les passants des fractions et leurs pourcentages : le mélange se recalcule tout de suite.",mxSrc:"Carrière / fournisseur",passH:"Passants cumulés des fractions, % (tamis, mm)",frac:"Fraction",share:"Part, %",sumPct:"Somme des parts",must100:"doit faire 100 %",addFr:"+ Fraction",resultH:"Passants cumulés du mélange, %",blend:"Mélange",verdictW:"Conclusion",mxRow:"Formulation granulométrique",mxFormula:"Passant du mélange = Σ (part de la fraction × passant de la fraction / 100)",
+ errs:{invalid_code:"Code d'invitation incorrect.",head_only:"Seul le chef de labo peut faire cela.",approved_locked:"Procès-verbal validé : seul le chef de labo peut le modifier.",own_role:"Tu ne peux pas changer ton propre rôle.","Invalid login credentials":"E-mail ou mot de passe incorrect.","Email not confirmed":"Adresse non confirmée : ouvre l'e-mail et clique sur le lien."}},
+en:{tabs:{jr:"Log",mx:"Mix design",docs:"Documents"},
+ welcome:"Sign in to DorLabKZ",welcomeHint:"Access to a laboratory is by invite code.",login:"Sign in",signup:"Sign up",email:"Email",password:"Password (at least 6 characters)",fullname:"Full name",doLogin:"Sign in",doSignup:"Create account",checkMail:"Email sent. Confirm your address with the link, then sign in.",logout:"Sign out",
+ joinLab:"Join a laboratory",joinHint:"Ask the head of the lab for the invite code.",inviteCode:"Invite code",doJoin:"Join",createLab:"Create my laboratory",createHint:"You become head of the lab and can invite colleagues.",labName:"Laboratory name",doCreate:"Create",
+ roles:{head:"Head of lab",tech:"Technician",admin:"Administrator"},adminNote:"Administrator mode: view only. Changes are made by lab members.",allLabs:"All laboratories",labW:"Laboratory",openW:"Open",labPick:"Laboratory to view",created:"Created",offline:"Demo mode: no database connected, data stays in this browser.",
+ jrH:"Laboratory tests",newTest:"New test",empty:"No tests yet. Fill in the tabs, then click Save on the Report tab.",statusW:"Status",
+ st:{draft:"Draft",submitted:"For review",approved:"Approved"},cloudH:"Save to the log",save:"Save",submit:"Send for review",approve:"Approve",reopen:"Send back for changes",del:"Delete",confirmQ:"Confirm?",saved:"Saved to the log.",
+ current:"Current test",unsaved:"new, not saved yet",by:"Author",you:"you",locked:"This report is approved. Only the head of lab can change it.",
+ membersH:"Members",invite:"Invite code",inviteHint:"Send this code to a new colleague: after signing up they enter it and join your lab as a technician.",copyW:"Copy",copiedW:"Copied",regen:"New code",remove:"Remove",
+ docsH:"Laboratory documents",docsHint:"Only members of your lab can see these files. Up to 20 MB per file.",upload:"Upload files",uploading:"Uploading…",uploaded:"Uploaded.",fileW:"File",sizeW:"Size",noDocs:"No documents yet.",
+ norms:"Standards",notes:"Remarks",conclOv:"Written conclusion (empty = automatic conclusion)",pdf:"Download PDF",pdfShare:"PDF to lab documents",pdfWait:"Creating PDF…",pdfDone:"PDF saved to the lab documents.",approvedBy:"Approved by",notesW:"Remarks",
+ mxH:"Aggregate blend design",mxHint:"Templates from your Excel workbook (19 mix types). Change the fraction passing values and shares; the blend recalculates at once.",mxSrc:"Quarry / supplier",passH:"Fraction passing, % (sieves, mm)",frac:"Fraction",share:"Share, %",sumPct:"Sum of shares",must100:"must be 100 %",addFr:"+ Fraction",resultH:"Blend passing, %",blend:"Blend",verdictW:"Verdict",mxRow:"Aggregate blend design",mxFormula:"Blend passing = Σ (fraction share × fraction passing / 100)",
+ errs:{invalid_code:"Wrong invite code.",head_only:"Only the head of lab can do this.",approved_locked:"This report is approved; only the head of lab can change it.",own_role:"You cannot change your own role.","Invalid login credentials":"Wrong email or password.","Email not confirmed":"Address not confirmed: open the email and click the link."}}
+};
+["ru","fr","en"].forEach(function(l){var x=T2[l];Object.keys(x.tabs).forEach(function(k){T[l].tabs[k]=x.tabs[k]});delete x.tabs;Object.assign(T[l],x)});
+var XL=window.DORLAB_LANGS||{};Object.keys(XL).forEach(function(l){var x=XL[l].T,o={};Object.keys(T.ru).forEach(function(k){var v=T.ru[k];o[k]=(v&&typeof v==="object"&&!Array.isArray(v))?Object.assign({},v,x[k]||{}):(x[k]!==undefined?x[k]:v)});T[l]=o});
+var NORMS_DEF="СТ РК 1225-2019, СТ РК 1218, СТ РК 1373-2013, СТ РК 2034-2014, СТ РК 1211-2003, ГОСТ 12801, ГОСТ 22245, ГОСТ 33133, ГОСТ 11501, ГОСТ 11505, ГОСТ 11506, ГОСТ 31015";
+
+/* ---------- step-by-step methods (tag = field it fills) ---------- */
+var M={
+ru:{
+ dens:{t:"Средняя плотность и водонасыщение (СТ РК 1218 / ГОСТ 12801)",e:"Весы с точностью 0,01 г, приспособление для взвешивания в воде, ванна с водой 20 ± 2 °C, вакуумный прибор, мягкая ткань.",
+  s:[["Отформуйте 3 образца (d = 71,4 мм для смесей с зёрнами до 20 мм) и выдержите их при комнатной температуре не менее 16 ч.",""],
+     ["Очистите образец от пыли и взвесьте сухим на воздухе.","m"],
+     ["Опустите образец в воду 20 ± 2 °C на 30 мин.",""],
+     ["Взвесьте образец, подвешенный в воде.","m₂"],
+     ["Достаньте образец, промокните поверхность мягкой тканью и сразу взвесьте на воздухе.","m₁"],
+     ["Для водонасыщения поместите образцы в сосуд с водой 20 °C, создайте вакуум не более 2 кПа на 1 ч, затем выдержите при атмосферном давлении 30 мин.",""],
+     ["Достаньте, промокните и взвесьте на воздухе.","m₃"],
+     ["Повторите для образцов 2 и 3. Приложение считает ρm, W, пористость и среднее.",""]]},
+ str:{t:"Предел прочности при сжатии и водостойкость",e:"Пресс со скоростью движения плиты 3,0 ± 0,15 мм/мин, термостат или водяная ванна, термометр.",
+  s:[["Выдержите образцы в воде при заданной температуре: 50 ± 2 °C или 20 ± 2 °C, не менее 1 ч. Для 0 °C — в холодильной камере или ванне со льдом.",""],
+     ["Измерьте диаметр образца и введите его в поле d.","d"],
+     ["Установите образец по центру плиты пресса и нагружайте до разрушения.",""],
+     ["Запишите максимальную нагрузку по шкале пресса — в кН, кгс или тс, приложение переведёт.","P"],
+     ["Для водостойкости испытайте при 20 °C образцы после водонасыщения (шаг 6 выше).","P вод"],
+     ["Kв = R после водонасыщения / R при 20 °C — считается автоматически.",""]]},
+ bit:{
+ pen:{t:"Глубина проникания иглы (ГОСТ 11501)",e:"Пенетрометр, игла, груз 100 г, водяная баня 25 ± 0,1 °C, секундомер.",
+  s:[["Разогрейте битум до подвижного состояния, процедите и налейте в чашку.",""],["Охладите на воздухе 1–1,5 ч, затем в бане при 25 °C 1–1,5 ч.",""],["Подведите иглу к поверхности, отпустите на 5 с и снимите показание.","Опр. 1"],["Сделайте ещё 2 определения в точках не ближе 10 мм от краёв и друг от друга, очищая иглу.","Опр. 2–3"]]},
+ kish:{t:"Температура размягчения по КиШ (ГОСТ 11506)",e:"Аппарат КиШ, кольца, шарики 3,5 г, термометр, нагрев 5 °C/мин.",
+  s:[["Залейте битум в 2 кольца, охладите, срежьте излишки нагретым ножом.",""],["Установите кольца с шариками в аппарат с водой (или глицерином выше 80 °C).",""],["Нагревайте со скоростью 5 °C/мин.",""],["Запишите температуру, при которой битум с шариком коснётся нижней пластины — для каждого кольца.","Опр. 1–2"]]},
+ duct:{t:"Растяжимость (ГОСТ 11505)",e:"Дуктилометр, формы-восьмёрки, баня 25 °C, скорость растяжения 5 см/мин.",
+  s:[["Залейте битум в 3 формы, охладите и срежьте излишки.",""],["Выдержите в воде дуктилометра при 25 °C 1–1,5 ч.",""],["Растягивайте со скоростью 5 см/мин до разрыва нити.",""],["Запишите длину в момент разрыва, см.","Опр. 1–3"]]}},
+ gr:{
+ sieve:{t:"Зерновой состав",e:"Набор сит, весы, сушильный шкаф.",
+  s:[["Возьмите минеральную часть после выжигания или экстрагирования, высушите до постоянной массы и взвесьте.","Навеска"],["Просейте через набор сит от крупного к мелкому.",""],["Взвесьте остаток на каждом сите и на дне.","Остаток"],["Сумма остатков должна быть близка к навеске — приложение показывает потери.",""]]},
+ bc:{t:"Содержание битума",e:"Муфельная печь или экстрактор, весы.",
+  s:[["Взвесьте пробу смеси.","m₀"],["Выжгите или экстрагируйте битум, остудите минеральную часть.",""],["Взвесьте минеральную часть.","m₁"]]},
+ dr:{t:"Стекание вяжущего (ГОСТ 31015)",e:"Стеклянный стакан, сушильный шкаф, весы.",
+  s:[["Взвесьте пустой стакан.","m₁"],["Положите в стакан пробу смеси и взвесьте её.","m"],["Выдержите в шкафу при температуре по ГОСТ 31015 (около 170 °C) 1 ч.",""],["Высыпьте смесь, не встряхивая, и взвесьте стакан с остатками вяжущего.","m₂"]]}}},
+fr:{
+ dens:{t:"Masse volumique et absorption d'eau (СТ РК 1218 / ГОСТ 12801)",e:"Balance à 0,01 g, dispositif de pesée hydrostatique, bain d'eau à 20 ± 2 °C, appareil à vide, chiffon doux.",
+  s:[["Confectionne 3 éprouvettes (d = 71,4 mm pour les mélanges jusqu'à 20 mm) et laisse-les au moins 16 h à température ambiante.",""],
+     ["Dépoussière l'éprouvette et pèse-la sèche à l'air.","m"],
+     ["Plonge-la 30 min dans l'eau à 20 ± 2 °C.",""],
+     ["Pèse-la suspendue dans l'eau.","m₂"],
+     ["Sors-la, essuie la surface avec un chiffon doux et pèse-la tout de suite à l'air.","m₁"],
+     ["Pour la saturation, mets les éprouvettes dans l'eau à 20 °C, fais le vide (2 kPa au plus) pendant 1 h, puis laisse 30 min à pression atmosphérique.",""],
+     ["Sors, essuie et pèse à l'air.","m₃"],
+     ["Recommence pour les éprouvettes 2 et 3. L'appli calcule ρm, W, la porosité et la moyenne.",""]]},
+ str:{t:"Résistance en compression et tenue à l'eau",e:"Presse à 3,0 ± 0,15 mm/min, étuve ou bain d'eau, thermomètre.",
+  s:[["Garde les éprouvettes dans l'eau à la température d'essai : 50 ± 2 °C ou 20 ± 2 °C, au moins 1 h. Pour 0 °C : enceinte froide ou bain avec glace.",""],
+     ["Mesure le diamètre et saisis-le dans le champ d.","d"],
+     ["Centre l'éprouvette sur le plateau et charge jusqu'à la rupture.",""],
+     ["Note la charge maximale lue sur la presse, en kN, kgf ou tf : l'appli convertit.","P"],
+     ["Pour la tenue à l'eau, écrase à 20 °C les éprouvettes saturées (étape 6 ci-dessus).","P eau"],
+     ["Kв = R après saturation / R à 20 °C, calculé automatiquement.",""]]},
+ bit:{
+ pen:{t:"Pénétration à l'aiguille (ГОСТ 11501)",e:"Pénétromètre, aiguille, masse de 100 g, bain à 25 ± 0,1 °C, chronomètre.",
+  s:[["Chauffe le bitume jusqu'à ce qu'il soit fluide, filtre-le et verse-le dans la coupelle.",""],["Laisse refroidir 1 à 1,5 h à l'air, puis 1 à 1,5 h dans le bain à 25 °C.",""],["Amène l'aiguille au contact de la surface, libère-la 5 s et lis la valeur.","Mesure 1"],["Fais 2 autres mesures à au moins 10 mm des bords et des points précédents, en nettoyant l'aiguille.","Mesures 2–3"]]},
+ kish:{t:"Point de ramollissement bille et anneau (ГОСТ 11506)",e:"Appareil bille et anneau, anneaux, billes de 3,5 g, thermomètre, chauffage à 5 °C/min.",
+  s:[["Coule le bitume dans 2 anneaux, laisse refroidir, arase avec un couteau chaud.",""],["Place les anneaux avec les billes dans l'appareil rempli d'eau (glycérine au-dessus de 80 °C).",""],["Chauffe à 5 °C/min.",""],["Note la température à laquelle le bitume et la bille touchent la plaque du bas, pour chaque anneau.","Mesures 1–2"]]},
+ duct:{t:"Ductilité (ГОСТ 11505)",e:"Ductilomètre, moules en huit, bain à 25 °C, vitesse d'étirement 5 cm/min.",
+  s:[["Coule le bitume dans 3 moules, laisse refroidir et arase.",""],["Garde-les 1 à 1,5 h dans l'eau du ductilomètre à 25 °C.",""],["Étire à 5 cm/min jusqu'à la rupture du fil.",""],["Note la longueur au moment de la rupture, en cm.","Mesures 1–3"]]}},
+ gr:{
+ sieve:{t:"Granulométrie",e:"Série de tamis, balance, étuve.",
+  s:[["Prends la partie minérale après calcination ou extraction, sèche-la jusqu'à masse constante et pèse-la.","Masse"],["Tamise du plus gros au plus fin.",""],["Pèse le refus sur chaque tamis et dans le fond.","Refus"],["La somme des refus doit être proche de la masse de départ : l'appli affiche la perte.",""]]},
+ bc:{t:"Teneur en bitume",e:"Four à moufle ou extracteur, balance.",
+  s:[["Pèse l'échantillon de mélange.","m₀"],["Calcine ou extrais le bitume, laisse refroidir la partie minérale.",""],["Pèse la partie minérale.","m₁"]]},
+ dr:{t:"Égouttage du liant (ГОСТ 31015)",e:"Bécher en verre, étuve, balance.",
+  s:[["Pèse le bécher vide.","m₁"],["Mets l'échantillon de mélange dans le bécher et pèse-le.","m"],["Laisse 1 h à l'étuve à la température prévue par ГОСТ 31015 (environ 170 °C).",""],["Vide le mélange sans secouer et pèse le bécher avec le liant resté collé.","m₂"]]}}},
+en:{
+ dens:{t:"Bulk density and water saturation (СТ РК 1218 / ГОСТ 12801)",e:"Balance reading to 0.01 g, underwater weighing frame, water bath at 20 ± 2 °C, vacuum apparatus, soft cloth.",
+  s:[["Mould 3 specimens (d = 71.4 mm for mixes up to 20 mm) and keep them at room temperature for at least 16 h.",""],
+     ["Clean off dust and weigh the specimen dry in air.","m"],
+     ["Immerse it in water at 20 ± 2 °C for 30 min.",""],
+     ["Weigh it suspended in water.","m₂"],
+     ["Take it out, blot the surface with a soft cloth and weigh it in air straight away.","m₁"],
+     ["For saturation, put the specimens in water at 20 °C, apply vacuum (2 kPa max) for 1 h, then hold 30 min at atmospheric pressure.",""],
+     ["Take out, blot and weigh in air.","m₃"],
+     ["Repeat for specimens 2 and 3. The app computes ρm, W, porosity and the mean.",""]]},
+ str:{t:"Compressive strength and water resistance",e:"Press with platen speed 3.0 ± 0.15 mm/min, oven or water bath, thermometer.",
+  s:[["Keep the specimens in water at the test temperature: 50 ± 2 °C or 20 ± 2 °C, for at least 1 h. For 0 °C use a cold chamber or ice bath.",""],
+     ["Measure the diameter and enter it in field d.","d"],
+     ["Centre the specimen on the platen and load to failure.",""],
+     ["Record the peak load from the press, in kN, kgf or tf; the app converts it.","P"],
+     ["For water resistance, test saturated specimens at 20 °C (step 6 above).","P sat"],
+     ["Kв = R after saturation / R at 20 °C, computed automatically.",""]]},
+ bit:{
+ pen:{t:"Needle penetration (ГОСТ 11501)",e:"Penetrometer, needle, 100 g load, water bath at 25 ± 0.1 °C, stopwatch.",
+  s:[["Heat the bitumen until fluid, strain it and pour into the cup.",""],["Cool 1–1.5 h in air, then 1–1.5 h in the 25 °C bath.",""],["Bring the needle to the surface, release for 5 s and read the dial.","Reading 1"],["Take 2 more readings at least 10 mm from the edges and each other, cleaning the needle.","Readings 2–3"]]},
+ kish:{t:"Ring-and-ball softening point (ГОСТ 11506)",e:"Ring-and-ball apparatus, rings, 3.5 g balls, thermometer, heating at 5 °C/min.",
+  s:[["Pour bitumen into 2 rings, cool, trim the excess with a hot knife.",""],["Place the rings with balls in the apparatus filled with water (glycerine above 80 °C).",""],["Heat at 5 °C/min.",""],["Record the temperature at which bitumen and ball touch the bottom plate, for each ring.","Readings 1–2"]]},
+ duct:{t:"Ductility (ГОСТ 11505)",e:"Ductilometer, figure-eight moulds, 25 °C bath, pulling speed 5 cm/min.",
+  s:[["Pour bitumen into 3 moulds, cool and trim.",""],["Hold 1–1.5 h in the ductilometer water at 25 °C.",""],["Pull at 5 cm/min until the thread breaks.",""],["Record the length at break, in cm.","Readings 1–3"]]}},
+ gr:{
+ sieve:{t:"Grading",e:"Sieve set, balance, drying oven.",
+  s:[["Take the mineral part after ignition or extraction, dry to constant mass and weigh it.","Mass"],["Sieve from coarsest to finest.",""],["Weigh what is retained on each sieve and in the pan.","Retained"],["The sum retained should be close to the starting mass; the app shows the loss.",""]]},
+ bc:{t:"Binder content",e:"Muffle furnace or extractor, balance.",
+  s:[["Weigh the mix sample.","m₀"],["Burn off or extract the bitumen, let the mineral part cool.",""],["Weigh the mineral part.","m₁"]]},
+ dr:{t:"Binder drainage (ГОСТ 31015)",e:"Glass beaker, oven, balance.",
+  s:[["Weigh the empty beaker.","m₁"],["Put the mix sample in the beaker and weigh the sample.","m"],["Hold 1 h in the oven at the temperature set by ГОСТ 31015 (about 170 °C).",""],["Pour out the mix without shaking and weigh the beaker with the binder left on it.","m₂"]]}}}
+};
+/* fix structure: ru dens/str at top level, bit/gr nested — normalise */
+["ru","fr","en"].forEach(function(l){var m=M[l];m.ab={dens:m.dens,str:m.str}});
+Object.keys(XL).forEach(function(l){var m=XL[l].M;m.ab={dens:m.dens,str:m.str};M[l]=m});
+
+/* =================== SCHEMAS =================== */
+var C={
+ru:{dry:"сухой, на воздухе",water:"подвешен в воде",blot:"промокнут, на воздухе",vac:"вакуум ≤ 2 кПа, 1 ч|затем взвесить → m₃",speed:"плита 3 мм/мин, до разрушения",bath:"вода 50 / 20 / 0 °C, ≥ 1 ч",pen:"баня 25 °C · игла 5 с",pts:"3 точки, ≥ 10 мм от края",heat:"нагрев 5 °C/мин",touch:"битум с шариком коснулся пластины → T",fixed:"неподвижный зажим",moving:"5 см/мин",len:"L — длина нити при разрыве, см",weigh:"взвесить остаток каждого сита",sum:"Σ остатков ≈ навеска",pan:"дно",sample:"проба смеси",furnace:"выжигание / экстракция",mineral:"минеральная часть",oven:"шкаф ≈ 170 °C, 1 ч",empty:"пустой стакан",mix:"стакан + смесь",film:"после высыпания:|плёнка вяжущего",g100:"100 г",mm25:"25 мм"},
+fr:{dry:"sèche, à l'air",water:"suspendue dans l'eau",blot:"essuyée, à l'air",vac:"vide ≤ 2 kPa, 1 h|puis peser → m₃",speed:"plateau 3 mm/min, jusqu'à rupture",bath:"eau 50 / 20 / 0 °C, ≥ 1 h",pen:"bain 25 °C · aiguille 5 s",pts:"3 points, ≥ 10 mm du bord",heat:"chauffage 5 °C/min",touch:"bitume et bille touchent la plaque → T",fixed:"pince fixe",moving:"5 cm/min",len:"L — longueur du fil à la rupture, cm",weigh:"peser le refus de chaque tamis",sum:"Σ refus ≈ masse de départ",pan:"fond",sample:"échantillon d'enrobé",furnace:"calcination / extraction",mineral:"partie minérale",oven:"étuve ≈ 170 °C, 1 h",empty:"bécher vide",mix:"bécher + enrobé",film:"après vidage :|film de liant",g100:"100 g",mm25:"25 mm"},
+en:{dry:"dry, in air",water:"suspended in water",blot:"blotted, in air",vac:"vacuum ≤ 2 kPa, 1 h|then weigh → m₃",speed:"platen 3 mm/min, to failure",bath:"water 50 / 20 / 0 °C, ≥ 1 h",pen:"25 °C bath · needle 5 s",pts:"3 points, ≥ 10 mm from edge",heat:"heating 5 °C/min",touch:"bitumen and ball touch the plate → T",fixed:"fixed clamp",moving:"5 cm/min",len:"L — thread length at break, cm",weigh:"weigh what each sieve retains",sum:"Σ retained ≈ starting mass",pan:"pan",sample:"mix sample",furnace:"ignition / extraction",mineral:"mineral part",oven:"oven ≈ 170 °C, 1 h",empty:"empty beaker",mix:"beaker + mix",film:"after emptying:|binder film",g100:"100 g",mm25:"25 mm"}};
+Object.keys(XL).forEach(function(l){C[l]=XL[l].C});
+function svg(h,b){return '<svg class="sch" viewBox="0 0 640 '+h+'" role="img">'+b+'</svg>'}
+function cap(x,y,s,cls){var p=String(s).split("|");return '<text x="'+x+'" y="'+y+'" text-anchor="middle"'+(cls?' class="'+cls+'"':'')+'>'+p.map(function(l,i){return '<tspan x="'+x+'" dy="'+(i?15:0)+'">'+esc(l)+'</tspan>'}).join("")+'</text>'}
+function bal(cx,y,lab){return `<rect x="${cx-55}" y="${y+6}" width="110" height="30" rx="4" class="eq"/><line x1="${cx-45}" x2="${cx+45}" y1="${y+2}" y2="${y+2}" class="ln" stroke-width="4"/><line x1="${cx}" x2="${cx}" y1="${y+2}" y2="${y+6}" class="ln"/><rect x="${cx-30}" y="${y+12}" width="60" height="18" rx="3" class="disp"/><text x="${cx}" y="${y+26}" class="dt" text-anchor="middle">${lab}</text>`}
+function cyl(cx,y,w,h){return `<path d="M${cx-w/2} ${y}v${h}a${w/2} 6 0 0 0 ${w} 0v${-h}" class="sp"/><ellipse cx="${cx}" cy="${y}" rx="${w/2}" ry="6" class="sp"/>`}
+function arr(x1,y1,x2,y2,both){return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="ar" marker-end="url(#dlab-ah)"${both?' marker-start="url(#dlab-ah)"':''}/>`}
+function nb(x,y,n){return `<circle cx="${x}" cy="${y}" r="11" class="eq"/><text x="${x}" y="${y+5}" class="tg" text-anchor="middle">${n}</text>`}
+function tank(x,y,w,h){return `<rect x="${x+1}" y="${y+12}" width="${w-2}" height="${h-13}" class="wt"/><path d="M${x} ${y}V${y+h}H${x+w}V${y}" class="ln"/>`}
+function beaker(cx,y){return `<path d="M${cx-30} ${y-4}h4V${y+50}H${cx+26}V${y-4}h4" class="ln" stroke-width="2"/>`}
+function bowl(cx){return `<path d="M${cx-42} 122Q${cx} 172 ${cx+42} 122Z" class="eq"/>`}
+function heap(cx,y,n,r){var s="";for(var i=0;i<n;i++){var a=i%4,b=Math.floor(i/4);s+=`<circle cx="${cx-((3*(2*r+1))/2)+a*(2*r+1)+(b%2)*r}" cy="${y-b*(1.7*r)}" r="${r}" class="agg"/>`}return s}
+var SCH={
+dens:function(c){return svg(235,
+  nb(16,22,1)+cyl(80,110,50,34)+bal(80,150,"m")+cap(80,210,c.dry)+
+  nb(172,22,2)+bal(240,6,"m₂")+'<line x1="240" y1="42" x2="240" y2="110" class="ln"/>'+tank(180,82,120,103)+cyl(240,114,50,34)+cap(240,210,c.water)+
+  nb(332,22,3)+cyl(400,110,50,34)+bal(400,150,"m₁")+cap(400,210,c.blot)+
+  nb(492,22,4)+tank(505,82,110,103)+'<line x1="498" y1="78" x2="622" y2="78" class="ln" stroke-width="4"/><path d="M560 78V52H628" class="ln"/><text x="600" y="46" class="lbl" text-anchor="middle">≤2 kPa</text>'+cyl(535,140,34,28)+cyl(585,140,34,28)+cap(560,210,c.vac))},
+str:function(c){return svg(235,
+  '<rect x="40" y="20" width="12" height="165" class="eq"/><rect x="228" y="20" width="12" height="165" class="eq"/><rect x="40" y="14" width="200" height="16" class="eq"/><rect x="28" y="185" width="224" height="14" class="eq"/><rect x="130" y="30" width="20" height="34" class="eq"/><rect x="90" y="64" width="100" height="10" class="eq"/>'+
+  cyl(140,82,70,46)+'<rect x="90" y="136" width="100" height="10" class="eq"/><rect x="125" y="146" width="30" height="39" class="eq"/>'+
+  arr(205,36,205,60)+'<text x="214" y="54" class="tg">P</text>'+cap(140,222,c.speed)+
+  tank(300,72,140,113)+cyl(335,135,40,28)+cyl(385,135,40,28)+'<line x1="425" y1="40" x2="425" y2="150" class="ln" stroke-width="3"/><circle cx="425" cy="156" r="7" class="disp"/>'+cap(370,222,c.bath)+
+  '<circle cx="555" cy="110" r="50" class="sp"/>'+arr(507,110,603,110,1)+'<text x="555" y="52" class="tg" text-anchor="middle">d</text>'+
+  cap(555,185,"A = π·d²/4","lbl")+cap(555,203,"R = P / A","lbl")+cap(555,221,"Kв = R(sat) / R20","lbl"))},
+pen:function(c){return svg(245,
+  '<rect x="40" y="200" width="200" height="14" class="eq"/><rect x="60" y="20" width="10" height="180" class="eq"/><rect x="60" y="30" width="125" height="10" class="eq"/><circle cx="170" cy="66" r="24" class="eq"/><line x1="170" y1="66" x2="183" y2="51" class="ln" stroke-width="2"/><text x="200" y="62" class="lbl">0,1 mm</text>'+
+  '<line x1="170" y1="90" x2="170" y2="104" class="ln" stroke-width="3"/><rect x="158" y="104" width="24" height="20" class="eq"/><text x="190" y="119">'+c.g100+'</text><line x1="170" y1="124" x2="170" y2="166" class="ln" stroke-width="1.5"/>'+
+  tank(110,132,120,68)+'<rect x="140" y="160" width="60" height="30" class="bit"/>'+cap(140,234,c.pen)+
+  '<circle cx="440" cy="105" r="72" class="bit"/>'+[[410,80,1],[470,80,2],[440,140,3]].map(function(p){return `<circle cx="${p[0]}" cy="${p[1]}" r="5" class="disp"/><text x="${p[0]+9}" y="${p[1]-6}" class="tg">${p[2]}</text>`}).join("")+cap(440,205,c.pts))},
+kish:function(c){
+  function st(x,peak,ball,last){return `<line x1="${x-32}" y1="90" x2="${x+32}" y2="90" class="ln" stroke-width="3"/><line x1="${x-32}" y1="160" x2="${x+32}" y2="160" class="ln" stroke-width="3"/><rect x="${x-15}" y="84" width="30" height="10" class="eq"/>`+
+    (peak?`<path d="M${x-11} 94C${x-11} ${peak} ${x+11} ${peak} ${x+11} 94Z" class="bit"/>`:`<rect x="${x-11}" y="84" width="22" height="10" class="bit"/>`)+`<circle cx="${x}" cy="${ball}" r="7" class="ball"/>`+(last?`<text x="${x}" y="182" class="tg" text-anchor="middle">T</text>`:"")}
+  return svg(255,
+  tank(60,40,200,160)+'<line x1="160" y1="20" x2="160" y2="130" class="ln" stroke-width="3"/><circle cx="160" cy="136" r="6" class="disp"/>'+st(115,0,77)+st(205,175,153)+
+  arr(275,92,275,158,1)+'<text x="284" y="130" class="lbl">'+c.mm25+'</text>'+
+  '<path d="M70 216l10-8 10 8 10-8 10 8 10-8 10 8 10-8 10 8 10-8 10 8 10-8 10 8 10-8 10 8 10-8 10 8 10-8 10 8" class="heat"/>'+cap(160,244,c.heat)+
+  st(380,0,77)+arr(418,125,436,125)+st(475,140,122)+arr(513,125,531,125)+st(570,175,153,1)+cap(475,244,c.touch))},
+duct:function(c){return svg(205,
+  tank(30,40,580,110)+'<rect x="50" y="72" width="24" height="46" class="eq"/><rect x="460" y="72" width="24" height="46" class="eq"/>'+
+  '<path d="M74 82C200 82 240 94 267 94C294 94 334 82 460 82V108C334 108 294 96 267 96C240 96 200 108 74 108Z" class="bit"/>'+
+  arr(495,95,575,95)+'<text x="535" y="84" class="tg" text-anchor="middle">'+c.moving+'</text>'+cap(110,30,c.fixed)+
+  arr(76,170,458,170,1)+cap(267,194,c.len))},
+sieve:function(c){var s="",sz=["20","10","5","1,25","0,315","0,071"],rr=[7,5,4,3,2.2,1.6];
+  sz.forEach(function(v,i){var y=20+i*30;s+=`<rect x="70" y="${y}" width="160" height="24" class="eq"/><line x1="72" y1="${y+20}" x2="228" y2="${y+20}" class="mesh"/><text x="60" y="${y+17}" text-anchor="end" class="lbl">${v}</text>`;
+    for(var xx=80+rr[i];xx<222;xx+=2*rr[i]+5)s+=`<circle cx="${xx}" cy="${y+19-rr[i]}" r="${rr[i]}" class="agg"/>`});
+  return svg(240,s+'<rect x="70" y="200" width="160" height="20" class="eq"/><text x="60" y="215" text-anchor="end" class="lbl">'+c.pan+'</text><text x="150" y="13" class="lbl" text-anchor="middle">mm</text>'+
+  arr(252,24,252,214)+heap(450,140,8,5)+bal(450,150,"mᵢ")+cap(450,206,c.weigh)+cap(450,226,c.sum))},
+bc:function(c){return svg(220,
+  bowl(100)+`<path d="M64 124Q100 160 136 124Q100 104 64 124Z" class="bit"/>`+bal(100,150,"m₀")+cap(100,206,c.sample)+arr(170,120,230,120)+
+  '<rect x="250" y="40" width="140" height="125" class="eq"/><rect x="268" y="58" width="104" height="88" class="hot"/><path d="M286 140q8-30 16 0q8-40 16 0q8-30 16 0q8-40 16 0q8-30 16 0" class="heat"/>'+cap(320,206,c.furnace)+arr(410,120,470,120)+
+  bowl(540)+heap(540,128,8,5)+bal(540,150,"m₁")+cap(540,206,c.mineral))},
+dr:function(c){return svg(225,
+  beaker(85,100)+bal(85,150,"m₁")+cap(85,200,c.empty)+arr(148,125,182,125)+
+  beaker(245,100)+'<rect x="219" y="114" width="52" height="35" class="bit"/>'+bal(245,150,"m₁+m")+cap(245,200,c.mix)+arr(306,125,334,125)+
+  '<rect x="340" y="40" width="130" height="135" class="eq"/><rect x="352" y="52" width="106" height="111" class="hot"/>'+beaker(405,100)+'<rect x="379" y="114" width="52" height="35" class="bit"/>'+cap(405,200,c.oven)+arr(476,125,504,125)+
+  beaker(565,100)+'<rect x="539" y="144" width="52" height="5" class="bit"/><circle cx="545" cy="134" r="3" class="bit"/><circle cx="585" cy="128" r="3" class="bit"/>'+bal(565,150,"m₂")+cap(565,200,c.film))}
+};
+
+/* =================== DATA =================== */
+var REQ_AB={
+  A:{Vres:[2.5,5.0],Vmin:[null,19],W:[2.0,5.0],R50:[1.0,null],R20:[2.5,null],R0:[null,11.0],Kw:[0.95,null]},
+  B:{Vres:[2.5,5.0],Vmin:[null,19],W:[1.5,4.0],R50:[1.2,null],R20:[2.5,null],R0:[null,11.0],Kw:[0.95,null]},
+  V:{Vres:[2.5,5.0],Vmin:[null,22],W:[1.0,4.0],R50:[1.3,null],R20:[2.5,null],R0:[null,11.0],Kw:[0.95,null]},
+  SMA:{Vres:[1.5,4.5],Vmin:[15,19],W:[1.0,4.0],R50:[0.65,null],R20:[2.2,null],R0:[null,null],Kw:[0.85,null]}};
+var REQ_BIT={"40/60":{pen:[40,60],kish:[51,null],duct:[45,null]},"60/90":{pen:[61,90],kish:[47,null],duct:[55,null]},
+  "90/130":{pen:[91,130],kish:[43,null],duct:[65,null]},"130/200":{pen:[131,200],kish:[40,null],duct:[70,null]}};
+var SIEVES=[40,20,15,10,5,2.5,1.25,0.63,0.315,0.16,0.071,"pan"];
+var MASS={g:1,kg:1000,t:1e6}, FORCE={N:0.001,kN:1,kgf:0.00980665,tf:9.80665}, STRESS={MPa:1,kgfcm2:0.0980665};
+
+function example(){return{lang:"ru",tab:"ab",
+  ab:{type:"B",rw:"1.000",rho:"2.510",rhom:"2.700",q:"5.5",d:"71.4",mu:"g",lu:"kN",
+    w:[["2268.4","2271.0","1328.2","2289.3"],["2271.9","2274.1","1330.0","2292.0"],["2265.0","2267.9","1326.4","2286.6"]],
+    p:[["5.45","13.10","34.2","12.60"],["5.70","13.55","35.1","12.85"],["5.38","12.90","33.6","12.40"]],req:JSON.parse(JSON.stringify(REQ_AB))},
+  bit:{grade:"60/90",pen:["72","74","73"],kish:["49.0","49.6"],duct:["78","82","80"],req:JSON.parse(JSON.stringify(REQ_BIT))},
+  gr:{total:"1200",mu:"g",ret:["0","12.0","96.0","228.0","300.0","132.0","90.0","78.0","72.0","66.0","60.0","64.8"],
+    min:["100","95","81","62","40","28","20","14","10","6","4",""],max:["100","100","96","82","60","45","35","27","20","14","10",""]},
+  bc:{m0:"1000.0",m1:"947.9",target:"5.5",tol:"0.3"},dr:{m:"1000.0",m1:"212.40",m2:"213.90",max:"0.20"},
+  p:{lab:"",no:"АБ-0142",date:new Date().toISOString().slice(0,10),obj:"",src:"",who:"",norms:NORMS_DEF,notes:"",concl:""},
+  mx:mixPreset("КЗтипБ"),cur:blankCur(),
+  cv:{m:"1",mf:"t",mt:"kg",f:"1",ff:"tf",ft:"kN",s:"25",sf:"kgfcm2",st:"MPa"}}}
+/* Mix design templates extracted from the lab's Excel workbook (19 sheets) */
+var MIXES=[{"id":"КЗпористый","title":"КЗ пористый","src":"","sieves":[40.0,20.0,15.0,10.0,5.0,2.5,1.25,0.63,0.315,0.16,0.071],"fr":[{"name":"20-40мм","pass":[87.6,2.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"pct":14.0},{"name":"10-20мм","pass":[100.0,89.6,42.1,2.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"pct":19.0},{"name":"5-10мм","pass":[100.0,100.0,99.9,92.2,18.9,1.2,0.0,0.0,0.0,0.0,0.0],"pct":23.0},{"name":"0-5мм","pass":[100.0,100.0,100.0,100.0,98.0,72.9,57.2,40.6,27.6,18.9,13.6],"pct":44.0},{"name":"МП","pass":[100.0,100.0,100.0,100.0,100.0,100.0,100.0,99.8,99.1,93.6,79.5],"pct":0}],"norm":"СТ РК 1225-2019","min":[90.0,75.0,64.0,52.0,40.0,28.0,16.0,10.0,8.0,5.0,2.0],"max":[100.0,100.0,100.0,88.0,60.0,60.0,60.0,60.0,37.0,20.0,8.0]},{"id":"КЗвысокопористый","title":"КЗ высокопористый","src":"","sieves":[40.0,20.0,15.0,10.0,5.0,2.5,1.25,0.63,0.315,0.16,0.071],"fr":[{"name":"20-40мм","pass":[87.6,2.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"pct":28.0},{"name":"10-20мм","pass":[100.0,89.6,42.1,2.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"pct":30.0},{"name":"5-10мм","pass":[100.0,100.0,99.9,92.2,18.9,0.0,0.0,0.0,0.0,0.0,0.0],"pct":23.0},{"name":"0-5мм","pass":[100.0,100.0,100.0,100.0,98.0,72.9,57.2,40.6,27.6,18.9,13.6],"pct":19.0},{"name":"МП","pass":[100.0,100.0,100.0,100.0,100.0,100.0,99.23,97.04,91.34,81.29,66.28],"pct":0}],"norm":"СТ РК 1225-2019","min":[90.0,55.0,35.0,22.0,15.0,10.0,5.0,3.0,2.0,1.0,1.0],"max":[100.0,75.0,64.0,52.0,40.0,28.0,16.0,10.0,8.0,5.0,4.0]},{"id":"Высокопористый песчаный","title":"Высокопористый песчаный","src":"","sieves":[5.0,2.5,1.25,0.63,0.315,0.16,0.071],"fr":[{"name":"5-10мм","pass":[0.7,0.0,0.0,0.0,0.0,0.0,0.0],"pct":15.0},{"name":"0-5мм","pass":[32.0,49.4,32.6,20.0,9.3,4.9,3.2],"pct":83.0},{"name":"МП","pass":[100.0,100.0,99.6,99.1,96.0,87.8,75.1],"pct":2.0}],"norm":"СТ РК 1225-2019","min":[70.0,64.0,41.0,25.0,17.0,10.0,4.0],"max":[100.0,100.0,100.0,85.0,72.0,45.0,10.0]},{"id":"КЗтипА","title":"КЗ плотный тип А","src":"","sieves":[40.0,20.0,15.0,10.0,5.0,2.5,1.25,0.63,0.315,0.16,0.071],"fr":[{"name":"20-40мм","pass":[87.6,2.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"pct":21.0},{"name":"10-20мм","pass":[100.0,89.6,42.1,2.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"pct":19.0},{"name":"5-10мм","pass":[100.0,100.0,99.9,92.2,18.9,1.2,0.0,0.0,0.0,0.0,0.0],"pct":20.0},{"name":"0-5мм","pass":[100.0,100.0,100.0,100.0,98.0,72.9,57.2,40.6,27.6,18.9,13.6],"pct":36.0},{"name":"МП","pass":[100.0,100.0,100.0,100.0,100.0,100.0,99.23,97.04,91.34,81.29,66.28],"pct":4.0}],"norm":"СТ РК 1225-2019","min":[90.0,66.0,56.0,48.0,40.0,26.0,17.0,12.0,9.0,6.0,4.0],"max":[100.0,85.0,70.0,62.0,50.0,38.0,28.0,20.0,15.0,11.0,10.0]},{"id":"КЗтипБ","title":"КЗ плотный тип Б","src":"","sieves":[40.0,20.0,15.0,10.0,5.0,2.5,1.25,0.63,0.315,0.16,0.071],"fr":[{"name":"20-40мм","pass":[87.6,2.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"pct":18.0},{"name":"10-20мм","pass":[100.0,89.6,42.1,2.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"pct":15.0},{"name":"5-10мм","pass":[100.0,100.0,99.9,92.2,18.9,1.2,0.0,0.0,0.0,0.0,0.0],"pct":10.0},{"name":"0-5мм","pass":[100.0,100.0,100.0,100.0,98.0,72.9,57.2,40.6,27.6,18.9,13.6],"pct":51.0},{"name":"МП","pass":[100.0,100.0,100.0,100.0,100.0,100.0,99.23,97.04,91.34,81.29,66.28],"pct":6.0}],"norm":"СТ РК 1225-2019","min":[90.0,76.0,68.0,60.0,50.0,38.0,28.0,20.0,14.0,9.0,6.0],"max":[100.0,90.0,80.0,72.0,60.0,52.0,39.0,29.0,22.0,16.0,12.0]},{"id":"МЗтипА","title":"МЗ тип А","src":"АДСК","sieves":[20.0,15.0,10.0,5.0,2.5,1.25,0.63,0.315,0.16,0.071],"fr":[{"name":"10-20мм","pass":[89.6,42.1,2.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"pct":36.0},{"name":"5-10мм","pass":[100.0,99.9,92.2,18.9,0.0,0.0,0.0,0.0,0.0,0.0],"pct":24.0},{"name":"0-5мм","pass":[100.0,100.0,100.0,98.0,72.9,57.2,40.6,27.6,18.9,13.6],"pct":35.0},{"name":"МП","pass":[100.0,100.0,100.0,100.0,100.0,99.23,97.04,91.34,81.29,66.28],"pct":5.0}],"norm":"СТ РК 1225-2019","min":[90.0,70.0,62.0,40.0,28.0,20.0,14.0,10.0,6.0,4.0],"max":[100.0,90.0,85.0,50.0,38.0,28.0,20.0,16.0,12.0,10.0]},{"id":"МЗтипБ","title":"МЗ тип Б","src":"ЕЛ КЗ","sieves":[20.0,15.0,10.0,5.0,2.5,1.25,0.63,0.315,0.16,0.071],"fr":[{"name":"5-20мм","pass":[94.2,53.8,34.0,5.5,5.5,1.7,0.0,0.0,0.0,0.0],"pct":46.0},{"name":"5-10мм","pass":[100.0,100.0,100.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"pct":0},{"name":"0-5мм","pass":[100.0,100.0,100.0,76.8,55.9,44.5,33.2,24.8,19.0,14.0],"pct":47.0},{"name":"МП","pass":[100.0,100.0,100.0,100.0,98.95,99.36,98.11,93.35,93.33,85.54],"pct":7.0}],"norm":"СТ РК 1225-2019","min":[90.0,75.0,70.0,50.0,38.0,28.0,20.0,14.0,10.0,6.0],"max":[100.0,90.0,85.0,60.0,48.0,37.0,28.0,22.0,16.0,12.0]},{"id":"МЗтипВ","title":"МЗ тип В","src":"","sieves":[20.0,15.0,10.0,5.0,2.5,1.25,0.63,0.315,0.16,0.071],"fr":[{"name":"10-15мм","pass":[89.6,42.1,2.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"pct":20.0},{"name":"5-10мм","pass":[100.0,99.9,92.2,18.9,0.0,0.0,0.0,0.0,0.0,0.0],"pct":15.0},{"name":"0-5мм","pass":[100.0,100.0,100.0,98.0,72.9,57.2,40.6,27.6,18.9,13.6],"pct":58.0},{"name":"МП","pass":[100.0,100.0,100.0,100.0,100.0,99.23,97.04,91.34,81.29,66.28],"pct":7.0}],"norm":"СТ РК 1225-2019","min":[100.0,85.0,75.0,60.0,48.0,37.0,28.0,20.0,13.0,8.0],"max":[100.0,100.0,90.0,70.0,60.0,50.0,40.0,30.0,20.0,14.0]},{"id":"МЗтипГ","title":"МЗ тип Г","src":"","sieves":[5.0,2.5,1.25,0.63,0.315,0.16,0.071],"fr":[{"name":"5-10мм","pass":[0.0,0.0,0.0,0.0,0.0,0.0,0.0],"pct":0},{"name":"0-5мм","pass":[98.0,72.9,57.2,40.6,27.6,18.9,13.6],"pct":97.0},{"name":"МП","pass":[100.0,100.0,99.23,97.04,91.34,81.29,66.28],"pct":3.0}],"norm":"СТ РК 1225-2019","min":[80.0,65.0,45.0,30.0,20.0,15.0,8.0],"max":[100.0,82.0,65.0,50.0,36.0,25.0,16.0]},{"id":"МЗтипД","title":"МЗ тип Д","src":"","sieves":[5.0,2.5,1.25,0.63,0.315,0.16,0.071],"fr":[{"name":"5-10мм","pass":[18.9,1.2,0.0,0.0,0.0,0.0,0.0],"pct":8.0},{"name":"0-5мм","pass":[98.0,72.9,57.2,40.6,27.6,18.9,13.6],"pct":90.0},{"name":"МП","pass":[100.0,100.0,99.23,97.04,91.34,81.29,66.28],"pct":2.0}],"norm":"СТ РК 1225-2019","min":[80.0,65.0,45.0,30.0,20.0,15.0,10.0],"max":[100.0,93.0,85.0,75.0,55.0,33.0,16.0]},{"id":"МЗтипБх","title":"МЗ тип Бх","src":"","sieves":[20.0,15.0,10.0,5.0,2.5,1.25,0.63,0.315,0.16,0.071],"fr":[{"name":"10-20мм","pass":[98.6,43.9,5.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"pct":15.0},{"name":"5-10мм","pass":[100.0,38.9,18.8,0.7,0.0,0.0,0.0,0.0,0.0,0.0],"pct":20.0},{"name":"0-5мм","pass":[100.0,100.0,90.3,32.0,49.4,32.6,20.0,9.3,4.9,3.2],"pct":60.0},{"name":"МП","pass":[100.0,100.0,100.0,100.0,100.0,99.6,99.1,96.0,87.8,75.1],"pct":5.0}],"norm":"СТ РК 1225-2019","min":[90.0,85.0,70.0,50.0,33.0,21.0,15.0,10.0,9.0,8.0],"max":[100.0,100.0,100.0,60.0,46.0,38.0,30.0,22.0,16.0,12.0]},{"id":"МЗтипВх","title":"МЗ тип Вх","src":"","sieves":[20.0,15.0,10.0,5.0,2.5,1.25,0.63,0.315,0.16,0.071],"fr":[{"name":"10-20мм","pass":[98.6,43.9,5.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"pct":15.0},{"name":"5-10мм","pass":[100.0,38.9,18.8,0.7,0.0,0.0,0.0,0.0,0.0,0.0],"pct":20.0},{"name":"0-5мм","pass":[100.0,100.0,90.3,32.0,49.4,32.6,20.0,9.3,4.9,3.2],"pct":60.0},{"name":"МП","pass":[100.0,100.0,100.0,100.0,100.0,99.6,99.1,96.0,87.8,75.1],"pct":5.0}],"norm":"СТ РК 1225-2019","min":[90.0,85.0,75.0,60.0,48.0,38.0,30.0,23.0,17.0,12.0],"max":[100.0,100.0,100.0,70.0,60.0,50.0,40.0,32.0,24.0,17.0]},{"id":"МЗтипГхДх","title":"МЗ тип Гх и Дх","src":"","sieves":[5.0,2.5,1.25,0.63,0.315,0.16,0.071],"fr":[{"name":"5-10мм","pass":[0.7,0.0,0.0,0.0,0.0,0.0,0.0],"pct":8.0},{"name":"0-5мм","pass":[32.0,49.4,32.6,20.0,9.3,4.9,3.2],"pct":90.0},{"name":"МП","pass":[100.0,100.0,99.6,99.1,96.0,87.8,75.1],"pct":2.0}],"norm":"СТ РК 1225-2019","min":[80.0,62.0,40.0,25.0,18.0,14.0,12.0],"max":[100.0,82.0,68.0,55.0,43.0,30.0,20.0]},{"id":"ЩМА10","title":"ЩМА-10","src":"","sieves":[10.0,5.0,2.5,1.25,0.63,0.315,0.16,0.071],"fr":[{"name":"5-10мм","pass":[18.8,0.7,0.0,0.0,0.0,0.0,0.0,0.0],"pct":70.0},{"name":"0-5мм","pass":[90.3,32.0,49.4,32.6,20.0,9.3,4.9,3.2],"pct":20.0},{"name":"МП","pass":[100.0,100.0,100.0,99.6,99.1,96.0,87.8,75.1],"pct":10.0}],"norm":"ГОСТ 31015","min":[90.0,30.0,19.0,16.0,13.0,11.0,10.0,10.0],"max":[100.0,40.0,29.0,26.0,22.0,20.0,17.0,15.0]},{"id":"ЩМА15","title":"ЩМА-15","src":"","sieves":[20.0,15.0,10.0,5.0,2.5,1.25,0.63,0.315,0.16,0.071],"fr":[{"name":"10-20мм","pass":[98.6,43.9,5.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"pct":0},{"name":"5-10мм","pass":[73.0,38.9,18.8,0.7,0.0,0.0,0.0,0.0,0.0,0.0],"pct":70.0},{"name":"0-5мм","pass":[100.0,100.0,90.3,32.0,49.4,32.6,20.0,9.3,4.9,3.2],"pct":20.0},{"name":"МП","pass":[100.0,100.0,100.0,100.0,100.0,99.6,99.1,96.0,87.8,75.1],"pct":10.0}],"norm":"ГОСТ 31015","min":[100.0,90.0,40.0,25.0,18.0,15.0,12.0,10.0,9.0,9.0],"max":[100.0,100.0,60.0,35.0,28.0,25.0,22.0,20.0,16.0,14.0]},{"id":"ЩМА20","title":"ЩМА-20","src":"ЕЛ КЗ","sieves":[20.0,15.0,10.0,5.0,2.5,1.25,0.63,0.315,0.16,0.071],"fr":[{"name":"5-20мм","pass":[94.2,53.8,34.0,5.5,5.5,1.7,0.0,0.0,0.0,0.0],"pct":80.0},{"name":"5-10мм","pass":[100.0,100.0,100.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"pct":0},{"name":"0-5мм","pass":[100.0,100.0,100.0,76.8,55.9,44.5,33.2,24.8,19.0,14.0],"pct":10.0},{"name":"МП","pass":[100.0,100.0,100.0,100.0,98.95,99.36,98.11,93.35,93.33,85.54],"pct":10.0}],"norm":"ГОСТ 31015","min":[90.0,50.0,25.0,20.0,15.0,13.0,11.0,9.0,8.0,8.0],"max":[100.0,70.0,42.0,30.0,25.0,24.0,21.0,19.0,15.0,13.0]},{"id":"ПМА5","title":"ПМА-5","src":"","sieves":[5.0,2.5,1.25,0.071],"fr":[{"name":"5-10мм","pass":[15.0,0.0,0.0,0.0],"pct":0},{"name":"0-5мм","pass":[4.3,9.3,4.9,3.2],"pct":80.0},{"name":"МП","pass":[100.0,96.0,87.8,75.1],"pct":20.0}],"norm":"СТ РК 3369","min":[90.0,32.0,27.0,18.0],"max":[100.0,45.0,40.0,25.0]},{"id":"ПМА10","title":"ПМА-10","src":"","sieves":[15.0,10.0,5.0,2.5,1.25,0.071],"fr":[{"name":"10-20мм","pass":[98.0,23.0,0.0,0.0,0.0,0.0],"pct":0},{"name":"5-10мм","pass":[100.0,40.0,10.0,0.2,0.0,0.0],"pct":64.0},{"name":"0-5мм","pass":[100.0,32.6,20.0,9.3,4.9,3.2],"pct":20.0},{"name":"МП","pass":[100.0,99.6,99.1,96.0,87.8,75.1],"pct":16.0}],"norm":"СТ РК 3369","min":[100.0,90.0,54.0,30.0,27.0,18.0],"max":[100.0,100.0,72.0,45.0,42.0,25.0]},{"id":"ПМА15","title":"ПМА-15","src":"","sieves":[15.0,10.0,5.0,2.5,1.25,0.071],"fr":[{"name":"10-15мм","pass":[100.0,4.6,0.0,0.0,0.0,0.0],"pct":15.0},{"name":"5-10мм","pass":[100.0,10.0,40.0,5.0,0.0,0.0],"pct":40.0},{"name":"0-5мм","pass":[49.4,32.6,20.0,9.3,4.9,3.2],"pct":28.0},{"name":"МП","pass":[100.0,99.6,99.1,96.0,87.8,75.1],"pct":17.0}],"norm":"СТ РК 3369","min":[90.0,63.0,47.0,30.0,26.0,18.0],"max":[100.0,80.0,63.0,45.0,40.0,25.0]}];
+function mixPreset(id){var m=MIXES.filter(function(x){return x.id===id})[0]||MIXES[0];
+  return{id:m.id,title:m.title,norm:m.norm,src:m.src||"",sieves:m.sieves.slice(),
+    fr:m.fr.map(function(f){return{name:f.name,pct:String(f.pct),pass:f.pass.map(String)}}),
+    min:m.min.map(function(v){return v==null?"":String(v)}),max:m.max.map(function(v){return v==null?"":String(v)})}}
+function blankCur(){return{id:null,lab:null,status:"draft",created_by:null,approved_by:null,approved_at:null}}
+function fixState(){if(!S.mx||!S.mx.sieves)S.mx=mixPreset("КЗтипБ");if(!S.cur)S.cur=blankCur();
+  if(S.p.norms==null)S.p.norms=NORMS_DEF;if(S.p.notes==null)S.p.notes="";if(S.p.concl==null)S.p.concl=""}
+var S;
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){S=null}
+if(!S||!S.ab||!S.cv)S=example();
+fixState();if(!T[S.lang])S.lang="ru";
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function t(){return T[S.lang]}
+var KND={ru:{h:"Раздел журнала",all:"Все",asph:"Асфальтобетон",bit:"Битум",gr:"Зерновой состав",add:"Новое:",typeW:"Раздел",rowsH:"Что входит в протокол",rowsHint:"Отметьте строки, которые нужно показать в протоколе. Можно добавить битум или зерновой состав в любой протокол.",rowsAll:"Все строки",rowsDef:"По умолчанию"},fr:{h:"Rubrique du journal",all:"Tous",asph:"Enrobés",bit:"Bitume",gr:"Granulométrie",add:"Nouveau :",typeW:"Rubrique",rowsH:"Ce qui figure dans le PV",rowsHint:"Coche les lignes à mettre dans le procès-verbal. Tu peux ajouter le bitume ou la granulométrie dans n'importe quel PV.",rowsAll:"Toutes les lignes",rowsDef:"Par défaut"},en:{h:"Log section",all:"All",asph:"Asphalt",bit:"Bitumen",gr:"Grading",add:"New:",typeW:"Section",rowsH:"What goes in the report",rowsHint:"Tick the lines to show in the report. You can add bitumen or grading to any report.",rowsAll:"All lines",rowsDef:"Default"},kk:{h:"Журнал бөлімі",all:"Барлығы",asph:"Асфальтбетон",bit:"Битум",gr:"Түйіршік құрамы",add:"Жаңа:",typeW:"Бөлім",rowsH:"Хаттамаға не кіреді",rowsHint:"Хаттамада көрсетілетін жолдарды белгілеңіз.",rowsAll:"Барлық жолдар",rowsDef:"Әдепкі"},zh:{h:"日志分类",all:"全部",asph:"沥青混凝土",bit:"沥青",gr:"级配",add:"新建：",typeW:"分类",rowsH:"报告包含的内容",rowsHint:"勾选要显示在报告中的条目。",rowsAll:"全部条目",rowsDef:"默认"}};
+var KINDS=["asph","bit","gr"],TAB2K={ab:"asph",bit:"bit",gr:"gr"},K2TAB={asph:"ab",bit:"bit",gr:"gr"};
+function kl(){return KND[S.lang]||KND.ru}
+function curKind(){return KINDS.indexOf(S.kind)>=0?S.kind:TAB2K[S.lastCalc]||"asph"}
+function kindChips(){var K=kl(),c=curKind();return'<div class="kchips" role="group" aria-label="'+K.h+'"><span class="hint">'+K.h+':</span>'+KINDS.map(function(k){return'<button type="button" class="b sm'+(c===k?" primary":"")+'" data-kind="'+k+'" aria-pressed="'+(c===k)+'">'+K[k]+'</button>'}).join("")+'</div>'}
+function matLine(){var L=t(),ks=protoRows().map(function(r){return r[5]}),has=function(re){return ks.some(function(k){return re.test(k)})},a=[];if(has(/^(ab_|bc|dr)/))a.push(L.mixWord+" — "+L.types[S.ab.type]);if(has(/^bit_/))a.push(L.matBit+" БНД "+S.bit.grade);if(has(/^(gr|mx)$/))a.push(L.matMin+(S.mx&&S.mx.title?" — "+esc(S.mx.title):""));return a.join("; ")||"—"}
+window.DorApp={get S(){return S},save:function(){save()},render:function(){render()},go:function(k){S.tab=k;save();render();window.scrollTo(0,0)},preset:function(id){return mixPreset(id)},MIXES:MIXES,proto:function(){renderProto()},rows:function(lang,all){var k=S.lang;if(lang)S.lang=lang;try{return protoRows(all)}finally{S.lang=k}},get last(){return last}};
+
+/* =================== HELPERS =================== */
+function check(v,r){
+  var lo=r[0]!==null&&r[0]!==""&&isFinite(num(r[0])),hi=r[1]!==null&&r[1]!==""&&isFinite(num(r[1]));
+  if(!isFinite(v)||(!lo&&!hi))return"na";
+  if(lo&&v<num(r[0]))return"bad";if(hi&&v>num(r[1]))return"bad";return"ok"}
+function pill(s){return'<span class="pill '+s+'">'+t()[s]+'</span>'}
+function reqText(r){var a=r[0]!==null&&r[0]!=="",b=r[1]!==null&&r[1]!=="";return a&&b?r[0]+" – "+r[1]:a?t().notLess+" "+r[0]:b?t().notMore+" "+r[1]:"—"}
+function inp(id,val,cls){return'<input id="'+id+'" class="'+(cls||"num")+'" value="'+esc(val)+'" inputmode="decimal">'}
+function unitSel(id,val,list){return'<select id="'+id+'">'+list.map(function(u){return'<option value="'+u+'"'+(u===val?" selected":"")+'>'+t().units[u]+'</option>'}).join("")+'</select>'}
+function method(m){return'<details class="method"><summary>'+t().method+'</summary><div class="mbody">'+
+  Object.keys(m).map(function(k){var x=m[k];return'<div style="display:grid;gap:8px"><b style="font-family:var(--display)">'+x.t+'</b>'+(SCH[k]?'<div class="schwrap">'+SCH[k](C[S.lang])+'</div>':'')+'<p class="equip"><b>'+t().equip+':</b> '+x.e+'</p><ol class="steps">'+
+    x.s.map(function(s){return'<li><span>'+s[0]+(s[1]?' <span class="tag">→ '+s[1]+'</span>':'')+'</span></li>'}).join("")+'</ol></div>'}).join("")+'</div></details>'}
+function reqBox(prefix,r){return'<div class="req">'+inp(prefix+"0",r[0]===null?"":r[0])+'<span style="color:var(--muted)">–</span>'+inp(prefix+"1",r[1]===null?"":r[1])+'</div>'}
+
+/* =================== RENDER =================== */
+var AB_KEYS=[["rhoM",3,null],["Vres",1,"Vres"],["Vmin",1,"Vmin"],["W",1,"W"],["R50",2,"R50"],["R20",2,"R20"],["R0",2,"R0"],["Kw",2,"Kw"]];
+var BIT_KEYS=["pen","kish","duct"];
+
+function render(){
+  var L=t();document.documentElement.lang=S.lang;
+  $("t_title").textContent=L.title;$("t_sub").textContent=L.sub;
+  document.querySelectorAll(".lang button").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.lang===S.lang)});
+  if(window.DorLib&&DorLib.wantsOpen()&&!render._h){render._h=1;S.tab="lib"}
+  var TABS=(CLOUD&&LAB?["jr"]:[]).concat(["ab","bit","gr","mx"],window.DorGuide?["acc"]:[],window.DorLib?["lib"]:[],["pr"],CLOUD&&LAB?["docs"]:[],["cv"]);
+  if(TABS.indexOf(S.tab)<0)S.tab=TABS[0];
+  $("tabs").innerHTML=TABS.map(function(k){return'<button role="tab" data-tab="'+k+'" aria-selected="'+(S.tab===k)+'">'+(k==="lib"?DorLib.tab(S.lang):k==="acc"?DorGuide.tab(S.lang):L.tabs[k])+'</button>'}).join("");
+  var h="";
+  /* ---- asphalt ---- */
+  var a=S.ab,req=a.req[a.type],mu=L.units[a.mu],lu=L.units[a.lu];
+  h+='<section class="panel" data-panel="ab">'+method(M[S.lang].ab)+
+   '<div class="card"><h2>'+L.abH+'</h2><p class="hint">'+L.abHint+'</p><div class="fields">'+
+   '<label class="f">'+L.mixType+'<select id="ab_type">'+["A","B","V","SMA"].map(function(k){return'<option value="'+k+'"'+(a.type===k?" selected":"")+'>'+L.types[k]+'</option>'}).join("")+'</select></label>'+
+   '<label class="f">'+L.rw+inp("ab_rw",a.rw)+'</label><label class="f">'+L.rho+inp("ab_rho",a.rho)+'</label><label class="f">'+L.rhom+inp("ab_rhom",a.rhom)+'</label>'+
+   '<label class="f">'+L.q+inp("ab_q",a.q)+'</label><label class="f">'+L.d+inp("ab_d",a.d)+'</label>'+
+   '<label class="f">'+L.massUnit+unitSel("ab_mu",a.mu,["g","kg"])+'</label><label class="f">'+L.loadUnit+unitSel("ab_lu",a.lu,["kN","kgf","tf","N"])+'</label></div><p class="hint">'+L.unitNote+'</p></div>'+
+   '<div class="card"><h3>'+L.weighH+', '+mu+'</h3><div class="tbl"><table><thead><tr><th>'+L.sample+'</th>'+L.wcols.map(function(c){return'<th class="n">'+c+'</th>'}).join("")+'</tr></thead><tbody>'+
+   a.w.map(function(r,i){return'<tr><td>№'+(i+1)+'</td>'+r.map(function(v,j){return'<td>'+inp("abw"+i+j,v)+'</td>'}).join("")+'</tr>'}).join("")+
+   '</tbody></table></div><p class="formula">ρm = m·ρw / (m₁ − m₂) · W = (m₃ − m) / (m₁ − m₂) · 100</p></div>'+
+   '<div class="card"><h3>'+L.loadH+', '+lu+'</h3><div class="tbl"><table><thead><tr><th>'+L.sample+'</th>'+L.pcols.map(function(c){return'<th class="n">'+c+'</th>'}).join("")+'</tr></thead><tbody>'+
+   a.p.map(function(r,i){return'<tr><td>№'+(i+1)+'</td>'+r.map(function(v,j){return'<td>'+inp("abp"+i+j,v)+'</td>'}).join("")+'</tr>'}).join("")+
+   '</tbody></table></div><p class="formula">R = P[kN]·1000 / (π·d²/4) [MPa] · Kв = R<sub>sat</sub> / R20 · 1 tf = 9,807 kN · 1 kgf = 0,00981 kN</p></div>'+
+   '<div class="card"><h2>'+L.resH+'</h2><div class="tbl"><table><thead><tr>'+L.rcols.map(function(c,i){return'<th'+(i===1?' class="n"':'')+'>'+c+'</th>'}).join("")+'</tr></thead><tbody>'+
+   AB_KEYS.map(function(r){return'<tr><td>'+L.abRows[r[0]]+'</td><td class="n res" id="abr_'+r[0]+'"></td><td>'+(r[2]?reqBox("abq_"+r[0],req[r[2]]):'<span class="hint">'+L.ref+'</span>')+'</td><td id="abv_'+r[0]+'"></td></tr>'}).join("")+
+   '</tbody></table></div><div class="note">'+L.abNote+'</div></div></section>';
+  /* ---- bitumen ---- */
+  var b=S.bit,breq=b.req[b.grade];
+  h+='<section class="panel" data-panel="bit">'+method(M[S.lang].bit)+
+   '<div class="card"><h2>'+L.bitH+'</h2><div class="fields"><label class="f">'+L.grade+'<select id="bit_grade">'+Object.keys(REQ_BIT).map(function(g){return'<option value="'+g+'"'+(b.grade===g?" selected":"")+'>БНД '+g+'</option>'}).join("")+'</select></label></div></div>'+
+   [["pen","penH","penF"],["kish","kishH","kishF"],["duct","ductH","ductF"]].map(function(x){return'<div class="card"><h3>'+L[x[1]]+'</h3><div class="fields">'+
+     b[x[0]].map(function(v,i){return'<label class="f">'+L.det+' '+(i+1)+inp("bit"+x[0]+i,v)+'</label>'}).join("")+'</div><p class="formula">'+L[x[2]]+'</p></div>'}).join("")+
+   '<div class="card"><h2>'+L.resH+'</h2><div class="tbl"><table><thead><tr>'+L.bcols.map(function(c,i){return'<th'+(i===1?' class="n"':'')+'>'+c+'</th>'}).join("")+'</tr></thead><tbody>'+
+   BIT_KEYS.map(function(k){return'<tr><td>'+L.bitRows[k]+'</td><td class="n res" id="bitr_'+k+'"></td><td id="bitc_'+k+'"></td><td>'+reqBox("bitq_"+k,breq[k])+'</td><td id="bitv_'+k+'"></td></tr>'}).join("")+
+   '</tbody></table></div><div class="note">'+L.bitNote+'</div></div></section>';
+  /* ---- grading ---- */
+  var g=S.gr,gm=L.units[g.mu];
+  h+='<section class="panel" data-panel="gr">'+method(M[S.lang].gr)+
+   '<div class="card"><h2>'+L.grH+'</h2><p class="hint">'+L.grHint+'</p><div class="fields"><label class="f">'+L.total+', '+gm+inp("gr_total",g.total)+'</label><label class="f">'+L.massUnit+unitSel("gr_mu",g.mu,["g","kg"])+'</label></div>'+
+   '<div class="tbl"><table><thead><tr>'+L.gcols.map(function(c,i){return'<th class="n">'+c+(i===1?', '+gm:'')+'</th>'}).join("")+'</tr></thead><tbody>'+
+   SIEVES.map(function(s,i){var last=s==="pan";return'<tr><td class="n">'+(last?L.bottom:s)+'</td><td>'+inp("grr"+i,g.ret[i])+'</td><td class="n" id="grc_'+i+'"></td><td class="n" id="grf_'+i+'"></td><td class="n res" id="grp_'+i+'"></td><td>'+(last?"":inp("grmin"+i,g.min[i]))+'</td><td>'+(last?"":inp("grmax"+i,g.max[i]))+'</td><td id="grv_'+i+'"></td></tr>'}).join("")+
+   '</tbody></table></div><p class="formula" id="gr_loss"></p><svg class="chart" id="gr_chart" viewBox="0 0 640 240" role="img" aria-label="'+L.grH+'"></svg></div>'+
+   '<div class="card"><h2>'+L.bcH+'</h2><div class="fields"><label class="f">'+L.m0+' m₀, '+gm+inp("bc_m0",S.bc.m0)+'</label><label class="f">'+L.m1b+' m₁, '+gm+inp("bc_m1",S.bc.m1)+'</label><label class="f">'+L.target+inp("bc_target",S.bc.target)+'</label><label class="f">'+L.tol+inp("bc_tol",S.bc.tol)+'</label></div>'+
+   '<p class="formula">q = (m₀ − m₁) / m₁ · 100 · q(mix) = (m₀ − m₁) / m₀ · 100</p><div class="summary" id="bc_out"></div></div>'+
+   '<div class="card"><h2>'+L.drH+'</h2><div class="fields"><label class="f">'+L.drm+', '+gm+inp("dr_m",S.dr.m)+'</label><label class="f">'+L.drm1+', '+gm+inp("dr_m1",S.dr.m1)+'</label><label class="f">'+L.drm2+', '+gm+inp("dr_m2",S.dr.m2)+'</label><label class="f">'+L.drmax+inp("dr_max",S.dr.max)+'</label></div>'+
+   '<p class="formula">(m₂ − m₁) / m · 100</p><div class="summary" id="dr_out"></div></div></section>';
+  /* ---- mix design (from the lab's Excel workbook) ---- */
+  var x=S.mx,ns=x.sieves.length;
+  h+='<section class="panel" data-panel="mx"><div class="card"><h2>'+L.mxH+'</h2><p class="hint">'+L.mxHint+'</p><div class="fields">'+
+   '<label class="f">'+L.mixType+'<select id="mx_id">'+MIXES.map(function(m){return'<option value="'+esc(m.id)+'"'+(m.id===x.id?" selected":"")+'>'+esc(m.title)+' — '+esc(m.norm)+'</option>'}).join("")+'</select></label>'+
+   '<label class="f">'+L.mxSrc+'<input id="mx_src" value="'+esc(x.src)+'"></label></div></div>'+
+   '<div class="card"><h3>'+L.passH+'</h3><div class="tbl mxt"><table><thead><tr><th>'+L.frac+'</th><th class="n">'+L.share+'</th>'+x.sieves.map(function(s){return'<th class="n">'+s+'</th>'}).join("")+'<th></th></tr></thead><tbody>'+
+   x.fr.map(function(fr,i){return'<tr><td><input id="mxn'+i+'" value="'+esc(fr.name)+'" style="min-width:84px"></td><td>'+inp("mxp"+i,fr.pct)+'</td>'+fr.pass.map(function(v,j){return'<td>'+inp("mxv"+i+"_"+j,v)+'</td>'}).join("")+'<td><button class="b sm" data-mxdel="'+i+'" aria-label="'+L.del+'">×</button></td></tr>'}).join("")+
+   '<tr><td><b>'+L.sumPct+'</b></td><td class="n res" id="mx_sum"></td><td colspan="'+(ns+1)+'"></td></tr></tbody></table></div><div class="btns"><button class="b sm" id="mx_add">'+L.addFr+'</button></div></div>'+
+   '<div class="card"><h2>'+L.resultH+'</h2><div class="tbl mxt"><table><thead><tr><th></th>'+x.sieves.map(function(s){return'<th class="n">'+s+'</th>'}).join("")+'</tr></thead><tbody>'+
+   '<tr><td><b>'+L.blend+'</b></td>'+x.sieves.map(function(s,j){return'<td class="n res" id="mxb'+j+'"></td>'}).join("")+'</tr>'+
+   '<tr><td>'+L.min+' · '+esc(x.norm)+'</td>'+x.min.map(function(v,j){return'<td>'+inp("mxmin"+j,v)+'</td>'}).join("")+'</tr>'+
+   '<tr><td>'+L.max+' · '+esc(x.norm)+'</td>'+x.max.map(function(v,j){return'<td>'+inp("mxmax"+j,v)+'</td>'}).join("")+'</tr>'+
+   '<tr><td>'+L.verdictW+'</td>'+x.sieves.map(function(s,j){return'<td id="mxs'+j+'"></td>'}).join("")+'</tr></tbody></table></div>'+
+   '<div class="summary" id="mx_out"></div><svg class="chart" id="mx_chart" viewBox="0 0 640 240" role="img" aria-label="'+esc(L.resultH)+'"></svg><p class="formula">'+L.mxFormula+'</p></div></section>';
+  /* ---- protocol ---- */
+  var p=S.p;
+  h+='<section class="panel" data-panel="pr"><div class="card"><h2>'+L.prH+'</h2>'+kindChips()+rowsPick()+'<div class="fields">'+
+   [["lab","labDef"],["no",""],["date",""],["obj","example"],["src","srcDef"],["who",""]].map(function(x){return'<label class="f">'+L[x[0]]+'<input id="p_'+x[0]+'"'+(x[0]==="date"?' type="date"':'')+' value="'+esc(p[x[0]])+'" placeholder="'+esc(x[1]?L[x[1]]:"")+'"></label>'}).join("")+
+   '<label class="f wide">'+L.norms+'<input id="p_norms" value="'+esc(p.norms)+'"></label>'+
+   '<label class="f wide">'+L.notes+'<textarea id="p_notes" rows="3">'+esc(p.notes)+'</textarea></label>'+
+   '<label class="f wide">'+L.conclOv+'<textarea id="p_concl" rows="2">'+esc(p.concl)+'</textarea></label>'+
+   '</div><div class="btns"><button class="b primary" id="p_copy">'+L.copy+'</button>'+(window.html2pdf?'<button class="b" id="p_pdf">'+L.pdf+'</button>'+(CLOUD&&LAB&&!isViewer()?'<button class="b" id="p_pdfshare">'+L.pdfShare+'</button>':''):'')+(isViewer()?'':'<button class="b" id="p_reset">'+(CLOUD&&LAB?L.newTest:L.reset)+'</button>')+'</div><p class="hint" id="p_msg">'+L.copyHint+'</p></div>'+(window.DorBrand?DorBrand.editor():'')+
+   prCloudHtml()+'<div class="card" id="proto"></div></section>';
+  if(CLOUD&&LAB)h+=jrHtml()+docsHtml();
+  /* ---- converter ---- */
+  var c=S.cv;
+  function convRow(lab,vk,fk,tk,list,id){return'<div style="display:grid;gap:6px"><h3>'+lab+'</h3><div class="conv"><div style="display:grid;gap:6px">'+inp("cv_"+vk,c[vk])+unitSel("cv_"+fk,c[fk],list)+'</div><span class="eq">=</span><div style="display:grid;gap:6px"><input class="num" id="cvo_'+id+'" readonly>'+unitSel("cv_"+tk,c[tk],list)+'</div></div></div>'}
+  h+='<section class="panel" data-panel="cv"><div class="card"><h2>'+L.cvH+'</h2><p class="hint">'+L.cvHint+'</p>'+
+   convRow(L.cvMass,"m","mf","mt",["g","kg","t"],"m")+convRow(L.cvForce,"f","ff","ft",["N","kN","kgf","tf"],"f")+convRow(L.cvStress,"s","sf","st",["MPa","kgfcm2"],"s")+
+   '<p class="formula">1 t = 1000 kg = 1 000 000 g · 1 tf = 1000 kgf = 9,807 kN · 1 MPa = 10,197 kgf/cm²</p></div></section>';
+  h+='<section class="panel" data-panel="acc"><div id="accroot"></div></section>';
+  h+='<section class="panel" data-panel="lib"><div id="libroot" class="panel"></div></section>';
+  $("main").innerHTML=h;LIBR=null;if(window.DorLib&&DorLib.decorate)DorLib.decorate($("main"),S.lang);if(window.DorGuide)DorGuide.attach($("main"),S.lang);
+  showTab(S.tab);wire();wireMx();wireCloud();recalc();
+}
+
+var LIBR=null;function libGo(){if(window.DorLib&&$("libroot")&&LIBR!==S.lang){LIBR=S.lang;DorLib.render($("libroot"),S.lang)}}
+function showTab(k){S.tab=k;if(TAB2K[k]){S.lastCalc=k;if(!S.cur||!S.cur.id)S.kind=TAB2K[k]}if(k==="lib")setTimeout(libGo,0);if(k==="acc"&&window.DorGuide)setTimeout(function(){if($("accroot"))DorGuide.render($("accroot"),S.lang)},0);document.querySelectorAll("[data-panel]").forEach(function(p){p.hidden=p.dataset.panel!==k});
+  document.querySelectorAll("#tabs button").forEach(function(b){b.setAttribute("aria-selected",b.dataset.tab===k)});save()}
+
+/* =================== WIRING =================== */
+function on(id,fn,ev){var el=$(id);if(el)el.addEventListener(ev||"input",function(){fn(el.value);recalc()})}
+function wire(){if(window.DorBrand)DorBrand.wire();document.querySelectorAll("[data-kind]").forEach(function(b){b.onclick=function(){S.kind=b.dataset.kind;S.pinc={};save();render()}});
+  var rpUpd=function(){var all=protoRows(true);if($("rp_n"))$("rp_n").textContent=all.filter(function(r){return rowIn(r[5])}).length+" / "+all.length;renderProto();save()};
+  document.querySelectorAll("[data-row]").forEach(function(c){c.onchange=function(){S.pinc=S.pinc||{};S.pinc[c.dataset.row]=c.checked;rpUpd()}});
+  var rpd=document.querySelector("details.rpick");if(rpd)rpd.ontoggle=function(){S.rpOpen=rpd.open;save()};
+  if($("rp_all"))$("rp_all").onclick=function(){S.pinc={};protoRows(true).forEach(function(r){S.pinc[r[5]]=true});document.querySelectorAll("[data-row]").forEach(function(c){c.checked=true});rpUpd()};
+  if($("rp_def"))$("rp_def").onclick=function(){S.pinc={};document.querySelectorAll("[data-row]").forEach(function(c){c.checked=rowIn(c.dataset.row)});rpUpd()};
+  document.querySelectorAll("#tabs button").forEach(function(b){b.onclick=function(){showTab(b.dataset.tab);if(b.dataset.tab==="pr")render()}});
+  var a=S.ab;
+  ["rw","rho","rhom","q","d"].forEach(function(k){on("ab_"+k,function(v){a[k]=v})});
+  ["type","mu","lu"].forEach(function(k){on("ab_"+k,function(v){a[k]=v;save();render()},"change")});
+  a.w.forEach(function(r,i){r.forEach(function(_,j){on("abw"+i+j,function(v){a.w[i][j]=v})})});
+  a.p.forEach(function(r,i){r.forEach(function(_,j){on("abp"+i+j,function(v){a.p[i][j]=v})})});
+  AB_KEYS.forEach(function(r){if(r[2])[0,1].forEach(function(ix){on("abq_"+r[0]+ix,function(v){a.req[a.type][r[2]][ix]=v===""?null:v})})});
+  var b=S.bit;
+  on("bit_grade",function(v){b.grade=v;save();render()},"change");
+  BIT_KEYS.forEach(function(k){b[k].forEach(function(_,i){on("bit"+k+i,function(v){b[k][i]=v})});[0,1].forEach(function(ix){on("bitq_"+k+ix,function(v){b.req[b.grade][k][ix]=v===""?null:v})})});
+  var g=S.gr;
+  on("gr_total",function(v){g.total=v});on("gr_mu",function(v){g.mu=v;save();render()},"change");
+  SIEVES.forEach(function(_,i){on("grr"+i,function(v){g.ret[i]=v});on("grmin"+i,function(v){g.min[i]=v});on("grmax"+i,function(v){g.max[i]=v})});
+  ["m0","m1","target","tol"].forEach(function(k){on("bc_"+k,function(v){S.bc[k]=v})});
+  ["m","m1","m2","max"].forEach(function(k){on("dr_"+k,function(v){S.dr[k]=v})});
+  ["lab","no","date","obj","src","who","norms","notes","concl"].forEach(function(k){on("p_"+k,function(v){S.p[k]=v})});
+  ["m","f","s"].forEach(function(k){on("cv_"+k,function(v){S.cv[k]=v});on("cv_"+k+"f",function(v){S.cv[k+"f"]=v},"change");on("cv_"+k+"t",function(v){S.cv[k+"t"]=v},"change")});
+  $("p_copy").onclick=copyProto;
+  if($("p_reset"))$("p_reset").onclick=function(){if(CLOUD&&LAB){newTest();return}var l=S.lang,tb=S.tab;S=example();S.lang=l;S.tab=tb;save();render();$("p_msg").textContent=t().resetDone};
+  if($("p_pdf"))$("p_pdf").onclick=function(){pdfWorker().w.save()};
+  if($("p_pdfshare"))$("p_pdfshare").onclick=sharePdf;
+}
+
+/* =================== CALC =================== */
+function calcAB(){
+  var a=S.ab,rw=num(a.rw),rho=num(a.rho),rhom=num(a.rhom),q=num(a.q),d=num(a.d),k=FORCE[a.lu];
+  var dens=[],W=[];
+  a.w.forEach(function(r){var m=num(r[0]),m1=num(r[1]),m2=num(r[2]),m3=num(r[3]),vol=m1-m2;
+    dens.push(vol>0?m*rw/vol:NaN);W.push(vol>0&&isFinite(m3)?(m3-m)/vol*100:NaN)});
+  var rhoM=avg(dens),area=Math.PI*d*d/4;
+  var R=[0,1,2,3].map(function(j){return avg(a.p.map(function(r){return area>0?num(r[j])*k*1000/area:NaN}))});
+  var o={rhoM:rhoM,Vres:(1-rhoM/rho)*100,Vmin:(1-(rhoM*100/(100+q))/rhom)*100,W:avg(W),R50:R[0],R20:R[1],R0:R[2]};
+  o.Kw=R[3]/R[1];return o}
+function calcBit(){
+  var b=S.bit,L=t(),pen=b.pen.map(num).filter(isFinite),k=b.kish.map(num).filter(isFinite),du=b.duct.map(num).filter(isFinite);
+  var pm=avg(pen),km=avg(k),dm=avg(du),pTol=pm<50?2:pm<150?4:pm<250?6:8;
+  var sp=function(a){return a.length?Math.max.apply(null,a)-Math.min.apply(null,a):NaN};
+  var pS=sp(pen),kS=sp(k),dD=du.length?Math.max.apply(null,du.map(function(x){return Math.abs(x-dm)/dm*100})):NaN;
+  return{pen:{v:Math.round(pm),ok:isFinite(pS)?pS<=pTol:null,txt:"Δ "+f(pS,0)+" ("+L.tolTxt+" "+pTol+")"},
+    kish:{v:Math.round(km*10)/10,ok:isFinite(kS)?kS<=1.0001:null,txt:"Δ "+f(kS,1)+" °C ("+L.tolTxt+" 1)"},
+    duct:{v:Math.round(dm),ok:isFinite(dD)?dD<=10.0001:null,txt:L.dev+" "+f(dD,1)+" % ("+L.tolTxt+" 10)"}}}
+function calcGr(){
+  var g=S.gr,tot=num(g.total),cum=0,sum=0,rows=[];
+  g.ret.forEach(function(r){var x=num(r);sum+=isFinite(x)?x:0});
+  SIEVES.forEach(function(s,i){var c=num(g.ret[i])/tot*100;cum+=isFinite(c)?c:0;var pass=100-cum;if(Math.abs(pass)<0.05)pass=0;
+    rows.push({s:s,c:c,full:cum,pass:pass,st:s==="pan"?"na":check(pass,[g.min[i]===""?null:g.min[i],g.max[i]===""?null:g.max[i]])})});
+  var bad=rows.filter(function(r){return r.st==="bad"}).length,has=rows.filter(function(r){return r.st!=="na"}).length;
+  return{rows:rows,loss:(tot-sum)/tot*100,st:has?(bad?"bad":"ok"):"na",bad:bad}}
+function calcBC(){var m0=num(S.bc.m0),m1=num(S.bc.m1),tg=num(S.bc.target),tl=num(S.bc.tol),q=(m0-m1)/m1*100;
+  return{q:q,qm:(m0-m1)/m0*100,st:check(q,[tg-tl,tg+tl]),req:isFinite(tg)&&isFinite(tl)?f(tg,1)+" ± "+f(tl,1):"—"}}
+function calcDR(){var d=(num(S.dr.m2)-num(S.dr.m1))/num(S.dr.m)*100;return{v:d,st:check(d,[null,S.dr.max])}}
+
+function chart(rows){
+  var W=640,H=240,Lm=40,R=12,Tm=12,B=34,pts=rows.filter(function(r){return r.s!=="pan"});
+  var lx=function(s){var a=Math.log10(0.071),b=Math.log10(40);return Lm+(Math.log10(s)-a)/(b-a)*(W-Lm-R)};
+  var ly=function(p){return Tm+(100-p)/100*(H-Tm-B)};var h="";
+  [0,20,40,60,80,100].forEach(function(p){h+='<line x1="'+Lm+'" x2="'+(W-R)+'" y1="'+ly(p)+'" y2="'+ly(p)+'" stroke="var(--line)"/><text x="'+(Lm-6)+'" y="'+(ly(p)+4)+'" text-anchor="end">'+p+'</text>'});
+  pts.forEach(function(r){h+='<text x="'+lx(r.s)+'" y="'+(H-B+16)+'" text-anchor="middle">'+r.s+'</text>'});
+  h+='<text x="'+(W-R)+'" y="'+(H-4)+'" text-anchor="end">'+t().axis+'</text>';
+  function line(key,col,dash){var p=pts.map(function(r,i){var v=key==="pass"?r.pass:num(S.gr[key][i]);return isFinite(v)?lx(r.s)+","+ly(v):null}).filter(Boolean);
+    return p.length>1?'<polyline points="'+p.join(" ")+'" fill="none" stroke="'+col+'" stroke-width="'+(dash?1.5:2.5)+'"'+(dash?' stroke-dasharray="5 4"':'')+'/>':""}
+  h+=line("min","var(--muted)",1)+line("max","var(--muted)",1)+line("pass","var(--accent)",0);
+  pts.forEach(function(r){if(isFinite(r.pass))h+='<circle cx="'+lx(r.s)+'" cy="'+ly(r.pass)+'" r="3.5" fill="'+(r.st==="bad"?"var(--bad)":"var(--accent)")+'"/>'});
+  $("gr_chart").innerHTML=h}
+
+var last={};
+function recalc(){
+  var L=t(),ab=calcAB(),req=S.ab.req[S.ab.type];last.ab=ab;
+  AB_KEYS.forEach(function(r){$("abr_"+r[0]).textContent=f(ab[r[0]],r[1]);$("abv_"+r[0]).innerHTML=r[2]?pill(check(Number(f(ab[r[0]],r[1])),req[r[2]])):""});
+  var bt=calcBit(),breq=S.bit.req[S.bit.grade];last.bit=bt;
+  BIT_KEYS.forEach(function(k){var x=bt[k];$("bitr_"+k).textContent=isFinite(x.v)?x.v:"—";
+    $("bitc_"+k).innerHTML=x.ok===null?"—":'<span class="pill '+(x.ok?"ok":"bad")+'">'+x.txt+'</span>';
+    $("bitv_"+k).innerHTML=x.ok===false?'<span class="pill bad">'+L.repeat+'</span>':pill(check(x.v,breq[k]))});
+  var g=calcGr();last.gr=g;
+  g.rows.forEach(function(r,i){$("grc_"+i).textContent=f(r.c,1);$("grf_"+i).textContent=f(r.full,1);$("grp_"+i).textContent=r.s==="pan"?"":f(r.pass,1);$("grv_"+i).innerHTML=r.s==="pan"?"":pill(r.st)});
+  $("gr_loss").textContent=L.loss+": "+f(g.loss,2)+" % ("+L.lossT+")";chart(g.rows);
+  var bc=calcBC();last.bc=bc;
+  $("bc_out").innerHTML='<span>'+L.qOver+': <b style="font-family:var(--mono)">'+f(bc.q,2)+' %</b></span><span>'+L.qMass+': <b style="font-family:var(--mono)">'+f(bc.qm,2)+' %</b></span><span>'+L.reqW+': '+bc.req+'</span>'+pill(bc.st);
+  var dr=calcDR();last.dr=dr;
+  $("dr_out").innerHTML='<span>'+L.drV+': <b style="font-family:var(--mono)">'+f(dr.v,2)+' %</b></span><span>'+L.notMore+' '+esc(S.dr.max)+' %</span>'+pill(dr.st);
+  var c=S.cv;
+  $("cvo_m").value=fmt(num(c.m)*MASS[c.mf]/MASS[c.mt]);$("cvo_f").value=fmt(num(c.f)*FORCE[c.ff]/FORCE[c.ft]);$("cvo_s").value=fmt(num(c.s)*STRESS[c.sf]/STRESS[c.st]);
+  recalcMx();renderProto();if(window.renderAdvice)try{window.renderAdvice(S,last,S.lang)}catch(e){console.error(e)}save()}
+function fmt(x){if(!isFinite(x))return"—";var a=Math.abs(x);return a!==0&&(a<0.001||a>=1e7)?x.toExponential(3):String(Math.round(x*10000)/10000)}
+
+/* =================== PROTOCOL =================== */
+function protoRows(all){
+  var L=t(),rows=[],ab=last.ab,req=S.ab.req[S.ab.type];
+  AB_KEYS.forEach(function(r){rows.push([L.matAB,L.abRows[r[0]],f(ab[r[0]],r[1]),r[2]?reqText(req[r[2]]):L.ref,r[2]?check(Number(f(ab[r[0]],r[1])),req[r[2]]):"na","ab_"+r[0]])});
+  var bt=last.bit,breq=S.bit.req[S.bit.grade];
+  BIT_KEYS.forEach(function(k){var x=bt[k];rows.push([L.matBit+" БНД "+S.bit.grade,L.bitRows[k],isFinite(x.v)?String(x.v):"—",reqText(breq[k]),x.ok===false?"bad":check(x.v,breq[k]),"bit_"+k])});
+  rows.push([L.matMin,L.grRow,last.gr.bad?last.gr.bad+" "+L.grOut:L.grIn,L.byRecipe,last.gr.st,"gr"]);
+  rows.push([L.matMix,L.bcRow,f(last.bc.q,2),last.bc.req,last.bc.st,"bc"]);
+  if(S.ab.type==="SMA")rows.push([L.matSMA,L.drRow,f(last.dr.v,2),L.notMore+" "+S.dr.max,last.dr.st,"dr"]);
+  if(last.mx)rows.push([L.matMin,L.mxRow+" — "+esc(S.mx.title),last.mx.bad?last.mx.bad+" "+L.grOut:L.grIn,esc(S.mx.norm),(last.mx.bad||!last.mx.ok)?"bad":"ok","mx"]);
+  return all?rows:rows.filter(function(r){return rowIn(r[5])})}
+function rowDef(key){var k=curKind();return k==="bit"?key.indexOf("bit_")===0:k==="gr"?(key==="gr"||key==="mx"):true}
+function rowIn(key){return S.pinc&&typeof S.pinc[key]==="boolean"?S.pinc[key]:rowDef(key)}
+function rowsPick(){try{if(!last.ab)last.ab=calcAB();if(!last.bit)last.bit=calcBit();if(!last.gr)last.gr=calcGr();if(!last.bc)last.bc=calcBC();if(!last.dr)last.dr=calcDR();if(!last.mx)last.mx=calcMx()}catch(e){return''}var K=kl(),all=protoRows(true),on=all.filter(function(r){return rowIn(r[5])}).length,grp={};
+  all.forEach(function(r){(grp[r[0]]=grp[r[0]]||[]).push(r)});
+  return'<details class="rpick"'+(S.rpOpen?" open":"")+'><summary>'+K.rowsH+' · <b id="rp_n">'+on+' / '+all.length+'</b></summary><p class="hint">'+K.rowsHint+'</p>'+
+   Object.keys(grp).map(function(g){return'<fieldset><legend>'+g+'</legend>'+grp[g].map(function(r){return'<label><input type="checkbox" data-row="'+r[5]+'"'+(rowIn(r[5])?" checked":"")+'> '+r[1]+'</label>'}).join("")+'</fieldset>'}).join("")+
+   '<div class="btns"><button type="button" class="b sm" id="rp_all">'+K.rowsAll+'</button><button type="button" class="b sm" id="rp_def">'+K.rowsDef+'</button></div></details>'}
+function pv(k,def){return S.p[k]||t()[def]||""}
+function renderProto(){if(window.DorBrand&&DorBrand.official&&DorBrand.official()){$("proto").innerHTML=DorBrand.officialHtml();return}
+  var L=t(),rows=protoRows(),bad=rows.filter(function(r){return r[4]==="bad"}).length,na=rows.filter(function(r){return r[4]==="na"}).length;
+  var d=S.p.date?new Date(S.p.date+"T00:00").toLocaleDateString(({en:"en-GB",fr:"fr-FR",kk:"ru-RU",zh:"zh-CN"})[S.lang]||"ru-RU"):"—";
+  var h=(window.DorBrand?DorBrand.header():'')+'<div class="ph"><b>'+L.protoT+' '+esc(S.p.no)+'</b><span class="hint">'+esc(pv("lab","labDef"))+'</span></div>'+
+   '<div class="kv"><span>'+L.date+'</span><span>'+d+'</span><span>'+L.obj+'</span><span>'+esc(pv("obj","example"))+'</span><span>'+L.src+'</span><span>'+esc(pv("src","srcDef"))+'</span>'+
+   '<span>'+L.material+'</span><span>'+matLine()+'</span><span>'+L.norms+'</span><span>'+esc(S.p.norms||NORMS_DEF)+'</span>'+(window.DorBrand?DorBrand.kv():'')+'</div>'+
+   '<div class="tbl"><table><thead><tr>'+L.pcolsP.map(function(c,i){return'<th'+(i===2?' class="n"':'')+'>'+c+'</th>'}).join("")+'</tr></thead><tbody>'+
+   rows.map(function(r){return'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td class="n">'+r[2]+'</td><td>'+r[3]+'</td><td>'+pill(r[4])+'</td></tr>'}).join("")+'</tbody></table></div>'+
+   (S.p.notes?'<div><b style="font-size:13px">'+L.notesW+'</b><p class="notes">'+esc(S.p.notes)+'</p></div>':'')+
+   '<p class="final" style="color:var('+(S.p.concl?"--ink":bad?"--bad":"--ok")+')">'+L.concl+': '+(S.p.concl?esc(S.p.concl):(bad?L.failN+" ("+bad+" "+L.ind+")":L.passAll))+'</p>'+
+   (na?'<p class="hint">'+na+' '+L.naNote+'</p>':'')+
+   (window.DorBrand?DorBrand.sign(S.p.who||"________________",S.cur&&S.cur.status==="approved"&&S.cur.approved_by?esc(nm(S.cur.approved_by))+' · '+esc((S.cur.approved_at||"").slice(0,10)):"")+DorBrand.footer():'<div class="sign"><div>'+L.tester+': '+esc(S.p.who||"________________")+'</div><div>'+L.head+': '+(S.cur&&S.cur.status==="approved"&&S.cur.approved_by?esc(nm(S.cur.approved_by))+' · '+esc((S.cur.approved_at||"").slice(0,10)):"________________")+'</div></div>');
+  $("proto").innerHTML=h}
+function copyProto(){
+  var L=t(),rows=protoRows(),bad=rows.filter(function(r){return r[4]==="bad"}).length,lab={ok:L.ok,bad:L.bad,na:"—"};
+  var s=L.protoT+" "+S.p.no+"\n"+pv("lab","labDef")+"\n"+L.date+"\t"+S.p.date+"\n"+L.obj+"\t"+pv("obj","example")+"\n"+L.src+"\t"+pv("src","srcDef")+"\n\n"+L.pcolsP.join("\t")+"\n";
+  rows.forEach(function(r){s+=r[0]+"\t"+r[1]+"\t"+r[2]+"\t"+r[3]+"\t"+lab[r[4]]+"\n"});
+  s+="\n"+L.concl+"\t"+(bad?L.failN+" ("+bad+" "+L.ind+")":L.passAll)+"\n"+L.tester+"\t"+(S.p.who||"")+"\n";
+  var msg=$("p_msg");
+  function fb(){var ta=document.createElement("textarea");ta.value=s;ta.style.width="100%";ta.rows=8;msg.textContent=L.copyFail;msg.appendChild(ta);ta.select()}
+  try{navigator.clipboard.writeText(s).then(function(){msg.textContent=L.copied},fb)}catch(e){fb()}}
+
+/* =================== MIX DESIGN =================== */
+function calcMx(){var x=S.mx,sum=0;
+  x.fr.forEach(function(fr){var p=num(fr.pct);if(isFinite(p))sum+=p});
+  var blend=x.sieves.map(function(s,j){return x.fr.reduce(function(a,fr){var p=num(fr.pct),v=num(fr.pass[j]);return a+(isFinite(p)&&isFinite(v)?p*v/100:0)},0)});
+  var st=blend.map(function(b,j){return check(Math.round(b*10)/10,[x.min[j]===""?null:x.min[j],x.max[j]===""?null:x.max[j]])});
+  return{sum:sum,blend:blend,st:st,bad:st.filter(function(z){return z==="bad"}).length,ok:Math.abs(sum-100)<0.05}}
+function recalcMx(){var L=t(),r=calcMx();last.mx=r;if(!$("mx_sum"))return;
+  $("mx_sum").textContent=f(r.sum,1)+" %";$("mx_sum").style.color=r.ok?"":"var(--bad)";
+  r.blend.forEach(function(b,j){$("mxb"+j).textContent=f(b,1);$("mxs"+j).innerHTML='<span class="pill '+r.st[j]+'">'+(r.st[j]==="ok"?"✓":r.st[j]==="bad"?"✕":"—")+'</span>'});
+  $("mx_out").innerHTML=(r.ok?'':'<span class="pill bad">'+L.sumPct+' = '+f(r.sum,1)+' % · '+L.must100+'</span>')+pill(r.bad||!r.ok?"bad":"ok")+(r.bad?'<span>'+r.bad+' '+L.grOut+'</span>':'');
+  mxChart(r)}
+function mxChart(r){
+  var x=S.mx,W=640,H=240,Lm=40,R=12,Tm=12,B=34,svg=$("mx_chart");if(!svg)return;
+  var a=Math.log10(Math.min.apply(null,x.sieves)),b=Math.log10(Math.max.apply(null,x.sieves));if(a===b)b=a+1;
+  var lx=function(s){return Lm+(Math.log10(s)-a)/(b-a)*(W-Lm-R)},ly=function(p){return Tm+(100-p)/100*(H-Tm-B)},h="";
+  [0,20,40,60,80,100].forEach(function(p){h+='<line x1="'+Lm+'" x2="'+(W-R)+'" y1="'+ly(p)+'" y2="'+ly(p)+'" stroke="var(--line)"/><text x="'+(Lm-6)+'" y="'+(ly(p)+4)+'" text-anchor="end">'+p+'</text>'});
+  x.sieves.forEach(function(s){h+='<text x="'+lx(s)+'" y="'+(H-B+16)+'" text-anchor="middle">'+s+'</text>'});
+  h+='<text x="'+(W-R)+'" y="'+(H-4)+'" text-anchor="end">'+t().axis+'</text>';
+  function line(vals,col,dash){var p=x.sieves.map(function(s,j){var v=num(vals[j]);return isFinite(v)?lx(s)+","+ly(v):null}).filter(Boolean);
+    return p.length>1?'<polyline points="'+p.join(" ")+'" fill="none" stroke="'+col+'" stroke-width="'+(dash?1.5:2.5)+'"'+(dash?' stroke-dasharray="5 4"':'')+'/>':""}
+  h+=line(x.min,"var(--muted)",1)+line(x.max,"var(--muted)",1)+line(r.blend,"var(--accent)",0);
+  x.sieves.forEach(function(s,j){h+='<circle cx="'+lx(s)+'" cy="'+ly(r.blend[j])+'" r="3.5" fill="'+(r.st[j]==="bad"?"var(--bad)":"var(--accent)")+'"/>'});
+  svg.innerHTML=h}
+function wireMx(){var x=S.mx;if(!$("mx_id"))return;
+  on("mx_id",function(v){S.mx=mixPreset(v);save();render()},"change");on("mx_src",function(v){x.src=v});
+  x.fr.forEach(function(fr,i){on("mxn"+i,function(v){fr.name=v});on("mxp"+i,function(v){fr.pct=v});fr.pass.forEach(function(_,j){on("mxv"+i+"_"+j,function(v){fr.pass[j]=v})})});
+  x.sieves.forEach(function(_,j){on("mxmin"+j,function(v){x.min[j]=v});on("mxmax"+j,function(v){x.max[j]=v})});
+  $("mx_add").onclick=function(){x.fr.push({name:"",pct:"0",pass:x.sieves.map(function(){return""})});save();render()};
+  document.querySelectorAll("[data-mxdel]").forEach(function(b){b.onclick=function(){x.fr.splice(+b.dataset.mxdel,1);save();render()}})}
+
+/* =================== PDF =================== */
+function pdfWorker(){var el=document.createElement("div");el.className="pdfsheet";renderProto();el.innerHTML=$("proto").innerHTML;
+  var fn=(t().protoT+" "+(S.p.no||"")).trim().replace(/[\\/:*?"<>|№]+/g,"").replace(/\s+/g,"_")+".pdf";
+  var off=window.DorBrand&&DorBrand.official&&DorBrand.official(),w=html2pdf().set({margin:off?[20,20,18,15]:[12,12,14,12],filename:fn,image:{type:"jpeg",quality:0.96},
+    html2canvas:{scale:2,backgroundColor:"#ffffff"},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},pagebreak:{mode:["css","legacy"],avoid:"tr"}}).from(el);
+  if(off)w=w.toPdf().get("pdf").then(function(pdf){DorBrand.pages(pdf)});
+  return{fn:fn,w:w}}
+async function sharePdf(){var L=t(),m=$("p_msg");m.textContent=L.pdfWait;
+  try{var o=pdfWorker();var blob=await o.w.outputPdf("blob");await uploadBlob(new Blob([blob],{type:"application/pdf"}),o.fn,S.cur.id);
+    await loadLab();render();$("p_msg").textContent=L.pdfDone}catch(e){m.textContent=errText(e)}}
+
+/* =================== ACCOUNTS & LAB (Supabase) =================== */
+var CFG=window.DORLAB_CONFIG||{};
+var CLOUD=!!(CFG.supabaseUrl&&CFG.supabaseAnonKey&&window.supabase);
+var sb=CLOUD?window.supabase.createClient(CFG.supabaseUrl,CFG.supabaseAnonKey):null;
+/* methods library lives in the database (table lib_content): readable only by signed-in users */
+window.DorLibSource=async function(dl){if(!sb)return null;
+  var s=(await sb.auth.getSession()).data.session;if(!s)return{denied:true};
+  var r=await sb.from("lib_content").select("body").eq("lang",dl).maybeSingle();
+  if(r.error)throw r.error;if(!r.data)return{denied:true};
+  return r.data.body};
+/* methods library lives in the private "lib" bucket: readable only by approved labs and the admin */
+window.DorLibSource=async function(dl){if(!sb)return null;
+  var s=(await sb.auth.getSession()).data.session;if(!s)return{denied:true};
+  var r=await sb.storage.from("lib").download("lib-"+dl+".json");
+  if(r.error){var ok=await sb.rpc("can_read_lib");if(!ok.error&&ok.data===false)return{denied:true};throw r.error}
+  return JSON.parse(await r.data.text())};
+var MYNAME="",ADMIN=false,ALL_LABS=[],ADMIN_STATS=null,ME=null,LAB=null,ROLE=null,NAMES={},MEMBERS=[],TESTS=[],DOCS=[],gateMode="login",gateView=null,booting=false;
+function isHead(){return ROLE==="head"}
+function isViewer(){return ROLE==="admin"}
+function nm(id){return NAMES[id]||"—"}
+function errText(e){var m=(e&&e.message)||String(e),E=t().errs||{};for(var k in E)if(m.indexOf(k)>=0)return E[k];return m}
+function fsize(b){if(!b&&b!==0)return"";return b<1024?b+" B":b<1048576?(b/1024).toFixed(0)+" KB":(b/1048576).toFixed(1)+" MB"}
+function stPill(s){return'<span class="pill '+({draft:"na",submitted:"wait",approved:"ok"})[s]+'">'+t().st[s]+'</span>'}
+
+function showGate(fn){gateView=fn;$("gate").hidden=false;document.querySelector("nav.tabs").hidden=true;document.querySelector("main").hidden=true;fn()}
+function hideGate(){gateView=null;$("gate").hidden=true;$("gate").innerHTML="";document.querySelector("nav.tabs").hidden=false;document.querySelector("main").hidden=false}
+function loadingView(){$("gate").innerHTML='<div class="gate"><p class="hint">…</p></div>'}
+function authView(msg,ok){var L=t();
+  $("gate").innerHTML='<div class="gate"><div class="card"><h2>'+L.welcome+'</h2><p class="hint">'+L.welcomeHint+'</p><div class="seg">'+
+   ["login","signup"].map(function(m){return'<button type="button" data-m="'+m+'" aria-pressed="'+(gateMode===m)+'">'+L[m]+'</button>'}).join("")+'</div>'+
+   '<form id="authf" style="display:grid;gap:10px">'+(gateMode==="signup"?'<label class="f">'+L.fullname+'<input id="a_name" required autocomplete="name"></label>':'')+
+   '<label class="f">'+L.email+'<input id="a_email" type="email" required autocomplete="email"></label>'+
+   '<label class="f">'+L.password+'<input id="a_pass" type="password" required minlength="6" autocomplete="'+(gateMode==="login"?"current-password":"new-password")+'"></label>'+
+   '<button class="b primary" type="submit">'+(gateMode==="login"?L.doLogin:L.doSignup)+'</button>'+(msg?'<p class="'+(ok?"okmsg":"err")+'">'+esc(msg)+'</p>':'')+'</form></div></div>';
+  document.querySelectorAll("#gate .seg button").forEach(function(b){b.onclick=function(){gateMode=b.dataset.m;authView()}});
+  $("authf").onsubmit=async function(e){e.preventDefault();var btn=this.querySelector("button[type=submit]"),email=$("a_email").value.trim(),pw=$("a_pass").value;btn.disabled=true;
+    try{if(gateMode==="login"){var r=await sb.auth.signInWithPassword({email:email,password:pw});if(r.error)throw r.error}
+      else{var r2=await sb.auth.signUp({email:email,password:pw,options:{data:{full_name:$("a_name").value.trim()},emailRedirectTo:location.origin+location.pathname}});
+        if(r2.error)throw r2.error;if(!r2.data.session){gateMode="login";authView(L.checkMail,true);return}}
+    }catch(err){authView(errText(err))}finally{btn.disabled=false}}}
+var ACC={ru:{pausedH:"Доступ приостановлен",pausedHint:"Заведующий лабораторией сменил код. Ваши данные сохранены — введите новый код, чтобы вернуться.",paused:"на паузе",pause:"Приостановить",resume:"Возобновить",pauseAll:"Приостановить доступ всех сотрудников (кроме заведующих)",inv:"Пригласить",invCopied:"Ссылка скопирована",invText:"Приглашение в лабораторию DorLabKZ. Откройте ссылку, зарегистрируйтесь — вы сразу попадёте в лабораторию:",invHint:"Ссылка содержит код: человек открывает её, создаёт аккаунт и сразу попадает в лабораторию.",note:"Сотрудники на паузе вернутся, введя новый код. Данные не удаляются."},
+fr:{pausedH:"Accès en pause",pausedHint:"Le responsable du labo a changé le code. Tes données sont conservées — saisis le nouveau code pour revenir.",paused:"en pause",pause:"Mettre en pause",resume:"Réactiver",pauseAll:"Mettre en pause l'accès de tous les membres (sauf les responsables)",inv:"Inviter",invCopied:"Lien copié",invText:"Invitation au laboratoire DorLabKZ. Ouvre le lien et crée ton compte, tu rejoins directement le laboratoire :",invHint:"Le lien contient le code : la personne l'ouvre, crée son compte et rejoint directement le labo.",note:"Les membres en pause reviennent en saisissant le nouveau code. Aucune donnée n'est effacée."},
+en:{pausedH:"Access paused",pausedHint:"The head of the lab changed the code. Your data is kept — enter the new code to come back.",paused:"paused",pause:"Pause",resume:"Resume",pauseAll:"Pause access for all members (except heads)",inv:"Invite",invCopied:"Link copied",invText:"Invitation to the DorLabKZ laboratory. Open the link and sign up — you join the lab right away:",invHint:"The link contains the code: the person opens it, signs up and joins the lab directly.",note:"Paused members come back by entering the new code. No data is deleted."},
+kk:{pausedH:"Қолжетімділік тоқтатылды",pausedHint:"Зертхана меңгерушісі кодты ауыстырды. Деректеріңіз сақталған — оралу үшін жаңа кодты енгізіңіз.",paused:"тоқтатылған",pause:"Тоқтату",resume:"Жалғастыру",pauseAll:"Барлық қызметкерлердің қолжетімділігін тоқтату (меңгерушілерден басқа)",inv:"Шақыру",invCopied:"Сілтеме көшірілді",invText:"DorLabKZ зертханасына шақыру. Сілтемені ашып, тіркеліңіз:",invHint:"Сілтемеде код бар: адам оны ашып, тіркеліп, бірден зертханаға кіреді.",note:"Тоқтатылған қызметкерлер жаңа кодты енгізіп орала алады. Деректер жойылмайды."},
+zh:{pausedH:"访问已暂停",pausedHint:"实验室负责人更换了邀请码。您的数据已保留——输入新邀请码即可恢复。",paused:"已暂停",pause:"暂停",resume:"恢复",pauseAll:"暂停所有成员的访问（负责人除外）",inv:"邀请",invCopied:"链接已复制",invText:"DorLabKZ 实验室邀请。打开链接并注册即可加入：",invHint:"链接包含邀请码：对方打开后注册即可直接加入实验室。",note:"被暂停的成员输入新邀请码即可恢复。数据不会被删除。"}};
+function al(){return ACC[S.lang]||ACC.ru}
+try{var JQ=new URLSearchParams(location.search).get("join");if(JQ){localStorage.setItem("dorlab-join",JQ.toUpperCase());history.replaceState(null,"",location.pathname+location.hash)}}catch(e){}
+function joinQ(){try{return localStorage.getItem("dorlab-join")||""}catch(e){return""}}
+function joinDone(){try{localStorage.removeItem("dorlab-join")}catch(e){}}
+function pausedView(msg){var L=t(),A=al();
+  $("gate").innerHTML='<div class="gate"><div class="card"><h2>'+A.pausedH+'</h2><p class="hint">'+A.pausedHint+'</p><form id="joinf" style="display:grid;gap:10px"><label class="f">'+L.inviteCode+
+   '<input id="j_in" required autocomplete="off" value="'+esc(joinQ())+'" style="text-transform:uppercase;font-family:var(--mono)"></label><button class="b primary">'+L.doJoin+'</button></form></div>'+
+   (msg?'<p class="err">'+esc(msg)+'</p>':'')+'<button class="b" id="g_out" type="button">'+L.logout+'</button></div>';
+  $("joinf").onsubmit=async function(e){e.preventDefault();var r=await sb.rpc("join_lab",{code:$("j_in").value});if(r.error)return pausedView(errText(r.error));joinDone();boot()};
+  $("g_out").onclick=function(){sb.auth.signOut()}}
+function labView(msg){var L=t();
+  $("gate").innerHTML='<div class="gate"><div class="card"><h2>'+L.joinLab+'</h2><p class="hint">'+L.joinHint+'</p><form id="joinf" style="display:grid;gap:10px"><label class="f">'+L.inviteCode+
+   '<input id="j_in" required autocomplete="off" value="'+esc(joinQ())+'" style="text-transform:uppercase;font-family:var(--mono)"></label><button class="b primary">'+L.doJoin+'</button></form></div>'+
+   '<div class="card"><h2>'+L.createLab+'</h2><p class="hint">'+L.createHint+'</p><form id="createf" style="display:grid;gap:10px"><label class="f">'+L.labName+
+   '<input id="c_name" required minlength="2" maxlength="120"></label><button class="b">'+L.doCreate+'</button></form></div>'+
+   (msg?'<p class="err">'+esc(msg)+'</p>':'')+'<button class="b" id="g_out" type="button">'+L.logout+'</button></div>';
+  $("joinf").onsubmit=async function(e){e.preventDefault();var r=await sb.rpc("join_lab",{code:$("j_in").value});if(r.error)return labView(errText(r.error));joinDone();boot()};
+  $("createf").onsubmit=async function(e){e.preventDefault();var r=await sb.rpc("create_lab",{lab_name:$("c_name").value});if(r.error)return labView(errText(r.error));boot()};
+  $("g_out").onclick=function(){sb.auth.signOut()}}
+
+async function boot(){if(booting)return;booting=true;try{
+  var s=(await sb.auth.getSession()).data.session;
+  if(!s){ME=null;LAB=null;ROLE=null;renderUserbar();showGate(authView);return}
+  ME=s.user;
+  var ad=await sb.rpc("is_admin");ADMIN=!ad.error&&ad.data===true;
+  var pf=await sb.from("profiles").select("full_name").eq("id",ME.id).single();MYNAME=(pf.data&&pf.data.full_name)||"";
+  var m=await sb.from("lab_members").select("role,lab_id,active,labs(id,name,invite_code)").eq("user_id",ME.id).order("active",{ascending:false}).order("joined_at").limit(1);
+  if(m.error)throw m.error;
+  if(joinQ()&&(!m.data.length||m.data[0].active===false)){var jr=await sb.rpc("join_lab",{code:joinQ()});if(!jr.error){joinDone();booting=false;return boot()}}
+  if(m.data.length&&m.data[0].active===false&&!ADMIN){LAB=null;renderUserbar();showGate(pausedView);return}
+  if(ADMIN){var al=await sb.from("labs").select("id,name,invite_code,created_at").order("created_at");if(al.error)throw al.error;ALL_LABS=al.data}
+  if(!m.data.length&&!(ADMIN&&ALL_LABS.length)){LAB=null;renderUserbar();showGate(labView);return}
+  if(m.data.length){ROLE=m.data[0].role;LAB=m.data[0].labs}
+  var want=ADMIN&&S.adminLab&&ALL_LABS.filter(function(l){return l.id===S.adminLab})[0];
+  if(want||!LAB){LAB=want||ALL_LABS[0];ROLE="admin"}
+  await loadLab();hideGate();
+  if(S.cur.lab&&S.cur.lab!==LAB.id)S.cur=blankCur();
+  if(!S.cur.id){if(!S.p.who)S.p.who=nm(ME.id);if(!S.p.lab)S.p.lab=LAB.name}
+  renderUserbar();render();
+}catch(e){showGate(function(){$("gate").innerHTML='<div class="gate"><div class="card"><p class="err">'+esc(errText(e))+'</p><button class="b" onclick="location.reload()">↻</button></div></div>'})}
+finally{booting=false}}
+
+async function loadLab(){
+  var r=await Promise.all([
+    sb.from("lab_members").select("user_id,role,active,joined_at,profiles(full_name)").eq("lab_id",LAB.id).order("joined_at"),
+    sb.from("tests").select("id,protocol_no,object,test_date,mix_type,verdict,status,created_by,updated_at,approved_by,approved_at,kind:data->>kind").eq("lab_id",LAB.id).order("updated_at",{ascending:false}).limit(300),
+    sb.from("documents").select("*").eq("lab_id",LAB.id).order("created_at",{ascending:false}).limit(300),
+    sb.from("labs").select("id,name,invite_code").eq("id",LAB.id).single()]);
+  r.forEach(function(x){if(x.error)throw x.error});
+  MEMBERS=r[0].data;NAMES={};MEMBERS.forEach(function(m){NAMES[m.user_id]=(m.profiles&&m.profiles.full_name)||"—"});
+  TESTS=r[1].data;DOCS=r[2].data;LAB=r[3].data;
+  var me=MEMBERS.filter(function(m){return m.user_id===ME.id})[0];ROLE=me?me.role:(ADMIN?"admin":ROLE);
+  if(ADMIN){var st=await Promise.all([sb.from("lab_members").select("lab_id"),sb.from("tests").select("lab_id,status"),sb.from("documents").select("lab_id")]);
+    ADMIN_STATS={};ALL_LABS.forEach(function(l){ADMIN_STATS[l.id]={m:0,t:0,a:0,d:0}});
+    st[0].data&&st[0].data.forEach(function(r){if(ADMIN_STATS[r.lab_id])ADMIN_STATS[r.lab_id].m++});
+    st[1].data&&st[1].data.forEach(function(r){var x=ADMIN_STATS[r.lab_id];if(x){x.t++;if(r.status==="submitted")x.a++}});
+    st[2].data&&st[2].data.forEach(function(r){if(ADMIN_STATS[r.lab_id])ADMIN_STATS[r.lab_id].d++})}}
+async function switchLab(id){var l=ALL_LABS.filter(function(x){return x.id===id})[0];if(!l)return;LAB=l;S.adminLab=id;
+  if(S.cur.lab&&S.cur.lab!==id){var lg=S.lang;S=example();S.lang=lg;S.adminLab=id}S.tab="jr";await loadLab();save();renderUserbar();render()}
+
+function renderUserbar(){var L=t(),u=$("userbar");
+  if(!CLOUD){u.innerHTML='<span class="banner">'+L.offline+'</span>';return}
+  if(!ME){u.innerHTML="";return}
+  u.innerHTML='<b>'+esc(NAMES[ME.id]||MYNAME||"👤")+'</b>'+(LAB?(ADMIN&&ALL_LABS.length>1?'<select id="u_lab" aria-label="'+esc(L.labPick)+'" style="width:auto">'+ALL_LABS.map(function(l){return'<option value="'+l.id+'"'+(l.id===LAB.id?" selected":"")+'>'+esc(l.name)+'</option>'}).join("")+'</select>':'<span>· '+esc(LAB.name)+'</span>')+'<span class="role">'+L.roles[ROLE]+'</span>'+(ADMIN&&ROLE!=="admin"?'<span class="role">'+L.roles.admin+'</span>':''):'')+'<button class="b sm" id="u_out">'+L.logout+'</button>';
+  $("u_out").onclick=function(){sb.auth.signOut()};if($("u_lab"))$("u_lab").onchange=function(){switchLab(this.value)}}
+
+function prCloudHtml(){if(!(CLOUD&&LAB))return"";if(isViewer())return'<div class="card"><p class="note">'+t().adminNote+'</p></div>';var L=t(),c=S.cur,mine=!c.id||c.created_by===ME.id,locked=c.status==="approved"&&!isHead(),b="";
+  if(!locked&&(mine||isHead()))b+='<button class="b primary" id="c_save">'+L.save+'</button>';
+  if(mine&&c.status==="draft")b+='<button class="b" id="c_submit">'+L.submit+'</button>';
+  if(isHead()&&c.status!=="approved")b+='<button class="b" id="c_approve">'+L.approve+'</button>';
+  if(isHead()&&c.status==="approved")b+='<button class="b" id="c_reopen">'+L.reopen+'</button>';
+  if(c.id&&(isHead()||(mine&&c.status==="draft")))b+='<button class="b" id="c_del">'+L.del+'</button>';
+  return'<div class="card"><h2>'+L.cloudH+'</h2><p class="cur">'+L.current+': <b>'+(c.id?esc(S.p.no||"—"):L.unsaved)+'</b> '+(c.id?stPill(c.status)+' · '+L.by+': '+esc(nm(c.created_by)):'')+'</p>'+
+   (locked?'<p class="note">'+L.locked+'</p>':'')+'<div class="btns">'+b+'</div><p class="hint" id="c_msg"></p></div>'}
+
+function adminHtml(){var L=t();if(!ADMIN||!ADMIN_STATS)return"";
+  return'<div class="card"><h2>'+L.allLabs+' · '+ALL_LABS.length+'</h2><div class="tbl"><table><thead><tr><th>'+L.labW+'</th><th class="n">'+L.membersH+'</th><th class="n">'+L.jrH+'</th><th class="n">'+L.st.submitted+'</th><th class="n">'+L.tabs.docs+'</th><th>'+L.created+'</th><th></th></tr></thead><tbody>'+
+   ALL_LABS.map(function(l){var x=ADMIN_STATS[l.id]||{};return'<tr><td><b>'+esc(l.name)+'</b>'+(l.id===LAB.id?' <span class="hint">●</span>':'')+'</td><td class="n">'+x.m+'</td><td class="n">'+x.t+'</td><td class="n">'+x.a+'</td><td class="n">'+x.d+'</td><td class="n">'+esc((l.created_at||"").slice(0,10))+'</td><td style="text-align:right">'+(l.id===LAB.id?'':'<button class="b sm" data-lab="'+l.id+'">'+L.openW+'</button>')+'</td></tr>'}).join("")+'</tbody></table></div></div>'}
+function jrHtml(){var L=t(),h='<section class="panel" data-panel="jr">'+adminHtml()+'<div class="card"><div class="hrow"><h2>'+L.jrH+' · '+esc(LAB.name)+'</h2>'+(isViewer()?'':'<div class="kchips"><span class="hint">'+kl().add+'</span>'+KINDS.map(function(k){return'<button class="b sm primary" data-new="'+k+'">＋ '+kl()[k]+'</button>'}).join("")+'</div>')+'</div>'+(isViewer()?'<p class="note">'+L.adminNote+'</p>':'')+
+  '<p class="cur">'+L.current+': <b>'+(S.cur.id?esc(S.p.no||"—"):L.unsaved)+'</b> '+(S.cur.id?stPill(S.cur.status):'')+'</p>';
+  var K=kl(),jf=S.jf||"all",kof=function(x){return KINDS.indexOf(x.kind)>=0?x.kind:"asph"},cnt={all:TESTS.length};KINDS.forEach(function(k){cnt[k]=TESTS.filter(function(x){return kof(x)===k}).length});
+  var LIST=jf==="all"?TESTS:TESTS.filter(function(x){return kof(x)===jf});
+  if(TESTS.length)h+='<div class="kchips jf" role="group">'+["all"].concat(KINDS).map(function(k){return'<button type="button" class="chip'+(jf===k?' on':'')+'" data-jf="'+k+'" aria-pressed="'+(jf===k)+'">'+K[k]+' <b>'+cnt[k]+'</b></button>'}).join("")+'</div>';
+  h+=LIST.length?'<div class="tbl"><table><thead><tr><th>'+L.no+'</th><th>'+K.typeW+'</th><th>'+L.obj+'</th><th>'+L.date+'</th><th>'+L.by+'</th><th>'+L.statusW+'</th><th>'+L.concl+'</th></tr></thead><tbody>'+
+    LIST.map(function(x){return'<tr class="jrow" data-id="'+x.id+'" tabindex="0"><td><b>'+esc(x.protocol_no||"—")+'</b></td><td><span class="ktag k-'+kof(x)+'">'+K[kof(x)]+'</span>'+(x.mix_type?' <span class="hint">'+esc(kof(x)==="asph"&&L.types[x.mix_type]||x.mix_type)+'</span>':'')+'</td><td>'+esc(x.object)+'</td><td class="n">'+esc(x.test_date||"")+'</td><td>'+esc(nm(x.created_by))+'</td><td>'+stPill(x.status)+'</td><td>'+(x.verdict?pill(x.verdict==="pass"?"ok":"bad"):"")+'</td></tr>'}).join("")+
+    '</tbody></table></div>':'<p class="hint">'+L.empty+'</p>';
+  h+='</div><div class="card"><h2>'+L.membersH+'</h2>'+(isHead()?'<div class="summary"><span>'+L.invite+':</span><span class="code">'+esc(LAB.invite_code)+'</span><button class="b sm primary" id="j_inv">'+al().inv+'</button><button class="b sm" id="j_copy">'+L.copyW+'</button><button class="b sm" id="j_regen">'+L.regen+'</button></div><label class="hint" style="display:flex;gap:8px;align-items:center;margin:6px 0"><input type="checkbox" id="j_pause" checked style="width:18px;height:18px;accent-color:var(--accent)"> '+al().pauseAll+'</label><p class="hint">'+al().invHint+' '+al().note+'</p>':'')+
+   '<div class="tbl"><table><tbody>'+MEMBERS.map(function(m){var me=m.user_id===ME.id;return'<tr'+(m.active===false?' style="opacity:.6"':'')+'><td>'+esc(nm(m.user_id))+(me?' <span class="hint">('+L.you+')</span>':'')+(m.active===false?' <span class="pill na">'+al().paused+'</span>':'')+'</td><td>'+
+     (isHead()&&!me?'<select data-role="'+m.user_id+'">'+["tech","head"].map(function(r){return'<option value="'+r+'"'+(m.role===r?" selected":"")+'>'+L.roles[r]+'</option>'}).join("")+'</select>':'<span class="role">'+L.roles[m.role]+'</span>')+
+     '</td><td style="text-align:right;white-space:nowrap">'+(isHead()&&!me?'<button class="b sm" data-act="'+m.user_id+'" data-on="'+(m.active===false?1:0)+'">'+(m.active===false?al().resume:al().pause)+'</button> <button class="b sm" data-kick="'+m.user_id+'">'+L.remove+'</button>':'')+'</td></tr>'}).join("")+'</tbody></table></div><p class="hint" id="j_msg"></p></div></section>';
+  return h}
+
+function docsHtml(){var L=t();return'<section class="panel" data-panel="docs"><div class="card"><h2>'+L.docsH+'</h2><p class="hint">'+L.docsHint+'</p>'+
+  (isViewer()?'':'<label class="b">'+L.upload+'<input type="file" id="d_file" multiple hidden></label>')+'<p class="hint" id="d_msg"></p>'+
+  (DOCS.length?'<div class="tbl"><table><thead><tr><th>'+L.fileW+'</th><th class="n">'+L.sizeW+'</th><th>'+L.by+'</th><th>'+L.date+'</th><th></th></tr></thead><tbody>'+
+   DOCS.map(function(d){return'<tr><td><button class="link" data-open="'+d.id+'">'+esc(d.name)+'</button></td><td class="n">'+fsize(d.size_bytes)+'</td><td>'+esc(nm(d.uploaded_by))+'</td><td class="n">'+esc((d.created_at||"").slice(0,10))+'</td><td style="text-align:right">'+
+     (isHead()||d.uploaded_by===ME.id?'<button class="b sm" data-del="'+d.id+'">'+L.del+'</button>':'')+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="hint">'+L.noDocs+'</p>')+'</div></section>'}
+
+function twoStep(btn,fn){btn.onclick=function(){if(btn.dataset.armed){fn();return}btn.dataset.armed="1";var o=btn.textContent;btn.textContent=t().confirmQ;setTimeout(function(){delete btn.dataset.armed;btn.textContent=o},4000)}}
+async function uploadBlob(blob,name,testId){
+  var safe=name.replace(/[^\w.\-]+/g,"_").slice(-80)||"file",path=LAB.id+"/"+crypto.randomUUID()+"-"+safe;
+  var up=await sb.storage.from("lab-docs").upload(path,blob,{contentType:blob.type||"application/octet-stream"});if(up.error)throw up.error;
+  var ins=await sb.from("documents").insert({lab_id:LAB.id,name:name,path:path,size_bytes:blob.size,mime:blob.type||null,test_id:testId||null});
+  if(ins.error){await sb.storage.from("lab-docs").remove([path]);throw ins.error}}
+async function saveTest(status){var L=t();try{
+  var rows=protoRows(),bad=rows.some(function(r){return r[4]==="bad"});
+  var rec={protocol_no:S.p.no||"",object:S.p.obj||"",test_date:S.p.date||null,mix_type:curKind()==="bit"?"БНД "+S.bit.grade:curKind()==="gr"?(S.mx&&S.mx.title||""):S.ab.type,verdict:bad?"fail":"pass",status:status,
+    data:{kind:curKind(),pinc:S.pinc||{},ab:S.ab,bit:S.bit,gr:S.gr,bc:S.bc,dr:S.dr,mx:S.mx,p:S.p}};
+  var q=S.cur.id?sb.from("tests").update(rec).eq("id",S.cur.id):sb.from("tests").insert(Object.assign({lab_id:LAB.id},rec));
+  var r=await q.select("id,lab_id,status,created_by,approved_by,approved_at").single();if(r.error)throw r.error;
+  S.cur={id:r.data.id,lab:r.data.lab_id,status:r.data.status,created_by:r.data.created_by,approved_by:r.data.approved_by,approved_at:r.data.approved_at};
+  await loadLab();save();render();$("c_msg").textContent=L.saved}catch(e){if($("c_msg"))$("c_msg").textContent=errText(e)}}
+async function openTest(id){var r=await sb.from("tests").select("*").eq("id",id).single();if(r.error){$("j_msg").textContent=errText(r.error);return}
+  var d=r.data.data||{};["ab","bit","gr","bc","dr","mx","p"].forEach(function(k){if(d[k])S[k]=d[k]});S.kind=KINDS.indexOf(d.kind)>=0?d.kind:"asph";S.pinc=d.pinc||{};fixState();
+  S.cur={id:r.data.id,lab:r.data.lab_id,status:r.data.status,created_by:r.data.created_by,approved_by:r.data.approved_by,approved_at:r.data.approved_at};
+  S.tab="pr";save();render();window.scrollTo(0,0)}
+function newTest(kind){var l=S.lang,jf=S.jf;S=example();S.lang=l;S.jf=jf;S.kind=KINDS.indexOf(kind)>=0?kind:"asph";S.tab=K2TAB[S.kind];S.lastCalc=S.tab;if(LAB){S.p.lab=LAB.name;S.p.who=nm(ME.id)}save();render();window.scrollTo(0,0)}
+
+function wireCloud(){if(!(CLOUD&&LAB))return;var L=t();
+  if($("c_save"))$("c_save").onclick=function(){saveTest(S.cur.status||"draft")};
+  if($("c_submit"))$("c_submit").onclick=function(){saveTest("submitted")};
+  if($("c_approve"))$("c_approve").onclick=function(){saveTest("approved")};
+  if($("c_reopen"))$("c_reopen").onclick=function(){saveTest("draft")};
+  if($("c_del"))twoStep($("c_del"),async function(){var r=await sb.from("tests").delete().eq("id",S.cur.id);if(r.error){$("c_msg").textContent=errText(r.error);return}await loadLab();newTest()});
+  document.querySelectorAll("[data-new]").forEach(function(b){b.onclick=function(){newTest(b.dataset.new)}});
+  document.querySelectorAll("[data-jf]").forEach(function(b){b.onclick=function(){S.jf=b.dataset.jf;save();render()}});
+  document.querySelectorAll("[data-lab]").forEach(function(b){b.onclick=function(){switchLab(b.dataset.lab)}});
+  document.querySelectorAll(".jrow").forEach(function(tr){tr.onclick=function(){openTest(tr.dataset.id)};tr.onkeydown=function(e){if(e.key==="Enter")openTest(tr.dataset.id)}});
+  if($("j_inv"))$("j_inv").onclick=function(){var b=this,u=location.origin+location.pathname+"?join="+encodeURIComponent(LAB.invite_code),tx=al().invText;
+    var cp=function(){try{navigator.clipboard.writeText(tx+" "+u).then(function(){b.textContent=al().invCopied},function(){prompt("",u)})}catch(e){prompt("",u)}};
+    if(navigator.share)navigator.share({title:"DorLabKZ",text:tx,url:u}).catch(function(e){if(e&&e.name!=="AbortError")cp()});else cp()};
+  if($("j_copy"))$("j_copy").onclick=function(){var b=this;try{navigator.clipboard.writeText(LAB.invite_code).then(function(){b.textContent=L.copiedW})}catch(e){}};
+  if($("j_regen"))twoStep($("j_regen"),async function(){var r=await sb.rpc("new_invite_code",{l:LAB.id,pause:!!($("j_pause")&&$("j_pause").checked)});if(r.error){$("j_msg").textContent=errText(r.error);return}await loadLab();render()});
+  document.querySelectorAll("[data-act]").forEach(function(b){b.onclick=async function(){b.disabled=true;var r=await sb.from("lab_members").update({active:b.dataset.on==="1"}).eq("lab_id",LAB.id).eq("user_id",b.dataset.act);if(r.error)$("j_msg").textContent=errText(r.error);await loadLab();render()}});
+  document.querySelectorAll("[data-role]").forEach(function(sel){sel.onchange=async function(){var r=await sb.from("lab_members").update({role:sel.value}).eq("lab_id",LAB.id).eq("user_id",sel.dataset.role);
+    if(r.error)$("j_msg").textContent=errText(r.error);await loadLab();render()}});
+  document.querySelectorAll("[data-kick]").forEach(function(b){twoStep(b,async function(){var r=await sb.from("lab_members").delete().eq("lab_id",LAB.id).eq("user_id",b.dataset.kick);
+    if(r.error)$("j_msg").textContent=errText(r.error);await loadLab();render()})});
+  if($("d_file"))$("d_file").onchange=async function(){var files=[].slice.call(this.files),m=$("d_msg");m.textContent=L.uploading;
+    try{for(var i=0;i<files.length;i++)await uploadBlob(files[i],files[i].name,null);await loadLab();render();$("d_msg").textContent=L.uploaded}catch(e){m.textContent=errText(e)}};
+  document.querySelectorAll("[data-open]").forEach(function(b){b.onclick=async function(){var d=DOCS.filter(function(x){return x.id===b.dataset.open})[0];
+    var w=window.open("","_blank");var r=await sb.storage.from("lab-docs").createSignedUrl(d.path,600,{download:d.name});
+    if(r.error){if(w)w.close();$("d_msg").textContent=errText(r.error);return}if(w)w.location=r.data.signedUrl;else location.href=r.data.signedUrl}});
+  document.querySelectorAll("[data-del]").forEach(function(b){twoStep(b,async function(){var d=DOCS.filter(function(x){return x.id===b.dataset.del})[0];
+    var r=await sb.storage.from("lab-docs").remove([d.path]);if(r.error){$("d_msg").textContent=errText(r.error);return}
+    var r2=await sb.from("documents").delete().eq("id",d.id);if(r2.error)$("d_msg").textContent=errText(r2.error);await loadLab();render()})})}
+
+/* =================== START =================== */
+document.querySelectorAll(".lang button").forEach(function(b){b.addEventListener("click",function(){S.lang=b.dataset.lang;save();render();renderUserbar();if(gateView)gateView()})});
+render();renderUserbar();
+if(CLOUD){showGate(loadingView);
+  sb.auth.onAuthStateChange(function(ev,session){
+    if((ev==="SIGNED_OUT"||ev==="SIGNED_IN")&&window.DorLib&&DorLib.reset)DorLib.reset();
+    if(ev==="INITIAL_SESSION"||ev==="SIGNED_OUT"||(ev==="SIGNED_IN"&&(!ME||!session||session.user.id!==ME.id)))setTimeout(boot,0)})}
+})();
+</script>
+</body>
+</html>
