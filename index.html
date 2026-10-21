@@ -835,12 +835,6 @@ window.DorLibSource=async function(dl){if(!sb)return null;
   var r=await sb.from("lib_content").select("body").eq("lang",dl).maybeSingle();
   if(r.error)throw r.error;if(!r.data)return{denied:true};
   return r.data.body};
-/* methods library lives in the private "lib" bucket: readable only by approved labs and the admin */
-window.DorLibSource=async function(dl){if(!sb)return null;
-  var s=(await sb.auth.getSession()).data.session;if(!s)return{denied:true};
-  var r=await sb.storage.from("lib").download("lib-"+dl+".json");
-  if(r.error){var ok=await sb.rpc("can_read_lib");if(!ok.error&&ok.data===false)return{denied:true};throw r.error}
-  return JSON.parse(await r.data.text())};
 var MYNAME="",ADMIN=false,ALL_LABS=[],ADMIN_STATS=null,ME=null,LAB=null,ROLE=null,NAMES={},MEMBERS=[],TESTS=[],DOCS=[],gateMode="login",gateView=null,booting=false;
 function isHead(){return ROLE==="head"}
 function isViewer(){return ROLE==="admin"}
