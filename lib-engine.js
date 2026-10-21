@@ -120,7 +120,7 @@ S.wres=function(){return num(48,34,1)+desic(150,110)+tx(150,280,W("насыще�
 S.split=function(){return num(48,34,1)+tank(60,120,170,120,"0 ± 2 °C · 1 h")+EL(110,196,30,30,"fasp")+EL(176,200,26,26,"fasp")+P("M80 150 l8 -8 l8 8 M180 148 l8 -8 l8 8","sice")+co(188,146,250,96,W("лёд","glace","ice"))+
  flow(250,300,220)+num(316,34,2)+press(480,100,"split","P","50 mm/min")+co(486,184,600,330,W("опорные полосы","réglettes de chargement","loading strips"))+note(["Rp = P / (h · d) · 10⁻²  (MPa)"])}
 S.shear=function(){return num(48,34,1)+tank(44,140,130,96,"50 °C · 1 h",{heat:1})+cyl(80,180,46,40)+num(220,34,2)+press(320,100,"cyl","Pсж","50 mm/min",1)+num(470,34,3)+press(590,100,"conf","Pм","",1)+co(546,250,640,330,W("обойма Маршалла","mâchoires Marshall","Marshall jig"))+
- note(["tg φ = 3·(Rм − Rсж) / (3·Rм − 2·Rсж)","Cл = (1/6)·(3 − 2·tg φ)·√(Rсж·Rм)"])}
+ note(["A = P·l / 2;  tg φ = 3·(Am − Ac) / (3·Am − 2·Ac)","Cл = (1/6)·(3 − 2·tg φ)·Rс"])}
 S.marshall=function(){return num(48,34,1)+R(84,40,12,120,"sk")+R(66,160,48,10,"sk")+R(60,60,60,22,"sacc",3)+co(120,70,160,50,"4,54 kg")+dimV(140,82,160,"457 mm")+R(64,170,52,70,"fhatch")+R(70,176,40,58,"fasp")+R(52,240,76,10,"sk",2)+tx(90,272,W("2 × 75 ударов","2 × 75 coups","2 × 75 blows"),{c:"sv",a:"middle"})+
  flow(176,208,214)+num(222,34,2)+tank(214,150,120,92,"60 °C · 30–40 min",{heat:1})+cyl(250,190,48,38)+flow(344,376,214)+num(392,34,3)+press(520,100,"marsh","S","50,8 mm/min")+co(620,236,660,330,W("индикатор текучести","comparateur de fluage","flow gauge"))+
  note(["S' = S · k (" + W("поправка на высоту","correction de hauteur","height correction") + ")","MQ = S' / F"])}
@@ -134,9 +134,71 @@ S.binder=function(){return num(48,34,1)+oven(116,70,"105–110 °C",{fill:"fasp"
  note(["Б = (g − g₁) / g₁ · 100 %","Бсм = (g − g₁) / g · 100 %"])}
 S.extrGrad=function(){return num(48,34,1)+heap(110,250,140,30,"fagg")+tx(110,276,"g₁",{c:"sv",a:"middle"})+flow(190,226,200)+num(240,34,2)+stack(260,50,110,["20","15","10","5","2,5","1,25","0,63"],[1,1,1,1,1,1,1])+shaker(260,262,110)+
  co(370,80,430,40,W("сито","tamis","sieve"))+co(370,262,430,290,W("встряхиватель","tamiseuse","shaker"))+flow(440,480,200)+num(496,34,3)+bal(600,214,"mᵢ")+tray(562,198,76)+note(["aᵢ = mᵢ / g₁ · 100 %;  Aᵢ = Σaᵢ;  Пᵢ = 100 − Aᵢ"])}
-S.drain=function(){return num(48,34,1)+beaker(70,120,90,110,70,"fasp")+co(160,170,190,96,W("стакан 1000 мл","bécher 1000 ml","1000 ml beaker"))+bal(115,250,"m")+
- flow(220,256,200)+num(270,34,2)+oven(350,90,"170 °C · 60 min",{sample:false})+R(306,120,40,26,"fasp")+flow(430,466,200)+num(480,34,3)+P("M520 120 l40 70 M560 120 l-6 4","sl")+beaker(510,120,70,100,0)+P("M512 216 q34 -10 66 0","sbitl")+co(545,212,620,280,W("стёкший битум","bitume égoutté","drained bitumen"))+bal(650,250,"m₂")+
- note(["Д = (m₂ − m₁) / m · 100 %"])}
+S.drain=function(){return num(48,34,1)+beaker(70,120,90,110,70,"fasp")+co(160,170,190,96,W("стакан 1000 мл","bécher 1000 ml","1000 ml beaker"))+bal(115,250,"g₂")+
+ flow(220,256,200)+num(270,34,2)+oven(350,90,"140–175 °C · 60 ± 1 min",{sample:false})+R(306,120,40,26,"fasp")+flow(430,466,200)+num(480,34,3)+P("M520 120 l40 70 M560 120 l-6 4","sl")+beaker(510,120,70,100,0)+P("M512 216 q34 -10 66 0","sbitl")+co(545,212,620,280,W("стёкший битум","bitume égoutté","drained bitumen"))+bal(650,250,"g₃")+
+ note(["B = (g₃ − g₁) / (g₂ − g₁) · 100 %"])}
+/* --- asphalt: СТ РК 1218-2024, new sections --- */
+function freezer(x,y,t){var s="",i;for(i=0;i<4;i++)s+=P("M"+(x+28+i*24)+" "+(y+18)+" v18 M"+(x+20+i*24)+" "+(y+22)+" l16 10 M"+(x+20+i*24)+" "+(y+32)+" l16 -10","sice");
+ return R(x,y,120,130,"sk",8)+R(x+8,y+8,104,114,"sin",4)+s+L(x+8,y+52,x+112,y+52,"sl")+R(x+112,y+50,6,24,"sk",2)+(t?tx(x+60,y+148,t,{c:"sv",a:"middle"}):"")}
+function bag(x,y,w,h){return R(x-4,y-4,w+8,h+8,"sdash",6)+spec(x,y,w,h)}
+S.bend=function(){return num(48,34,1)+therm(80,110,130)+R(110,190,110,40,"fconc")+R(110,190,110,40,"fasp")+stopwatch(170,140,"2 h")+tx(165,268,W("воздух 20 ± 2 °C","air 20 ± 2 °C","air 20 ± 2 °C"),{c:"sv",a:"middle"})+
+ flow(250,290,214)+num(306,34,2)+press(470,100,"beam","P","50 mm/min")+
+ co(424,232,612,330,W("опоры, пролёт l","appuis, portée l","supports, span l"))+co(486,225,612,120,W("стержень ⌀ 10 мм","barreau ⌀ 10 mm","rod ⌀ 10 mm"))+
+ R(590,190,60,40,"sk",4)+C(620,210,13,"sin")+L(620,210,628,202,"sacc2")+co(620,197,676,160,W("прогиб f","flèche f","deflection f"))+
+ note(["Rизг = 3·P·l / (2·b·h²) · 10⁻²;  εпр = 6·f·h / l²","E = P·l³ / (4·f·b·h³) · 10⁻²"])}
+S.wlong=function(){return num(48,34,1)+desic(150,110)+tx(150,280,W("вакуумное насыщение (п. 13.3)","saturation sous vide (§ 13.3)","vacuum saturation (cl. 13.3)"),{c:"sv",a:"middle"})+
+ flow(300,330,214)+num(344,34,2)+tank(350,150,140,92,"20 ± 2 °C · 15 "+W("сут","j","days"))+cyl(374,190,40,40)+cyl(426,194,40,36)+
+ flow(500,530,214)+num(546,34,3)+press(650,100,"cyl","Rвд","",1)+note(["Kвд = Rвд / R20"])}
+S.wacc=function(){return num(48,34,1)+tank(40,150,120,90,"50 °C · 1 h",{heat:1})+cyl(70,190,40,38)+
+ flow(170,196,214)+num(212,34,2)+desic(270,100,{t:"50 °C · ≤ 2 kPa · 1 h"})+tx(300,290,W("затем 1 ч при атм. давлении 50 °C, 1 ч в воде 20 °C","puis 1 h à pression atm. 50 °C, 1 h dans l'eau à 20 °C","then 1 h at atm. pressure 50 °C, 1 h in water at 20 °C"),{c:"sv",a:"middle"})+
+ flow(470,500,214)+num(516,34,3)+press(620,100,"cyl","Rву","",1)+note(["Kву = Rву / R20"])}
+S.wacc60=function(){return num(48,34,1)+oven(90,60,"125 ± 2 °C · 2 h",{fill:"fasp",disp:"125"})+tx(90,216,"20,7 MPa · 2 min",{c:"sdt",a:"middle"})+
+ flow(160,186,150)+num(200,34,2)+oven(250,60,"60 °C · 24 h",{sample:false,disp:"60"})+R(214,94,40,26,"fasp")+
+ flow(320,340,150)+num(356,34,3)+R(350,70,120,90,"sk",4)+cyl(364,104,36,40)+cyl(416,108,36,36)+tx(410,180,W("S₁: воздух 20 °C · 4 h","S₁ : air 20 °C · 4 h","S₁: air 20 °C · 4 h"),{c:"sdt",a:"middle"})+
+ tank(350,212,120,80,"",{heat:1,nolab:1})+cyl(380,240,36,36)+tx(410,322,W("S₂: вода 60 °C 24 h → 20 °C 2 h","S₂ : eau 60 °C 24 h → 20 °C 2 h","S₂: water 60 °C 24 h → 20 °C 2 h"),{c:"sdt",a:"middle"})+
+ flow(482,508,214)+num(524,34,4)+press(630,110,"cyl","S","",1)+note(["Kву' = S₂ / S₁"])}
+S.tsr=function(){return num(44,34,1)+desic(92,96,{t:"13–67 kPa · 5–10 min"})+tx(92,262,"W = 70–80 %",{c:"sdt",a:"middle"})+
+ flow(262,292,170)+num(306,34,2)+freezer(300,80,"−15…−21 °C · ≥ 16 h")+bag(340,150,40,30)+
+ flow(420,442,170)+num(456,34,3)+tank(446,100,100,84,"60 ± 1 °C · 24 h",{heat:1})+cyl(468,134,40,32)+tank(446,224,100,70,"",{nolab:1})+cyl(468,246,40,32)+tx(496,316,"20 °C · 2 h",{c:"sdt",a:"middle"})+
+ num(562,34,4)+press(652,110,"split","P","",1)+co(652,196,600,330,W("пластины 19 мм","plaques 19 mm","19 mm strips"))+
+ note(["S = 2000·P / (π·h·d);  TSR = S₂ / S₁;  50 mm/min","W = 100·J / Va;  J = (B − A) / ρw"])}
+S.afrost=function(){return num(48,34,1)+desic(92,110)+tx(92,280,W("насыщение по 13.3","saturation § 13.3","saturation cl. 13.3"),{c:"sv",a:"middle"})+
+ flow(272,296,214)+num(310,34,2)+freezer(300,90,"−18 ± 2 °C · ≥ 4 h")+cyl(338,160,36,30)+
+ flow(424,448,214)+num(462,34,3)+tank(450,150,92,90,"18 ± 2 °C · 4 h")+cyl(472,190,36,34)+
+ P("M496 132 C496 60 380 60 372 84","sa")+P("M366 76 l6 9 l7 -8","sa")+tx(434,58,"× 5…75 "+W("циклов","cycles","cycles"),{c:"sdt",a:"middle"})+
+ num(566,34,4)+press(650,110,"cyl","Rм","",1)+note(["ΔR = (Rв − Rм) / Rв · 100 %"])}
+S.adhMix=function(){return num(48,34,1)+beaker(120,90,200,190,150,"swat")+hotplate(110,288,220)+
+ R(150,206,140,6,"fmesh")+P("M156 206 q64 -26 128 0 z","fasp")+P("M150 206 v-122 q0 -12 -10 -12 M290 206 v-122 q0 -12 10 -12","sl")+
+ C(180,140,3,"sbit")+C(250,124,2.5,"sbit")+dimV(330,130,192,"30–40 mm")+
+ co(220,200,370,260,W("навеска 50 г на сетке","prise de 50 g sur grille","50 g portion on mesh"))+co(150,110,60,60,W("проволочные дужки","crochets en fil","wire hooks"))+co(220,250,370,300,W("15 % NaCl, 97 ± 1 °C","NaCl 15 %, 97 ± 1 °C","15 % NaCl, 97 ± 1 °C"))+
+ stopwatch(420,90,W("вязкое 30 мин / жидкое 3 мин","visqueux 30 min / fluide 3 min","viscous 30 min / liquid 3 min"))+
+ num(540,160,2)+R(570,200,110,60,"sk",4)+P("M582 250 l14 -16 l18 6 l10 -14 l20 8 l14 -12 l12 28 z","sbitstone")+tx(625,288,W("≥ ¾ поверхности в плёнке","≥ ¾ de surface enrobée","≥ ¾ surface coated"),{c:"sdt",a:"middle"})+
+ note([W("сравнение с контрольной навеской после высыхания","comparer au témoin non bouilli une fois sec","compare with the unboiled reference once dry")])}
+S.cake=function(){return num(48,34,1)+R(80,300,200,14,"fhatch",2)+R(80,300,200,14,"sframe",2)+R(110,282,140,18,"sk")+cyl(140,226,80,56)+R(176,226,8,56,"sin")+
+ L(180,60,180,250,"sneedle")+P("M174 236 L180 262 L186 236 Z","sk")+R(170,140,20,90,"sk")+R(150,90,60,40,"sacc",3)+R(166,60,28,10,"sk",2)+
+ co(180,110,300,90,W("груз 500 г","masse 500 g","500 g weight"))+co(180,66,300,50,W("упорное кольцо","bague d'arrêt","stop ring"))+co(186,250,300,250,W("конус 15°","cône 15°","15° cone"))+co(140,250,40,240,W("образец","éprouvette","specimen"))+
+ dimV(116,70,130,"200 mm",1)+
+ num(420,34,2)+P("M440 300 V80 M440 300 H720","sl")+P("M450 290 L480 250 L520 220 L560 190 L600 150 L640 120 L680 90","sacc3")+tx(452,92,W("разрушение","rupture","failure"),{c:"sv"})+tx(712,318,W("удары, N","coups, N","blows, N"),{c:"sv",a:"end"})+
+ note([W("N = среднее из 3 образцов; Nmax − Nmin ≤ 4","N = moyenne de 3 éprouvettes ; Nmax − Nmin ≤ 4","N = mean of 3 specimens; Nmax − Nmin ≤ 4")])}
+S.homog=function(){var bars=[2,4,7,10,8,5,3],s="";bars.forEach(function(b,i){s+=R(120+i*60,300-b*20,52,b*20,"fasp")});
+ return num(48,34,1)+s+P("M90 300 H560 M90 300 V70","sl")+P("M120 296 C220 290 260 90 330 90 C400 90 440 290 540 296","sacc3")+L(330,80,330,300,"sdash")+tx(330,72,"X̄",{c:"sdt",a:"middle"})+
+ dimH(270,390,320,"± Sn")+tx(660,212,W("R50 (горячие) / W (холодные)","R50 (chauds) / W (froids)","R50 (hot) / W (cold)"),{c:"sv",a:"middle"})+tx(100,64,"n",{c:"sv"})+
+ R(590,90,140,96,"sk",4)+tx(660,118,"n ≥ 20",{c:"sdt",a:"middle"})+tx(660,146,W("из журнала","du journal","from the log"),{c:"sv",a:"middle"})+tx(660,170,W("за период","sur la période","over the period"),{c:"sv",a:"middle"})+
+ note(["Cv = Sn / X̄;  X̄ = Σxᵢ / n","Sn = √[ Σ(X̄ − xᵢ)² / (n − 1) ]"])}
+S.mixTemp=function(){return num(48,34,1)+P("M60 150 h260 l-20 90 h-220 z","sk")+P("M70 160 q120 -40 240 0 v6 h-240 z","fasp")+R(70,166,240,64,"fasp")+C(110,262,18,"sk")+C(270,262,18,"sk")+
+ [100,160,220,280].map(function(x){return L(x,120,x,196,"sneedle")+C(x,118,5,"sacc")}).join("")+dimV(330,166,196,"≥ 100 mm")+dimH(70,100,108,"≥ 500")+
+ tx(190,310,W("≥ 4 точки вдоль каждого борта","≥ 4 points par côté de benne","≥ 4 points along each side"),{c:"sv",a:"middle"})+
+ num(420,34,2)+heap(520,290,200,46,"fasp")+L(470,210,490,262,"sneedle")+L(570,200,556,256,"sneedle")+dimV(640,262,290,"≥ 300",0)+tx(520,316,W("штабель: по периметру","stock : sur le pourtour","stockpile: around perimeter"),{c:"sv",a:"middle"})+
+ R(600,80,120,70,"sk",4)+R(612,92,96,26,"sdisp",2)+tx(660,110,"152 °C",{c:"sdispt",a:"middle"})+tx(660,138,"± 2 °C",{c:"sv",a:"middle"})+
+ note(["T = " + W("среднее всех показаний, округлённое до целого","moyenne de toutes les lectures, arrondie à l'unité","mean of all readings, rounded to integer")])}
+S.pavTemp=function(){return num(48,34,1)+R(40,180,420,60,"fasp")+R(40,240,420,50,"fasp2")+R(40,290,420,40,"fagg")+
+ R(110,180,14,10,"sin")+R(220,180,14,30,"sin")+R(330,180,14,60,"sin")+
+ L(117,110,117,184,"sneedle")+L(227,110,227,206,"sneedle")+L(337,110,337,236,"sneedle")+C(117,106,6,"sacc")+C(227,106,6,"sacc")+C(337,106,6,"sacc")+
+ tx(117,96,W("поверхность","surface","surface"),{c:"sdt",a:"middle"})+tx(227,96,"20 mm",{c:"sdt",a:"middle"})+tx(337,96,"h / 2",{c:"sdt",a:"middle"})+
+ dimV(480,180,240,"h",0)+co(124,186,200,350,W("отверстие ⌀ +5 мм, загерметизировать","trou ⌀ +5 mm, à boucher","hole ⌀ +5 mm, sealed"))+
+ num(500,34,2)+stopwatch(510,110,W("≥ 15 мин после сверления","≥ 15 min après perçage","≥ 15 min after drilling"))+stopwatch(510,170,W("отсчёт ≥ 3 мин после контакта","lecture ≥ 3 min après contact","read ≥ 3 min after contact"))+
+ tx(600,240,W("3 параллельных измерения, ± 0,5 °C","3 mesures parallèles, ± 0,5 °C","3 parallel readings, ± 0.5 °C"),{c:"sv",a:"middle"})+
+ note(["T = (T₁ + T₂ + T₃) / 3"])}
 /* --- bitumen --- */
 S.bitSample=function(){return num(48,34,1)+R(64,90,90,120,"sk",4)+R(70,120,78,84,"sbit")+burner(110,212)+co(150,140,200,100,W("битум","bitume","bitumen"))+tx(110,72,"≤ Tразм + 90 °C",{c:"sv",a:"middle"})+
  flow(176,212,190)+num(228,34,2)+P("M240 110 h90 l-10 70 h-70 z","sk")+R(252,180,66,4,"fmesh")+co(286,182,340,250,W("сито 0,7 мм","tamis 0,7 mm","0.7 mm sieve"))+flow(356,392,190)+num(408,34,3)+
