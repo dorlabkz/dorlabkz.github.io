@@ -509,6 +509,19 @@ var REQ_AB={
   SMA:{Vres:[1.5,4.5],Vmin:[15,19],W:[1.0,4.0],R50:[0.65,null],R20:[2.2,null],R0:[null,null],Kw:[0.85,null]}};
 var REQ_BIT={"40/60":{pen:[40,60],kish:[51,null],duct:[45,null]},"60/90":{pen:[61,90],kish:[47,null],duct:[55,null]},
   "90/130":{pen:[91,130],kish:[43,null],duct:[65,null]},"130/200":{pen:[131,200],kish:[40,null],duct:[70,null]}};
+var REQ_BIT_GOST=JSON.parse(JSON.stringify(REQ_BIT)),REQ_AB_GOST=JSON.parse(JSON.stringify(REQ_AB));
+var REQ_AB_ST={A:{Vres:[2.5,5.0],Vmin:[null,19],W:[2.0,5.0],R50:[1.0,null],R20:[2.5,null],R0:[null,11.0],Kw:[0.90,null]},
+  B:{Vres:[2.5,5.0],Vmin:[null,19],W:[1.5,4.0],R50:[1.2,null],R20:[2.5,null],R0:[null,11.0],Kw:[0.90,null]},
+  V:{Vres:[2.5,5.0],Vmin:[null,22],W:[1.5,4.0],R50:[1.2,null],R20:[2.2,null],R0:[null,12.0],Kw:[0.85,null]},
+  SMA:{Vres:[2.0,4.5],Vmin:[15,19],W:[1.0,4.0],R50:[1.0,null],R20:[2.8,null],R0:[null,null],Kw:[0.85,null]}};
+var REQ_BIT_ST={"35/50":{pen:[36,50],kish:[53,null],duct:[50,null]},"50/70":{pen:[51,70],kish:[51,null],duct:[65,null]},"70/100":{pen:[71,100],kish:[47,null],duct:[75,null]},"100/130":{pen:[101,130],kish:[43,null],duct:[90,null]},"130/200":{pen:[131,200],kish:[42,null],duct:[null,null]}};
+var NRM={ru:{l:"\u041d\u043e\u0440\u043c\u0430",g:"\u0413\u041e\u0421\u0422 9128 / 22245 / 31015",s:"\u0421\u0422 \u0420\u041a 1225 / 1373 / 2373",ns:"\u0422\u0440\u0435\u0431\u043e\u0432\u0430\u043d\u0438\u044f \u043f\u043e \u0421\u0422 \u0420\u041a 1225-2019 (\u0438\u0437\u043c. \u2116 1, 2) \u0438 \u0421\u0422 \u0420\u041a 2373-2019 \u0434\u043b\u044f \u043c\u0430\u0440\u043a\u0438 I, \u0437\u043e\u043d\u0430 III (\u0442\u0438\u043f \u0412 \u2014 \u043c\u0430\u0440\u043a\u0430 II); \u0431\u0438\u0442\u0443\u043c \u2014 \u0421\u0422 \u0420\u041a 1373-2013. \u0421\u0432\u0435\u0440\u044c\u0442\u0435 \u0441 \u043f\u0440\u043e\u0435\u043a\u0442\u043e\u043c \u2014 \u043a\u0430\u0436\u0434\u043e\u0435 \u043f\u043e\u043b\u0435 \u043c\u043e\u0436\u043d\u043e \u0438\u0437\u043c\u0435\u043d\u0438\u0442\u044c. \u041f\u0440\u0438 \u0441\u043c\u0435\u043d\u0435 \u043d\u043e\u0440\u043c\u044b \u0442\u0440\u0435\u0431\u043e\u0432\u0430\u043d\u0438\u044f \u0438 \u0437\u043d\u0430\u0447\u0435\u043d\u0438\u044f \u0441\u0442\u0435\u043a\u0430\u043d\u0438\u044f \u0437\u0430\u043f\u043e\u043b\u043d\u044f\u044e\u0442\u0441\u044f \u0437\u0430\u043d\u043e\u0432\u043e."},
+ fr:{l:"Norme",g:"\u0413\u041e\u0421\u0422 9128 / 22245 / 31015",s:"\u0421\u0422 \u0420\u041a 1225 / 1373 / 2373",ns:"Exigences selon \u0421\u0422 \u0420\u041a 1225-2019 (modif. 1, 2) et \u0421\u0422 \u0420\u041a 2373-2019 pour la marque I, zone III (type \u0412 \u2014 marque II) ; bitume \u2014 \u0421\u0422 \u0420\u041a 1373-2013. V\u00e9rifie avec le projet \u2014 chaque champ est modifiable. Au changement de norme, les exigences et la valeur d'\u00e9gouttage sont remplies \u00e0 nouveau."},
+ en:{l:"Standard",g:"\u0413\u041e\u0421\u0422 9128 / 22245 / 31015",s:"\u0421\u0422 \u0420\u041a 1225 / 1373 / 2373",ns:"Requirements per \u0421\u0422 \u0420\u041a 1225-2019 (amend. 1, 2) and \u0421\u0422 \u0420\u041a 2373-2019 for grade I, zone III (type \u0412 \u2014 grade II); bitumen \u2014 \u0421\u0422 \u0420\u041a 1373-2013. Check against the project \u2014 every field can be edited. Changing the standard refills the requirements and the drain-down limit."}};
+function normSel(id){var N=NRM[S.lang]||NRM.ru,c=S.norm==="st"?"st":"gost";return'<div class="fields"><label class="f">'+N.l+'<select id="'+id+'"><option value="gost"'+(c==="gost"?" selected":"")+'>'+N.g+'</option><option value="st"'+(c==="st"?" selected":"")+'>'+N.s+'</option></select></label></div>'}
+function normNote(d){return S.norm==="st"?(NRM[S.lang]||NRM.ru).ns:d}
+function applyNorm(n){var st=n==="st",cp=function(o){return JSON.parse(JSON.stringify(o))};S.norm=st?"st":"gost";REQ_BIT=cp(st?REQ_BIT_ST:REQ_BIT_GOST);S.ab.req=cp(st?REQ_AB_ST:REQ_AB_GOST);S.bit.req=cp(REQ_BIT);
+  if(!REQ_BIT[S.bit.grade])S.bit.grade=st?"70/100":"60/90";if(S.dr)S.dr.max=st?"0.25":"0.20"}
 var SIEVES=[40,20,15,10,5,2.5,1.25,0.63,0.315,0.16,0.071,"pan"];
 var MASS={g:1,kg:1000,t:1e6}, FORCE={N:0.001,kN:1,kgf:0.00980665,tf:9.80665}, STRESS={MPa:1,kgfcm2:0.0980665};
 
@@ -531,7 +544,7 @@ function mixPreset(id){var m=MIXES.filter(function(x){return x.id===id})[0]||MIX
     min:m.min.map(function(v){return v==null?"":String(v)}),max:m.max.map(function(v){return v==null?"":String(v)})}}
 function blankCur(){return{id:null,lab:null,status:"draft",created_by:null,approved_by:null,approved_at:null}}
 function fixState(){if(!S.mx||!S.mx.sieves)S.mx=mixPreset("КЗтипБ");if(!S.cur)S.cur=blankCur();
-  if(S.p.norms==null)S.p.norms=NORMS_DEF;if(S.p.notes==null)S.p.notes="";if(S.p.concl==null)S.p.concl=""}
+  if(S.norm==="st")REQ_BIT=JSON.parse(JSON.stringify(REQ_BIT_ST));if(S.p.norms==null)S.p.norms=NORMS_DEF;if(S.p.notes==null)S.p.notes="";if(S.p.concl==null)S.p.concl=""}
 var S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){S=null}
 if(!S||!S.ab||!S.cv)S=example();
@@ -589,11 +602,11 @@ function render(){
    '</tbody></table></div><p class="formula">R = P[kN]·1000 / (π·d²/4) [MPa] · Kв = R<sub>sat</sub> / R20 · 1 tf = 9,807 kN · 1 kgf = 0,00981 kN</p></div>'+
    '<div class="card"><h2>'+L.resH+'</h2><div class="tbl"><table><thead><tr>'+L.rcols.map(function(c,i){return'<th'+(i===1?' class="n"':'')+'>'+c+'</th>'}).join("")+'</tr></thead><tbody>'+
    AB_KEYS.map(function(r){return'<tr><td>'+L.abRows[r[0]]+'</td><td class="n res" id="abr_'+r[0]+'"></td><td>'+(r[2]?reqBox("abq_"+r[0],req[r[2]]):'<span class="hint">'+L.ref+'</span>')+'</td><td id="abv_'+r[0]+'"></td></tr>'}).join("")+
-   '</tbody></table></div><div class="note">'+L.abNote+'</div></div></section>';
+   '</tbody></table></div>'+normSel("norm_sel")+'<div class="note">'+normNote(L.abNote)+'</div></div></section>';
   /* ---- bitumen ---- */
   var b=S.bit,breq=b.req[b.grade];
   h+='<section class="panel" data-panel="bit">'+method(M[S.lang].bit)+
-   '<div class="card"><h2>'+L.bitH+'</h2><div class="fields"><label class="f">'+L.grade+'<select id="bit_grade">'+Object.keys(REQ_BIT).map(function(g){return'<option value="'+g+'"'+(b.grade===g?" selected":"")+'>БНД '+g+'</option>'}).join("")+'</select></label></div></div>'+
+   '<div class="card"><h2>'+L.bitH+'</h2><div class="fields"><label class="f">'+L.grade+'<select id="bit_grade">'+Object.keys(REQ_BIT).map(function(g){return'<option value="'+g+'"'+(b.grade===g?" selected":"")+'>\u0411\u041d\u0414 '+g+'</option>'}).join("")+'</select></label>'+normSel("norm_sel2").replace('<div class="fields">','').replace(/<\/div>$/,'')+'</div></div>'+
    [["pen","penH","penF"],["kish","kishH","kishF"],["duct","ductH","ductF"]].map(function(x){return'<div class="card"><h3>'+L[x[1]]+'</h3><div class="fields">'+
      b[x[0]].map(function(v,i){return'<label class="f">'+L.det+' '+(i+1)+inp("bit"+x[0]+i,v)+'</label>'}).join("")+'</div><p class="formula">'+L[x[2]]+'</p></div>'}).join("")+
    '<div class="card"><h2>'+L.resH+'</h2><div class="tbl"><table><thead><tr>'+L.bcols.map(function(c,i){return'<th'+(i===1?' class="n"':'')+'>'+c+'</th>'}).join("")+'</tr></thead><tbody>'+
@@ -666,7 +679,7 @@ function wire(){if(window.DorBrand)DorBrand.wire();document.querySelectorAll("[d
   a.p.forEach(function(r,i){r.forEach(function(_,j){on("abp"+i+j,function(v){a.p[i][j]=v})})});
   AB_KEYS.forEach(function(r){if(r[2])[0,1].forEach(function(ix){on("abq_"+r[0]+ix,function(v){a.req[a.type][r[2]][ix]=v===""?null:v})})});
   var b=S.bit;
-  on("bit_grade",function(v){b.grade=v;save();render()},"change");
+  on("bit_grade",function(v){b.grade=v;save();render()},"change");on("norm_sel",function(v){applyNorm(v);save();render()},"change");on("norm_sel2",function(v){applyNorm(v);save();render()},"change");
   BIT_KEYS.forEach(function(k){b[k].forEach(function(_,i){on("bit"+k+i,function(v){b[k][i]=v})});[0,1].forEach(function(ix){on("bitq_"+k+ix,function(v){b.req[b.grade][k][ix]=v===""?null:v})})});
   var g=S.gr;
   on("gr_total",function(v){g.total=v});on("gr_mix",function(v){applyGrMix(v);save();render()},"change");on("gr_mu",function(v){g.mu=v;save();render()},"change");
