@@ -334,6 +334,133 @@ S.core=function(){return num(48,34,1)+R(40,220,360,40,"fasp")+R(40,260,360,40,"f
  flow(410,440,210)+num(450,34,2)+cyl(456,170,64,70)+dimV(536,170,240,"h")+flow(546,566,210)+num(580,34,3)+hbal(650,60,"m₂")+note(["Ky = ρm.керн / ρm.лаб"])}
 S.thick=function(){return num(48,34,1)+R(80,80,110,80,"fasp")+R(80,160,110,70,"fasp2")+R(80,230,110,80,"fagg")+dimV(214,80,160,"h₁")+dimV(214,160,230,"h₂")+co(135,120,300,110,W("верхний слой","couche de roulement","surface course"))+co(135,195,300,200,W("нижний слой","couche de liaison","binder course"))+note(["Δh = h − hпр"])}
 
+/* --- new methods: binders (solubility, conventional viscosity, flux, water), mastics, crushed stone, filler --- */
+function wbottle(x,y,c){return R(x-14,y,28,24,"sk",2)+(c?R(x-12,y+12,24,10,c):"")+R(x-16,y-6,32,6,"sk",2)}
+function dsc(x,y){return P("M"+(x-50)+" "+(y+20)+" h100 l-12 70 h-76 z","sk")+L(x-44,y+50,x+44,y+50,"sd")+P("M"+(x-56)+" "+(y+20)+" q56 -46 112 0 z","sk")+R(x-8,y-14,16,8,"sk",3)}
+function ftube(x,y,h,op,c){var w=22,d="M"+(x-w/2)+" "+y+" v"+h+" a"+w/2+" "+w/2+" 0 0 0 "+w+" 0 v"+(-h);return(op!=null?'<path d="M'+(x-w/2)+" "+(y+h*0.45)+" v"+(h*0.55)+" a"+w/2+" "+w/2+" 0 0 0 "+w+" 0 v"+(-h*0.55)+' z" class="'+(c||"sbit")+'" opacity="'+op+'"/>':"")+P(d,"sl")}
+function arrowU(x,y,len,lab){return L(x,y,x,y-len,"sa")+P("M"+(x-6)+" "+(y-len+10)+" L"+x+" "+(y-len)+" L"+(x+6)+" "+(y-len+10),"sa")+(lab?tx(x+9,y-len+12,lab,{c:"sv"}):"")}
+function arrowL(x,y,len,lab){return L(x,y,x-len,y,"sa")+P("M"+(x-len+10)+" "+(y-6)+" L"+(x-len)+" "+y+" L"+(x-len+10)+" "+(y+6),"sa")+(lab?tx(x-len/2,y-7,lab,{c:"sv",a:"middle"}):"")}
+S.bsolub=function(){return num(48,34,1)+flask(120,120,40,"sbitw")+co(120,196,170,90,W("раствор битума","solution de bitume","bitumen solution"))+tx(120,248,W("навеска + растворитель","prise + solvant","portion + solvent"),{c:"sv",a:"middle"})+
+ flow(196,236,170)+num(256,34,2)+R(302,70,52,56,"sk",3)+R(305,74,46,30,"sbitw")+R(305,104,46,8,"fmesh")+R(321,126,14,24,"sk")+flask(328,158,0)+L(343,190,400,190,"shose")+tx(408,194,W("к насосу","vers pompe","to pump"),{c:"sv"})+
+ co(352,108,410,80,W("стеклянный фильтр","filtre en verre fritté","sintered-glass filter"))+co(318,240,240,300,W("колба для фильтрования","fiole à vide","filter flask"))+
+ flow(470,500,170)+num(516,34,3)+dsc(560,150)+wbottle(560,176,"sbit")+co(596,230,640,300,W("эксикатор","dessiccateur","desiccator"))+bal(680,240,"m₂")+wbottle(680,216,"sbit")+co(694,222,700,150,W("бюкс","pèse-filtre","weighing bottle"))+
+ note(["X₁ = m₂ / m₁ · 100","X = (m₁ − m₂) / m₁ · 100"])}
+S.bviscc=function(v){return num(48,34,1)+R(170,60,250,170,"sk",2)+R(174,72,242,154,"swat")+waves(174,76,242)+therm(400,42,170)+
+ L(204,40,204,200,"sl")+P("M190 200 h28","sk4")+co(204,120,100,120,W("мешалка","agitateur","stirrer"))+
+ R(270,84,64,146,"sk",3)+R(274,104,56,122,"sbit")+L(268,104,262,104,"sacc3")+R(296,230,12,22,"sk")+L(302,30,302,214,"sl")+C(302,222,8,"sacc")+
+ co(302,60,470,60,W("стержень с шариком","tige à bille obturatrice","ball-valve rod"))+co(280,140,470,110,W("рабочий цилиндр","cylindre de travail","working cylinder"))+co(264,104,140,170,W("метка уровня","repère de niveau","level mark"))+
+ co(308,244,470,240,v?W("отверстие ⌀ 4 / 10 мм","orifice ⌀ 4 / 10 mm","orifice ⌀ 4 / 10 mm"):W("сточное отверстие","orifice","orifice"))+co(386,200,470,170,W("водяная баня","bain-marie","water bath"))+
+ L(302,252,302,316,"sbitl")+cylg(288,256,84,16,"sbit")+L(282,319,312,319,"sacc3")+L(282,277,312,277,"sacc3")+tx(276,323,"25",{c:"sdt",a:"end"})+tx(276,281,"75",{c:"sdt",a:"end"})+co(316,300,470,300,W("мерный цилиндр 100 см³","éprouvette 100 cm³","100 cm³ cylinder"))+
+ num(620,34,2)+stopwatch(650,110,"t₁, t₂")+tx(660,150,W("25 → 75 см³","25 → 75 cm³","25 → 75 cm³"),{c:"sv",a:"middle"})+
+ note([v?"t = (t₁ + t₂) / 2":"УВ = (t₁ + t₂) / 2",W("время истечения 50 см³, с","temps d'écoulement de 50 cm³, s","outflow time of 50 cm³, s")])}
+S.bcvisc=function(){return S.bviscc(1)}
+S.bsolv=function(){var cap=function(x){return R(x-26,152,52,14,"sk",2)+R(x-23,156,46,6,"sbit")};return num(48,34,1)+R(60,60,250,210,"sk",5)+R(72,72,178,186,"sin",2)+L(72,168,250,168,"sk4")+cap(110)+cap(190)+therm(150,78,92)+
+ R(258,72,42,186,"sk",2)+R(262,80,34,16,"sdisp",1)+tx(279,92,"100",{c:"sdispt",a:"middle",s:9})+C(279,116,5,"sin")+R(66,270,14,6,"sk")+R(290,270,14,6,"sk")+
+ co(110,159,150,210,W("слой 0,1 см","couche 0,1 cm","0.1 cm layer"))+co(150,120,180,44,W("термометр","thermomètre","thermometer"))+tx(185,298,"100 °C",{c:"sv",a:"middle"})+
+ flow(330,370,200)+num(386,34,2)+dsc(450,150)+R(424,182,52,8,"sk",2)+R(427,184,46,4,"sbit")+tx(450,272,W("охлаждение","refroidissement","cooling"),{c:"sv",a:"middle"})+
+ flow(520,556,200)+num(576,34,3)+bal(640,240,"m₁")+R(614,226,52,14,"sk",2)+R(617,230,46,6,"sbit")+
+ note(["m = π · d² · h · ρ / 4","X = (m − m₁) / m · 100"])}
+S.bwater=function(){return num(48,34,1)+R(260,36,30,90,"sk",4)+R(264,44,22,74,"swat")+L(275,40,275,126,"sl")+L(260,56,240,56,"shose")+L(290,104,310,104,"shose")+R(262,24,26,12,"fsand",3)+
+ R(264,126,22,104,"sk",3)+R(266,198,18,30,"swat")+[0,1,2,3,4].map(function(i){return L(286,140+i*18,292,140+i*18,"sd")}).join("")+P("M200 176 L264 140","sk4")+
+ R(190,160,20,52,"sk")+C(200,246,38,"sk")+P("M165 258 A38 38 0 0 0 235 258 Z","sbitw")+burner(200,314)+dimV(306,198,228,"V₀")+
+ co(275,30,380,40,W("ватный тампон","tampon de coton","cotton plug"))+co(286,80,380,80,W("холодильник","réfrigérant","condenser"))+co(286,160,380,150,W("приёмник-ловушка","piège gradué","graduated trap"))+co(272,218,380,220,W("вода","eau","water"))+
+ co(220,262,380,270,W("проба + растворитель","échantillon + solvant","sample + solvent"))+co(186,300,100,300,W("горелка","brûleur","burner"))+
+ note(["X = V₀ / m · 100","X₁ = V₀ / V · 100"])}
+/* mastics: СТ РК 2371 */
+S.mlook=function(){var inc=[[230,226,4],[310,206,3],[420,232,5],[470,200,3],[360,222,3.5]];return num(48,34,1)+P("M100 280 L520 280 L600 190 L180 190 Z","sk")+P("M120 272 L512 272 L582 198 L190 198 Z","sbit")+
+ inc.map(function(p){return C(p[0],p[1],p[2],"sin")+C(p[0],p[1],p[2]+7,"sdash")}).join("")+P("M100 280 v10 h420 l80 -90 v-10","sl")+
+ P("M600 92 q40 -28 80 0 q-40 28 -80 0 z","sk")+C(640,92,9,"sacc")+L(620,104,430,220,"sdash")+
+ co(420,232,470,330,W("посторонние включения","inclusions étrangères","foreign inclusions"))+co(200,240,120,150,W("слой мастики","couche de mastic","mastic layer"))+co(140,284,110,330,W("картон / стекло / сталь","carton / verre / acier","cardboard / glass / steel"))+
+ tx(640,62,W("осмотр без лупы","examen à l'œil nu","naked-eye check"),{c:"sv",a:"middle"})+note([W("число включений n ≤ нормы на мастику","nombre d'inclusions n ≤ valeur de la norme","inclusion count n ≤ the mastic standard")])}
+S.mwabs=function(){var sp=function(x,y){return R(x-30,y,60,12,"sbit",1)};return num(48,34,1)+bal(120,230,"m₁")+sp(120,218)+co(140,224,170,150,"50 × 50 mm")+
+ flow(200,240,220)+num(260,34,2)+tank(270,110,200,170,"",{noth:1})+sp(370,262)+dimV(450,126,262,"≥ 50 mm")+co(380,268,300,330,W("образец на дне","éprouvette au fond","specimen on the bottom"))+
+ flow(500,540,220)+num(556,34,3)+bal(640,230,"m₂")+sp(640,218)+co(660,224,660,150,W("промокнуть","essuyer","blot dry"))+
+ note(["W = (m₂ − m₁) / m₁ · 100"])}
+S.mheat=function(){return num(48,34,1)+R(150,50,320,280,"sk",5)+R(162,62,236,256,"sin",2)+R(408,62,52,256,"sk",2)+R(414,72,40,18,"sdisp",1)+tx(434,85,"T °C",{c:"sdispt",a:"middle",s:9})+C(434,112,6,"sin")+C(434,134,6,"sin")+
+ L(162,96,398,96,"sk4")+R(270,92,24,22,"sk",2)+R(252,114,60,120,"sbit")+dimH(162,252,250,"≥ 50 mm")+dimV(340,234,318,"≥ 50 mm")+
+ co(282,104,520,90,W("зажим","pince","clamp"))+co(300,170,520,170,W("образец 100 × 50 мм","éprouvette 100 × 50 mm","specimen 100 × 50 mm"))+co(410,250,520,250,W("термошкаф","étuve","oven"))+
+ note([W("осмотр: нет вздутий и подтёков","contrôle : ni cloques ni coulures","check: no blisters or flow")])}
+S.mflex=function(){return num(48,34,1)+P("M110 200 h300 a40 40 0 0 1 0 80 h-300 z","sk")+P("M150 194 h260 a46 46 0 0 1 0 92 h-90","sbitl")+L(410,240,438,212,"sd")+C(410,240,2.5,"scd")+tx(424,256,"R",{c:"sdt"})+
+ P("M480 210 a70 70 0 0 1 -12 90","sa")+P("M462 290 l6 12 l8 -12","sa")+
+ co(250,194,250,130,W("полоска мастики 120 × 20 мм","bande de mastic 120 × 20 mm","mastic strip 120 × 20 mm"))+co(200,260,170,330,W("брус с закруглением","barre à arrondi","rounded bar"))+
+ num(560,34,2)+C(640,170,44,"sk")+C(640,170,30,"sin")+L(672,202,700,236,"sk4")+P("M622 162 l8 10 l10 -14","sa")+tx(640,250,W("трещин нет","pas de fissure","no cracks"),{c:"sv",a:"middle"})+
+ note([W("изгиб за (2 ± 1) с, затем осмотр на трещины","pliage en (2 ± 1) s, puis recherche de fissures","bend in (2 ± 1) s, then check for cracks")])}
+S.mtens=function(){var d="M195 80 h50 v40 l-18 20 v90 l18 20 v40 h-50 v-40 l18 -20 v-90 l-18 -20 z";return num(48,34,1)+R(110,40,12,290,"sk")+R(318,40,12,290,"sk")+R(100,30,240,14,"sk",2)+
+ R(180,64,80,46,"fhatch")+R(180,64,80,46,"sframe")+R(180,260,80,46,"fhatch")+R(180,260,80,46,"sframe")+P(d,"sbit")+L(206,160,234,160,"sacc3")+L(206,210,234,210,"sacc3")+dimV(276,160,210,"l",0)+
+ arrowU(220,62,22,"")+L(220,62,220,44,"sl")+arrowD(220,308,24,"")+
+ co(184,88,80,120,W("зажим","mors","grip"))+co(208,160,80,200,W("метки","repères","marks"))+tx(380,176,W("при разрыве: Pр, l₁","à la rupture : Pр, l₁","at break: Pр, l₁"),{c:"sv"})+
+ tx(380,90,W("тип 1: 115 / 25 / 6 мм","type 1 : 115 / 25 / 6 mm","type 1: 115 / 25 / 6 mm"),{c:"sdt"})+tx(380,112,W("тип 2: 70 / 16 / 3 мм","type 2 : 70 / 16 / 3 mm","type 2: 70 / 16 / 3 mm"),{c:"sdt"})+tx(380,140,W("метки: 50 / 35 мм","repères : 50 / 35 mm","marks: 50 / 35 mm"),{c:"sdt"})+
+ note(["σ = Pр / (b · h₀);  σε = Pε / (b · h₀)","ε = (l₁ − l) / l · 100"])}
+S.mbond=function(){return num(48,34,1)+R(140,316,240,12,"sk",2)+R(150,220,20,96,"fhatch")+R(150,220,20,96,"sframe")+R(350,220,20,96,"fhatch")+R(350,220,20,96,"sframe")+R(170,222,180,94,"fconc")+R(170,208,180,14,"sbit")+
+ R(222,208,4,14,"sin")+R(294,208,4,14,"sin")+R(230,190,60,18,"sk",2)+L(260,190,260,130,"sk4")+arrowU(260,124,60,"P")+dimH(230,290,180,"⌀ 25")+dimV(400,222,316,"50 mm")+
+ co(224,214,90,150,W("надрез","incision","cut"))+co(180,215,90,200,W("мастика","mastic","mastic"))+co(240,270,120,280,W("основание","support","base"))+co(370,322,430,345,W("зажимное устройство","dispositif de serrage","clamping device"))+
+ num(470,34,2)+R(500,90,160,160,"sbit")+C(580,170,38,"sdash")+C(580,170,30,"sk")+co(612,190,660,280,W("штамп ⌀ 25","pastille ⌀ 25","dolly ⌀ 25"))+co(616,160,660,80,W("надрез","incision","cut"))+
+ note(["Rсц = P / S","S = π · d² / 4"])}
+S.mshear=function(){return num(48,34,1)+R(100,130,300,110,"sk")+R(325,150,300,110,"sk")+R(325,150,75,90,"sbit")+L(263,124,263,250,"sacc3")+L(462,140,462,266,"sacc3")+
+ dimH(325,400,120,"30 mm")+dimH(263,325,284,"25")+dimH(400,462,284,"25")+arrowL(92,185,50,"F")+arrowR(633,205,60,"F")+
+ co(360,200,500,320,W("мастика (нахлёст)","mastic (recouvrement)","mastic (overlap)"))+co(250,200,230,330,W("рулонный материал 120 × 50","matériau en rouleau 120 × 50","roll material 120 × 50"))+co(462,180,560,100,W("метки","repères","marks"))+
+ note(["r = F / l"])}
+S.mdens=function(){return num(48,34,1)+P("M80 150 v110 h120 v-110","sk4")+R(82,150,116,110,"sbit")+tx(140,290,W("горячая мастика вровень","mastic chaud à ras bord","hot mastic level full"),{c:"sv",a:"middle"})+
+ flow(230,270,210)+num(290,34,2)+P("M320 140 v130 h160 v-130","sk4")+P("M322 140 Q400 196 478 140 V270 H322 Z","sbit")+R(300,128,200,10,"sk",2)+L(400,138,400,168,"sacc3")+dimV(400,138,168,"Δ",0)+dimH(322,478,300,"⌀ 75")+dimV(510,140,270,"H = 45")+
+ co(460,133,560,100,W("линейка","règle","straightedge"))+co(350,220,250,330,W("после остывания","après refroidissement","after cooling"))+
+ num(590,34,3)+bal(660,240,"m₂")+P("M630 196 v40 h60 v-40","sk")+R(632,204,56,32,"sbit")+
+ note(["У = Δ / H · 100;  V = π · d² / 4 · H","ρ = (m₂ − m₁) / V"])}
+S.mlayer=function(){var st=function(x,y){return R(x-100,y+64,200,40,"fconc")+R(x-60,y+56,120,8,"sk")+R(x-60,y+48,120,8,"sbit")+R(x-60,y+40,120,8,"sk")+R(x-60,y,120,40,"fconc")};
+ return num(48,34,1)+st(200,190)+R(165,110,70,60,"sacc",3)+tx(200,145,"1 kg",{c:"sdispt",a:"middle"})+arrowD(200,170,18,"")+
+ co(280,276,340,300,W("пластинка 50 × 30 × 15","plaquette 50 × 30 × 15","plate 50 × 30 × 15"))+co(250,234,340,190,W("мембрана 30 × 30","membrane 30 × 30","membrane 30 × 30"))+co(250,242,340,245,W("мастика","mastic","mastic"))+tx(200,320,W("крестом","en croix","crosswise"),{c:"sv",a:"middle"})+
+ flow(462,494,250)+num(500,34,2)+st(610,150)+arrowU(610,140,60,"Pпр")+arrowD(610,262,40,"")+co(660,202,710,180,"S")+
+ note(["Rпр = Pпр / S"])}
+/* crushed stone / ЩГПС */
+S.gclay=function(){var g="";for(var i=0;i<14;i++)g+=P("M"+(96+i*20)+" 232 l7 -6 l8 2 l2 6 l-9 2 z","fagg");return num(48,34,1)+R(80,232,300,12,"sk",2)+g+
+ R(300,70,12,100,"sk",3)+EL(306,62,12,14,"sk")+C(306,190,4,"swat")+C(306,210,3,"swat")+co(312,110,400,100,W("пипетка с водой","pipette d'eau","water pipette"))+co(200,228,170,170,W("тонкий слой щебня","couche mince de gravillon","thin layer of chips"))+
+ heap(470,244,70,12,"fsoil")+co(470,236,520,170,W("пластичные комочки глины","mottes d'argile plastiques","plastic clay lumps"))+
+ flow(530,566,240)+num(580,34,2)+bal(660,250,"m₁")+heap(660,250,46,8,"fsoil")+
+ note(["Пгл = m₁ / m · 100 %"])}
+S.gsoft=function(){return num(48,34,1)+R(130,310,280,14,"sk",2)+R(160,90,20,220,"sk")+R(360,90,20,220,"sk")+R(150,76,240,18,"sk",2)+C(270,44,22,"sk")+C(270,44,16,"sin")+L(270,44,280,34,"sacc2")+L(270,66,270,76,"sl")+
+ R(220,94,100,30,"sk",8)+P("M255 124 h30 l-15 30 z","sk")+P("M256 160 l20 -4 l12 14 l-4 30 l-20 4 l-12 -18 z","fagg")+P("M255 244 h30 l-15 -34 z","sk")+R(300,176,50,10,"fhatch")+R(300,176,50,10,"sframe")+
+ R(230,244,80,12,"sk",3)+L(270,256,270,300,"sscrew")+
+ co(292,44,440,44,W("манометр","manomètre","pressure gauge"))+co(318,108,440,92,W("гидравлическая капсула","capsule hydraulique","hydraulic capsule"))+co(276,140,440,136,W("верхний зуб","dent supérieure","upper tooth"))+
+ co(348,181,440,180,W("упор с прорезью","butée à fente","slotted stop"))+co(280,228,440,224,W("нижний зуб","dent inférieure","lower tooth"))+co(306,250,440,268,W("диск с винтом","disque à vis","screw disc"))+co(262,185,90,200,W("зерно","grain","grain"))+
+ note(["Хсл = m₁ / m · 100 %","K = d / Rсж"])}
+S.gfilter=function(){var x0=110,x1=640,y0=300,y1=60,X=function(d){return x0+(Math.log(d)/Math.LN10+1)/1.7*(x1-x0)},Y=function(p){return y0-p/100*(y0-y1)};
+ var pts=[[5,0],[2.5,8],[1.25,22],[0.63,45],[0.315,72],[0.16,92],[0.1,98]],d="",s="";pts.forEach(function(p,i){d+=(i?" L":"M")+X(p[0]).toFixed(1)+" "+Y(p[1]).toFixed(1);s+=C(X(p[0]).toFixed(1),Y(p[1]).toFixed(1),3.5,"sk")+L(X(p[0]).toFixed(1),y0,X(p[0]).toFixed(1),y0+5,"sl")+tx(X(p[0]).toFixed(1),y0+18,String(p[0]).replace(".",","),{c:"sdt",a:"middle"})});
+ var at=function(v){for(var i=1;i<pts.length;i++)if(pts[i][1]>=v){var a=pts[i-1],b=pts[i],k=(v-a[1])/(b[1]-a[1]);return X(Math.exp(Math.log(a[0])+k*(Math.log(b[0])-Math.log(a[0]))))}};
+ var xa=at(90).toFixed(1),xb=at(66.7).toFixed(1);
+ return P("M"+x0+" "+y1+" V"+y0+" H"+x1,"sl")+[0,20,40,60,80,100].map(function(p){return L(x0-5,Y(p),x0,Y(p),"sl")+tx(x0-9,Y(p)+4,p,{c:"sdt",a:"end"})}).join("")+P(d,"sacc3")+s+
+ L(x0,Y(90),xa,Y(90),"sdash")+L(xa,Y(90),xa,y0,"sdash")+L(x0,Y(66.7),xb,Y(66.7),"sdash")+L(xb,Y(66.7),xb,y0,"sdash")+C(xa,Y(90),5,"sacc")+C(xb,Y(66.7),5,"sacc")+
+ tx(x0+6,Y(90)-6,"90 %",{c:"sdt"})+tx(x0+6,Y(66.7)-6,"X = 66,7 %",{c:"sdt"})+tx(+xa+6,y0-8,"Дэ.п",{c:"sdt"})+tx(+xb+6,y0-8,"Дэ.с",{c:"sdt"})+
+ tx(x0-4,y1-12,W("полный остаток, %","refus cumulé, %","cumulative retained, %"),{c:"sv"})+tx(x1,y0+38,W("размер отверстий сит, мм (лог.)","ouverture des tamis, mm (log)","sieve opening, mm (log)"),{c:"sv",a:"end"})+
+ note(["X = 100 · (Мп − 10) / Мп","Кс = Кп · (Дэ.с / Дэ.п)²"])}
+/* filler */
+S.phydro=function(){return num(48,34,1)+P("M90 300 L610 300 L670 240 L150 240 Z","sin")+L(250,300,310,240,"sk4")+L(410,300,470,240,"sk4")+dimH(250,410,322,"50 mm")+
+ beaker(230,110,100,140,90)+R(231,154,98,8,"fsand")+dimV(350,110,160,"50 mm")+P("M260 84 H420 M270 78 l-10 6 l10 6 M410 78 l10 6 l-10 6","sa")+tx(340,72,W("туда-обратно 100 мм за 1 с","aller-retour 100 mm en 1 s","back and forth 100 mm in 1 s"),{c:"sv",a:"middle"})+
+ co(300,158,470,150,W("слой порошка на воде","couche de filler sur l'eau","filler layer on water"))+co(290,220,470,200,W("вода","eau","water"))+co(560,270,600,330,W("лист с двумя линиями","feuille à deux lignes","sheet with two lines"))+
+ note([W("10 циклов без «туманных» следов → гидрофобен","10 cycles sans traînées → hydrophobe","10 cycles, no hazy trails → hydrophobic")])}
+S.pact=function(){var s=R(70,140,480,10,"sk",2)+R(70,250,480,14,"sk",2)+R(80,264,10,40,"sk")+R(530,264,10,40,"sk"),v=["0,25","0,5","0,75","1,0","1,25","1,5","1,75","2,0"];
+ v.forEach(function(t,i){var x=110+i*57;s+=ftube(x,100,150,(0.12+i*0.11).toFixed(2))+tx(x,326,t,{c:"sdt",a:"middle"})});
+ return num(48,34,1)+s+co(110,180,180,60,W("эталоны: светлый → тёмный","étalons : clair → foncé","standards: light → dark"))+tx(310,346,W("% активирующей смеси","% de mélange activant","% activating mix"),{c:"sv",a:"middle"})+
+ num(600,34,2)+R(600,250,60,14,"sk",2)+ftube(630,100,150,"0.5")+tx(630,90,"?",{c:"st",a:"middle",s:16})+co(640,220,680,300,W("проба","échantillon","sample"))+
+ note([W("цвет пробы сравнивают с эталонами","couleur comparée aux étalons","colour compared with standards"),"П = (m − m₁) / m · 100"])}
+S.pwsol=function(){return num(48,34,1)+R(70,282,130,22,"fsand")+R(70,282,130,22,"sframe")+hotplate(70,304,130)+flask(135,186,34,"swat")+heap(135,281,60,6,"fsand")+
+ R(123,56,24,124,"sk",4)+R(126,66,18,104,"swat")+L(135,56,135,180,"sl")+L(123,80,104,80,"shose")+L(147,150,166,150,"shose")+
+ co(147,100,220,70,W("обратный холодильник","réfrigérant à reflux","reflux condenser"))+co(180,293,145,345,W("песчаная баня","bain de sable","sand bath"))+co(150,262,220,230,W("порошок + вода","filler + eau","filler + water"))+
+ flow(260,300,200)+num(320,34,2)+P("M330 120 h80 l-34 50 v40 h-12 v-40 z","sk")+P("M336 124 L370 162 L404 124","sdash")+L(370,214,370,236,"sd")+beaker(340,236,60,70,30)+co(390,140,450,100,W("фильтр","filtre","filter"))+
+ flow(470,510,200)+num(530,34,3)+bal(620,250,"m₂")+dish(620,240,80,"fsand")+co(632,246,640,170,W("сухой остаток","résidu sec","dry residue"))+
+ note(["A = (m₁ − m₂) / m · 100"])}
+S.pbulk=function(){var cy=function(x,sed,mix){var s=P("M"+(x-25)+" 76 v236 h50 v-236","sl")+R(x-35,312,70,8,"sk",2)+R(x-28,58,56,18,"sk",3)+R(x-24,90,48,222,"swat");for(var i=1;i<10;i++)s+=L(x+25,90+i*22,x+17,90+i*22,"sd");
+  if(mix)for(i=0;i<26;i++)s+=C(x-18+(i*13)%38,100+(i*37)%200,1.8,"sk");if(sed)s+=R(x-24,260,48,52,"fsand");return s};
+ return num(48,34,1)+cy(140,0,1)+co(150,150,220,120,W("керосин + порошок","kérosène + filler","kerosene + filler"))+tx(140,346,W("50 мл","50 ml","50 ml"),{c:"sv",a:"middle"})+
+ num(290,34,2)+'<g transform="translate(380 200) rotate(135) scale(0.55) translate(-380 -190)">'+cy(380,0,1)+'</g>'+P("M300 150 A95 95 0 0 1 460 150","sa")+P("M448 142 l12 8 l-16 4","sa")+tx(380,80,W("перевернуть 5 раз","retourner 5 fois","invert 5 times"),{c:"sv",a:"middle"})+
+ num(520,34,3)+cy(610,1,0)+L(580,260,640,260,"sacc3")+dimV(660,260,312,"V")+stopwatch(520,150,"≥ 6 h")+co(600,290,520,330,W("осадок","dépôt","sediment"))+
+ note(["ρн = m / V"])}
+S.pvoid=function(){return num(48,34,1)+R(200,300,240,16,"fhatch")+R(200,300,240,16,"sframe")+L(230,46,230,300,"sk4")+L(410,46,410,300,"sk4")+R(220,36,200,12,"sk",2)+
+ R(270,236,12,64,"fhatch")+R(270,236,12,64,"sframe")+R(358,236,12,64,"fhatch")+R(358,236,12,64,"sframe")+R(282,276,76,24,"fsand")+L(282,274,358,274,"sacc3")+
+ R(286,250,68,22,"sk")+R(312,196,16,54,"sk")+R(300,190,40,8,"sk",2)+L(320,48,320,190,"sl")+R(296,72,48,46,"sacc",3)+L(230,95,296,95,"sd")+L(344,95,410,95,"sd")+
+ dimV(470,118,190,"102 mm")+L(344,118,470,118,"sdash")+L(340,190,470,190,"sdash")+dimV(390,276,300,"h")+
+ co(296,96,170,96,W("падающий груз ⌀ 25","bloc tombant ⌀ 25","drop weight ⌀ 25"))+co(230,160,150,160,W("направляющие","tiges de guidage","guide rods"))+co(300,262,150,230,W("поршень","piston","plunger"))+
+ co(296,274,192,270,W("фильтровальная бумага","papier filtre","filter paper"))+co(300,292,190,330,W("уплотнённый порошок","filler compacté","compacted filler"))+
+ note(["m₂ = m₁ − m₀","V = (1 − 4·10³ · m₂ / (π · a² · ρ₁ · h)) · 100"])}
+
 /* ---------------- styles ---------------- */
 var CSS=".lib-top{display:grid;gap:12px}.lib-search{display:flex;gap:8px;flex-wrap:wrap}.lib-search input{flex:1 1 220px}"+
 ".lib-fams{display:flex;gap:6px;flex-wrap:wrap}.lib-fams button{font:500 13px var(--body);background:var(--sheet);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer}"+
