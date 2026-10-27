@@ -151,13 +151,13 @@ var PROG={
  sma:{design:["b_pen","b_rb","b_duct","b_adh","g_sieve","g_crush","g_flaky","s_sieve","p_grain","a_form","a_dens","a_true","a_por","a_wsat","a_comp","a_wres","a_drain","a_shear","a_rut"],
       lot:["a_sample","a_form","a_dens","a_true","a_por","a_wsat","a_comp","a_wres","a_bind","a_grad","a_drain"],
       site:["a_sample","f_core","a_dens","a_wsat","f_ruler"]},
- bitum:["b_sample","b_pen","b_rb","b_duct","b_pi","b_fraass","b_rtfot","b_flash","b_adh","b_elast"],
- crushed:["g_sample","g_sieve","g_wash","g_flaky","g_bulk","g_crush","g_la","g_dens","g_frost"],
- sand:["s_sieve","s_wash","s_se","g_bulk"],
- powder:["p_grain","p_por","p_swell","p_bitcap"],
+ bitum:["b_sample","b_pen","b_rb","b_duct","b_pi","b_fraass","b_rtfot","b_flash","b_adh","b_elast","b_visck","b_solub","b_water","b_adhms"],
+ crushed:["g_sample","g_sieve","g_wash","g_flaky","g_bulk","g_crush","g_la","g_dens","g_frost","g_crushed","g_clay","g_soft","g_drum","g_true","g_moist"],
+ sand:["s_sample","s_sieve","s_wash","s_se","s_true","s_bulk","s_moist","s_frost"],
+ powder:["p_sample","p_grain","p_true","p_por","p_swell","p_bitcap","p_wres","p_hydro","p_moist","p_act","p_wsol","p_bulk","p_void"],
  soil:["so_grad","so_atter","so_proctor","so_moist","so_ring","so_kcomp","f_plate"],
  conc:["c_slump","c_cube","c_beam"]};
-var PERIODIC={a_shear:1,a_split:1,a_swell:1,a_rut:1,a_wlong:1,a_adhmix:1,a_homog:1,a_marsh:1,a_frost:1,b_fraass:1,b_rtfot:1,b_flash:1,g_crush:1,g_la:1,g_dens:1,g_frost:1,p_por:1,p_swell:1,p_bitcap:1};
+var PERIODIC={a_shear:1,a_split:1,a_swell:1,a_rut:1,a_wlong:1,a_adhmix:1,a_homog:1,a_marsh:1,a_frost:1,b_fraass:1,b_rtfot:1,b_flash:1,g_crush:1,g_la:1,g_dens:1,g_frost:1,p_por:1,p_swell:1,p_bitcap:1,b_visck:1,b_solub:1,b_water:1,b_adhms:1,b_cvisc:1,b_viscc:1,b_solv:1,g_drum:1,g_soft:1,g_filter:1,s_frost:1,p_wres:1,p_act:1,p_wsol:1,p_hydro:1,m_look:1,m_wabs:1,m_heat:1,m_flex:1,m_tens:1,m_bond:1,m_shear:1,m_dens:1,m_layer:1};
 
 /* ---------------- calculations with the user's numbers ---------------- */
 /* g(r,c) = number in row r, column c of the readings table (same shape as the method's example table) */
@@ -314,7 +314,7 @@ function progFor(m,p,x){var dense=m!=="hot"||x.kind==="hd"||x.kind==="dense",B=[
  SITE=["a_sample","a_mixtemp","f_core","a_dens","a_wsat","a_por","f_ruler"],CORE=["a_form","a_dens","a_true","a_por","a_wsat","a_comp"];
  if(m==="hot"){if(p==="design")return B.concat(AG,CORE,["a_wres","a_wlong","a_adhmix"],dense?["a_shear","a_split"]:[],dense&&x.mark==="I"&&x.size!=="coarse"?["a_marsh"]:[]);
   if(p==="lot")return["a_sample","a_mixtemp"].concat(CORE,["a_wres","a_bind","a_grad","a_wlong","a_adhmix","a_homog"],dense?["a_shear","a_split"]:[]);return SITE}
- if(m==="cold"){if(p==="design")return["g_sieve","s_sieve","p_grain"].concat(CORE,["a_wres","a_cake"]);
+ if(m==="cold"){if(p==="design")return["b_cvisc","b_viscc","b_solv","g_sieve","s_sieve","p_grain"].concat(CORE,["a_wres","a_cake"]);
   if(p==="lot")return["a_sample","a_mixtemp","a_form","a_dens","a_wsat","a_comp","a_bind","a_grad","a_cake","a_homog"];return["a_sample","f_core","a_dens","a_wsat","f_ruler"]}
  if(m==="pma"){if(p==="design")return BP.concat(AG,CORE,["a_shear","a_split","a_wlong","a_adhmix","a_marsh","a_rut"]);
   if(p==="lot")return["a_sample","a_mixtemp"].concat(CORE,["a_bind","a_grad","a_shear","a_split","a_wlong","a_adhmix","a_homog"]);return SITE}
@@ -411,11 +411,11 @@ function sel2Fields(m,x){var t=L3();
  return[["blk",["sh","sc","mhc","mhf","mc"].map(function(v){return[v,t.blk[v]]})]]}
 function sel2Desc(m,x){var t=L3();if(m==="bitum")return(x.bk==="bnd"?"БНД ":x.bk==="bmp"?"БМП ":"")+x.grade;if(m==="emul")return x.et;
  if(m==="crushed")return x.use+" · "+t.rock[x.rock]+" · "+t.clim[x.clim];if(m==="sand")return x.use;if(m==="powder")return x.pm;if(m==="shgps")return x.mix;return t.blk[x.blk]}
-function prog2(m,x){if(m==="bitum")return x.bk==="bnd"?["b_sample","b_pen","b_rb","b_duct","b_visc","b_fraass","b_flash","b_pi","b_rtfot","b_adh"]:x.bk==="bmp"?["b_sample","b_pen","b_rb","b_duct","b_elast","b_fraass","b_flash","b_rtfot","b_adh"]:["b_sample","b_pen","b_rb","b_fraass","b_elast","b_adh"];
+function prog2(m,x){if(m==="bitum")return x.bk==="bnd"?["b_sample","b_pen","b_rb","b_duct","b_visc","b_visck","b_fraass","b_flash","b_pi","b_rtfot","b_solub","b_water","b_adh","b_adhms"]:x.bk==="bmp"?["b_sample","b_pen","b_rb","b_duct","b_elast","b_fraass","b_flash","b_rtfot","b_solub","b_adh","b_adhms"]:["b_sample","b_pen","b_rb","b_fraass","b_elast","b_adh","m_look","m_wabs","m_heat","m_flex","m_tens","m_bond","m_shear","m_dens","m_layer"];
  if(m==="emul")return["b_sample","e_mix"].concat(x.ek==="cat"?["e_break"]:[],["e_bind","e_sieve","e_strat","e_adh","e_transp","e_ph","b_pen","b_rb"]);
- if(m==="crushed")return["g_sample","g_sieve","g_wash","g_flaky","g_crush","g_la","g_frost","g_bulk","g_dens","b_adh"];
- if(m==="sand")return["s_sieve","s_wash","s_swell","s_se","g_bulk"];if(m==="powder")return["p_grain","p_por","p_swell","p_bitcap"];
- if(m==="shgps")return["g_sample","g_mixgrad","g_wash","g_crush","g_frost","g_flaky","so_atter","g_bulk"];
+ if(m==="crushed")return["g_sample","g_sieve","g_wash","g_flaky","g_crushed","g_clay","g_soft","g_crush","g_drum","g_la","g_frost","g_bulk","g_dens","g_true","g_moist","b_adh"];
+ if(m==="sand")return["s_sample","s_sieve","s_wash","s_swell","s_se","s_true","s_bulk","s_moist","s_frost"];if(m==="powder")return["p_sample","p_grain","p_true","p_por","p_swell","p_bitcap","p_wres","p_hydro","p_moist","p_act","p_wsol","p_bulk","p_void"];
+ if(m==="shgps")return["g_sample","g_mixgrad","g_wash","g_crush","g_frost","g_flaky","so_atter","g_bulk","g_filter"];
  if(x.blk==="sh"||x.blk==="sc")return["a_sample","a_mixtemp","a_bind","g_flaky","g_wash","b_adh"];
  return["a_sample","a_mixtemp","a_form","a_dens","a_wsat","a_comp","a_wres","a_adhmix","a_bind","a_grad"].concat(x.blk==="mc"?["a_cake"]:["a_wlong"])}
 function LIM2(s){var SP=DATA&&DATA.specs,x=s.sel,m=s.mat,o={},t=L3();if(!SP||!SP[m]&&m!=="black")return null;
