@@ -19,7 +19,7 @@ var G={
   doneOf:"готово",startT:"Начать",contT:"Продолжить",doneT:"Готово ✓",
   step:"Шаг",of:"из",eqH:"Подготовьте оборудование",eqHint:"Отметьте всё, что уже стоит перед вами.",prepH:"Подготовка",runH:"Выполнение",measH:"Проверьте все записи",measHint:"Здесь все числа, которые вы ввели по ходу. Можно исправить.",
   resH:"Результат по вашим числам",noCalc:"Автоматический расчёт для этого испытания пока не сделан — посчитайте по формуле ниже; пример расчёта есть в методике.",
-  prev:"← Назад",next:"Сделано →",finish:"Закончить",showFig:"Показать схему",zoom:"Нажмите, чтобы увеличить",hideFig:"Скрыть схему",method:"Открыть методику",
+  prev:"← Назад",next:"Сделано →",finish:"Закончить",fullFig:"Общая схема",stepFig:"Схема шага",showFig:"Показать схему",zoom:"Нажмите, чтобы увеличить",hideFig:"Скрыть схему",method:"Открыть методику",
   enter:"Запишите:",sample:"Образец",ex:"пример",timer:"Таймер",tStart:"Запустить",tStop:"Стоп",tLeft:"Осталось",tDone:"Время вышло!",tOk:"Понятно",
   tKeep:"Экран не погаснет, пока идёт таймер. Держите телефон рядом.",tNoWake:"Не блокируйте телефон: на заблокированном телефоне сайт не может звонить.",
   transfer:"Перенести в расчёт",transferD:"Числа попадут во вкладку расчёта — оттуда можно сохранить в журнал.",transferred:"Перенесено ✓",journal:"В журнал",journalD:"Черновик попадёт в журнал только если вы сами отправите его из вкладки расчёта.",
@@ -41,7 +41,7 @@ var G={
   doneOf:"faits",startT:"Commencer",contT:"Continuer",doneT:"Fait ✓",
   step:"Étape",of:"sur",eqH:"Prépare le matériel",eqHint:"Coche ce que tu as déjà devant toi.",prepH:"Préparation",runH:"Exécution",measH:"Vérifie toutes les valeurs",measHint:"Tous les chiffres saisis au fur et à mesure. Tu peux corriger.",
   resH:"Résultat avec tes chiffres",noCalc:"Le calcul automatique de cet essai n'est pas encore fait — calcule avec la formule ci-dessous ; un exemple est dans la méthode.",
-  prev:"← Retour",next:"C'est fait →",finish:"Terminer",showFig:"Voir le schéma",zoom:"Touche pour agrandir",hideFig:"Cacher le schéma",method:"Ouvrir la méthode",
+  prev:"← Retour",next:"C'est fait →",finish:"Terminer",fullFig:"Schéma général",stepFig:"Schéma de l'étape",showFig:"Voir le schéma",zoom:"Touche pour agrandir",hideFig:"Cacher le schéma",method:"Ouvrir la méthode",
   enter:"Note :",sample:"Éprouvette",ex:"exemple",timer:"Minuteur",tStart:"Lancer",tStop:"Arrêter",tLeft:"Reste",tDone:"C'est l'heure !",tOk:"OK",
   tKeep:"L'écran reste allumé tant que le minuteur tourne. Garde le téléphone à côté.",tNoWake:"Ne verrouille pas le téléphone : verrouillé, le site ne peut pas sonner.",
   transfer:"Envoyer dans le calcul",transferD:"Les chiffres vont dans l'onglet de calcul — de là, tu peux enregistrer au journal.",transferred:"Envoyé ✓",journal:"Au journal",journalD:"Le brouillon ne va au journal que si tu l'envoies toi-même depuis l'onglet de calcul.",
@@ -63,7 +63,7 @@ var G={
   doneOf:"done",startT:"Start",contT:"Continue",doneT:"Done ✓",
   step:"Step",of:"of",eqH:"Get the equipment ready",eqHint:"Tick what is already in front of you.",prepH:"Preparation",runH:"Procedure",measH:"Check all readings",measHint:"Every number you entered along the way. You can correct them.",
   resH:"Result with your numbers",noCalc:"Automatic calculation for this test is not built yet — use the formula below; a worked example is in the method.",
-  prev:"← Back",next:"Done →",finish:"Finish",showFig:"Show diagram",zoom:"Tap to enlarge",hideFig:"Hide diagram",method:"Open the method",
+  prev:"← Back",next:"Done →",finish:"Finish",fullFig:"Whole-test diagram",stepFig:"Step diagram",showFig:"Show diagram",zoom:"Tap to enlarge",hideFig:"Hide diagram",method:"Open the method",
   enter:"Record:",sample:"Specimen",ex:"example",timer:"Timer",tStart:"Start",tStop:"Stop",tLeft:"Left",tDone:"Time is up!",tOk:"OK",
   tKeep:"The screen stays on while the timer runs. Keep the phone nearby.",tNoWake:"Don't lock the phone: a locked phone can't ring from a website.",
   transfer:"Send to calculation",transferD:"The numbers go to the calculation tab — save to the log from there.",transferred:"Sent ✓",journal:"To the log",journalD:"The draft only goes to the log if you send it yourself from the calculation tab.",
@@ -476,7 +476,7 @@ function durations(txt){var out=[],re=/(\d+(?:[.,]\d+)?)\s*(ч|h|мин|min|с|s
  return out}
 
 /* ---------------- views ---------------- */
-var ROOT=null,DATA=null,FIGON={};
+var ROOT=null,DATA=null,FIGON={},FIGFULL={};
 function testById(id){return DATA&&DATA.tests.filter(function(t){return t.id===id})[0]}
 function idxOf(id){var i=-1;DATA.tests.forEach(function(t,k){if(t.id===id)i=k});return i}
 function go(v){ST.view=v;store();draw();try{ROOT.scrollIntoView({block:"start"})}catch(e){}}
@@ -516,6 +516,10 @@ function vProg(s){var l=L(),dn=s.tests.filter(function(t){return s.st[t]&&s.st[t
    '<button class="b'+(state==="done"?' ghost':'')+'" data-run="'+id+'">'+esc(state==="done"?l.doneT:state==="go"?l.contT:l.startT)+'</button></li>'}).join("")+'</ol>';
  if(s.sel&&hasSel(s.mat))h+=limCard(s);
  return h}
+/* one drawing per action */
+function figStep(t,cur,pos,A,idx){if(cur.k==="eq"||FIGFULL[t.id]||!DorLib.stepFig)return DorLib.fig(t,idx,LANG);
+ var np=(t.prep||[]).length,i=cur.k==="prep"?pos-1:cur.k==="run"?pos-1-np:0;
+ return DorLib.stepFig(t,cur.k,i,A.length,pos+1,cur.x||"",LANG)}
 /* steps of a test */
 function steps(t){var l=L(),a=[];a.push({k:"eq"});(t.prep||[]).forEach(function(x){a.push({k:"prep",x:x})});(t.steps||[]).forEach(function(x){a.push({k:"run",x:x})});
  if(t.ex&&t.ex.inp)a.push({k:"meas"});a.push({k:"res"});return a}
@@ -537,8 +541,8 @@ function stepInputs(st,T,txt){if(!T)return"";var chips=[],re=/`([^`]+)`/g,m;whil
 function vRun(s,tid){var l=L(),t=testById(tid);if(!t){ST.view={v:"home"};return vHome()}var st=tstate(s,tid),A=steps(t),n=A.length;if(st.step>=n)st.step=n-1;var cur=A[st.step],T=inpTable(t),idx=idxOf(tid);
  var h=(s.kind==="prog"?'<button class="lib-back" data-go2="'+s.id+'">← '+esc(l.prog)+'</button>':crumbs())+
   '<div class="card g-head"><h2>'+esc(t.t)+'</h2><p class="lib-norm">'+esc(t.norm)+'</p><div class="g-prog"><i style="width:'+Math.round((st.step+1)/n*100)+'%"></i></div><p class="hint">'+esc(l.step)+' '+(st.step+1)+' '+esc(l.of)+' '+n+'</p>'+
-  '<div class="g-row"><button class="b sm ghost" id="g_fig">'+esc(FIGON[tid]!==false?l.hideFig:l.showFig)+'</button><button class="b sm ghost" data-gm="'+tid+'">'+esc(l.method)+'</button></div></div>'+
-  (FIGON[tid]!==false?'<div class="card lib-fig g-fig" id="g_figbox" role="button" tabindex="0" title="'+esc(l.zoom)+'">'+DorLib.fig(t,idx,LANG)+'<p class="hint g-zh">⤢ '+esc(l.zoom)+'</p></div>':'');
+  '<div class="g-row"><button class="b sm ghost" id="g_fig">'+esc(FIGON[tid]!==false?l.hideFig:l.showFig)+'</button>'+(cur.k!=="eq"&&FIGON[tid]!==false?'<button class="b sm ghost" id="g_full">'+esc(FIGFULL[tid]?l.stepFig:l.fullFig)+'</button>':'')+'<button class="b sm ghost" data-gm="'+tid+'">'+esc(l.method)+'</button></div></div>'+
+  (FIGON[tid]!==false?'<div class="card lib-fig g-fig" id="g_figbox" role="button" tabindex="0" title="'+esc(l.zoom)+'">'+figStep(t,cur,st.step,A,idx)+'<p class="hint g-zh">⤢ '+esc(l.zoom)+'</p></div>':'');
  var body="";
  if(cur.k==="eq"){body='<h3>'+esc(l.eqH)+'</h3><p class="hint">'+esc(l.eqHint)+'</p><ul class="g-chk">'+(t.eq||[]).map(function(e,i){return'<li><label><input type="checkbox" data-chk="'+i+'"'+(st.chk[i]?" checked":"")+'> <span>'+DorLib.md(e)+'</span></label></li>'}).join("")+'</ul>'+
    '<div class="g-ww"><p><span class="g-k">'+esc(l.why)+':</span> '+DorLib.md(t.goal||"")+'</p><p><span class="g-k">'+esc(l.when)+':</span> '+DorLib.md(t.when||"")+'</p></div>'+
@@ -615,7 +619,7 @@ function wire(){var l=L(),v=ST.view;
   ROOT.querySelectorAll("[data-v]").forEach(function(i){i.oninput=function(){st.v[i.dataset.v]=i.value;st.xf=false;touch()}});
   ROOT.querySelectorAll("[data-p]").forEach(function(i){i.oninput=function(){st.p[i.dataset.p]=i.value;st.xf=false;touch()}});
   ROOT.querySelectorAll("[data-tm]").forEach(function(b){b.onclick=function(){var t=testById(v.t);startTimer(+b.dataset.tm,t.t+" · "+l.step+" "+(st.step+1))}});
-  var f=$("g_fig");if(f)f.onclick=function(){FIGON[v.t]=FIGON[v.t]===false;draw()};
+  var f=$("g_fig");if(f)f.onclick=function(){FIGON[v.t]=FIGON[v.t]===false;draw()};var gf=$("g_full");if(gf)gf.onclick=function(){FIGFULL[v.t]=!FIGFULL[v.t];draw()};
   var fb=$("g_figbox");if(fb){var zo=function(){var o=document.createElement("div");o.className="g-zoom";o.innerHTML='<button class="b sm" aria-label="×">✕</button><div class="g-zi">'+fb.querySelector("svg").outerHTML+'</div>';o.onclick=function(e){if(e.target===o||e.target.tagName==="BUTTON")o.remove()};document.body.appendChild(o)};fb.onclick=zo;fb.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();zo()}}}
   var pv=$("g_prev");if(pv)pv.onclick=function(){st.step=Math.max(0,st.step-1);touch();draw();ROOT.scrollIntoView()};
   var nx=$("g_next");if(nx)nx.onclick=function(){st.step=Math.min(A.length-1,st.step+1);touch();draw();ROOT.scrollIntoView()};
