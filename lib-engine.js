@@ -264,6 +264,9 @@ S.aggSample=function(){return num(48,34,1)+heap(130,260,180,46,"fagg")+shovel(20
 S.sieveAgg=function(){return num(48,34,1)+stack(90,50,120,["40","20","10","5","2,5","1,25"],[1,1,1,1,1,0])+shaker(90,270,120)+co(210,70,280,40,W("крышка","couvercle","lid"))+co(210,232,280,250,W("поддон","fond","pan"))+tx(150,326,W("10–15 мин","10–15 min","10–15 min"),{c:"sv",a:"middle"})+
  flow(300,350,200)+num(366,34,2)+bal(470,214,"mᵢ")+tray(432,198,76)+co(470,196,560,140,W("остаток на сите","refus du tamis","residue on sieve"))+
  note(["aᵢ = mᵢ / m · 100 %;  Aᵢ = Σ aᵢ;  Пᵢ = 100 − Aᵢ"])}
+S.pgrain=function(){return num(48,34,1)+tray(70,104,120,"fsand")+L(160,50,128,112,"sk4")+P("M130 140 v30","sa")+sieve(70,184,120,"0,071",1,"fsand")+tx(130,244,W("растирать 2–3 мин и сливать","triturer 2–3 min et verser","grind 2–3 min and pour"),{c:"sv",a:"middle"})+tx(130,262,W("до прозрачной воды","jusqu'à eau claire","until the water is clear"),{c:"sv",a:"middle"})+
+ flow(250,285,200)+num(300,34,2)+oven(372,110,"110 ± 5 °C")+flow(445,480,200)+num(492,34,3)+stack(520,70,110,["1,25","0,315","0,071"],[1,1,1],"fsand")+bal(575,236,"mᵢ")+tray(537,220,76,"fsand")+
+ note(["αᵢ = mᵢ / m · 100 %;  M₁,₂₅ = 100 − α₁,₂₅","M₀,₃₁₅ = M₁,₂₅ − α₀,₃₁₅;  M₀,₀₇₁ = M₀,₃₁₅ − α₀,₀₇₁"])}
 S.wash=function(){return num(48,34,1)+tank(60,110,200,140,"",{noth:1})+heap(160,246,150,26,"fagg")+P("M220 60 q20 30 -10 120","sk4")+co(214,90,300,60,W("перемешивание","agitation","stirring"))+tx(160,280,W("замочить 2 ч → промывать до чистой воды","tremper 2 h → laver jusqu'à eau claire","soak 2 h → wash until clear"),{c:"sv",a:"middle"})+
  flow(290,330,200)+num(346,34,2)+sieve(350,170,120,"0,071 + 1,25",1)+P("M360 210 l10 30 M440 210 l-10 30","sw2")+flow(500,530,200)+num(546,34,3)+oven(640,120,"105–110 °C")+
  note(["Пот = (m − m₁) / m · 100 %"])}
