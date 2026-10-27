@@ -478,28 +478,37 @@ function durations(txt){var out=[],re=/(\d+(?:[.,]\d+)?)\s*(ч|h|мин|min|с|s
 /* ---------------- views ---------------- */
 var ROOT=null,DATA=null,FIGON={},FIGFULL={};
 var CURS=null;
-var MINEON={a_shear:1,a_wlong:1,a_wacc:1,a_wacc60:1,a_frost:1,a_swell:1,a_wsat:1};
+var MINEON={a_shear:1,a_wlong:1,a_wacc:1,a_wacc60:1,a_frost:1,a_swell:1,a_wsat:1,a_sample:1,a_bind:1,a_marsh:1,a_mixtemp:1,a_tsr:1};
+var MINEX={a_sample:1,a_bind:1,a_marsh:1,a_mixtemp:1,a_tsr:1};
 var MY={
- ru:{t:"Для вашего материала",grain:"Крупность зерна до {0} мм",d:"Форма ⌀ d, мм",h:"Высота образца h, мм (= d)",A:"Площадь A, см²",F40:"Нагрузка пресса при 40 МПа, кН",F20:"При 20 МПа, кН (комбинированный способ)",rho:"Ожидаемая плотность ρ, г/см³ (по рецепту)",m:"Навеска на один образец, г",tm:"Температура смеси, °C",
+ ru:{t:"Для вашего материала",tShip:"Температура смеси при отгрузке, °C",tComp:"Температура начала уплотнения, °C",smp:"Минимальная масса пробы с места, кг",ext:"Навеска для экстракции, г",mar:"Масса смеси на один замес Маршалла, г",tSrc:"по таблице нормы для вашего битума",grain:"Крупность зерна до {0} мм",d:"Форма ⌀ d, мм",h:"Высота образца h, мм (= d)",A:"Площадь A, см²",F40:"Нагрузка пресса при 40 МПа, кН",F20:"При 20 МПа, кН (комбинированный способ)",rho:"Ожидаемая плотность ρ, г/см³ (по рецепту)",m:"Навеска на один образец, г",tm:"Температура смеси, °C",
   line:"Для вашего материала (зерно до {0} мм): d = {1} мм, h = {1} мм.",lineF:"Для вашего материала (форма ⌀ {0} мм): F = {1} кН при 40 МПа.",lineM:"Для вашего материала: навеска m ≈ {0} г (при ρ = {1} г/см³ — укажите плотность по рецепту в карточке «Для вашего материала» на первом шаге).",note:"Расчёт по формулам карточки «Изготовление образцов»: A = π·d²/4, m = A·h·ρ, F = p·A."},
- fr:{t:"Pour ton matériau",grain:"Grain maximal : {0} mm",d:"Moule ⌀ d, mm",h:"Hauteur de l'éprouvette h, mm (= d)",A:"Section A, cm²",F40:"Charge de presse à 40 MPa, kN",F20:"À 20 MPa, kN (méthode combinée)",rho:"Masse volumique attendue ρ, g/cm³ (selon la formule)",m:"Masse à peser par éprouvette, g",tm:"Température du mélange, °C",
+ fr:{t:"Pour ton matériau",tShip:"Température du mélange à la livraison, °C",tComp:"Température de début de compactage, °C",smp:"Masse minimale de l'échantillon prélevé, kg",ext:"Prise d'essai pour l'extraction, g",mar:"Masse de mélange par éprouvette Marshall, g",tSrc:"selon le tableau de la norme pour ton bitume",grain:"Grain maximal : {0} mm",d:"Moule ⌀ d, mm",h:"Hauteur de l'éprouvette h, mm (= d)",A:"Section A, cm²",F40:"Charge de presse à 40 MPa, kN",F20:"À 20 MPa, kN (méthode combinée)",rho:"Masse volumique attendue ρ, g/cm³ (selon la formule)",m:"Masse à peser par éprouvette, g",tm:"Température du mélange, °C",
   line:"Pour ton matériau (grain jusqu'à {0} mm) : d = {1} mm, h = {1} mm.",lineF:"Pour ton matériau (moule ⌀ {0} mm) : F = {1} kN à 40 MPa.",lineM:"Pour ton matériau : masse m ≈ {0} g (avec ρ = {1} g/cm³ — indique la masse volumique de ta formule dans la carte « Pour ton matériau » à la première étape).",note:"Calcul avec les formules de la fiche « Confection des éprouvettes » : A = π·d²/4, m = A·h·ρ, F = p·A."},
- en:{t:"For your material",grain:"Maximum grain size: {0} mm",d:"Mould ⌀ d, mm",h:"Specimen height h, mm (= d)",A:"Area A, cm²",F40:"Press load at 40 MPa, kN",F20:"At 20 MPa, kN (combined method)",rho:"Expected density ρ, g/cm³ (from the job mix)",m:"Mass to weigh per specimen, g",tm:"Mix temperature, °C",
+ en:{t:"For your material",tShip:"Mix temperature at delivery, °C",tComp:"Temperature at start of compaction, °C",smp:"Minimum field sample mass, kg",ext:"Test portion for extraction, g",mar:"Mix mass per Marshall specimen, g",tSrc:"from the standard table for your bitumen",grain:"Maximum grain size: {0} mm",d:"Mould ⌀ d, mm",h:"Specimen height h, mm (= d)",A:"Area A, cm²",F40:"Press load at 40 MPa, kN",F20:"At 20 MPa, kN (combined method)",rho:"Expected density ρ, g/cm³ (from the job mix)",m:"Mass to weigh per specimen, g",tm:"Mix temperature, °C",
   line:"For your material (grain up to {0} mm): d = {1} mm, h = {1} mm.",lineF:"For your material (mould ⌀ {0} mm): F = {1} kN at 40 MPa.",lineM:"For your material: mass m ≈ {0} g (at ρ = {1} g/cm³ — enter the job-mix density in the “For your material” card at step 1).",note:"Calculated with the formulas of the “Specimen preparation” method: A = π·d²/4, m = A·h·ρ, F = p·A."}
 };
 function mgrain(m,x){if(m==="hot"){if(x.kind==="hps"||x.size==="sand")return 5;return x.size==="coarse"?40:20}
  if(m==="cold")return(x.type==="Гх"||x.type==="Дх")?5:20;
  if(m==="pma")return x.size==="coarse"?20:15;
  if(m==="sma"){var q=/\((\d+)\)/.exec(x.kind||"");return q?+q[1]:null}return null}
+var TH={"35-50":["155–165","140–160"],"51-70":["150–160","130–150"],"71-100":["145–150","130–140"],"101-130":["140–150","120–130"],"131-200":["130–140","80–120"]};
+var TS={"35-50":["180–185","180"],"51-70":["180–185","175"],"71-100":["175–180","170"],"101-130":["170–175","165"]};
+var TP={"БНД 70/100":"165–180","БНД 100/130":"160–175","БНД 130/200":"160–170","БМП 35/50":"175–185","БМП 50/70":"170–180","БМП 70/100":"165–180","БМП 100/130":"160–175"};
+function mtemp(s){var x=s.sel,m=s.mat;
+ if(m==="hot")return TH[x.bit]?{a:TH[x.bit][0],c:TH[x.bit][1]}:null;
+ if(m==="sma")return TS[x.bit]?{a:TS[x.bit][0],c:"≥ "+TS[x.bit][1]}:null;
+ if(m==="pma")return TP[x.bin]?{a:TP[x.bin],c:null}:null;
+ if(m==="cold")return{a:x.bit==="70-130"?"80–100":"100–120",c:null};return null}
 function mine(s){if(!s||s.kind!=="prog"||!s.sel||!ASPHM[s.mat])return null;var D=mgrain(s.mat,s.sel);if(D==null)return null;
  var d=D<=5?50.5:D<=20?71.4:101.0,rho=num(s.rho!=null?s.rho:"2.36");if(!isFinite(rho)||rho<=0)rho=2.36;
- var A=Math.PI*d*d/4/100,T=null;try{var o=LIM(s);if(o&&o.T)T=limTxt(o.T,"T")}catch(e){}
- return{D:D,d:d,A:A,F40:A*100*40/1000,F20:A*100*20/1000,rho:rho,m:A*(d/10)*rho,T:T}}
+ var A=Math.PI*d*d/4/100,T=null,TT=mtemp(s);try{var o=LIM(s);if(o&&o.T)T=limTxt(o.T,"T")}catch(e){}
+ return{D:D,d:d,A:A,F40:A*100*40/1000,F20:A*100*20/1000,rho:rho,m:A*(d/10)*rho,T:T,TT:TT,cls:D<=5?0:D<=20?1:2}}
 function pdef(x){if(x[0]==="d"&&x[2]==="71.4"){var M=mine(CURS);if(M)return M.d.toFixed(1)}return x[2]}
-function mineCard(s,t){var M=mine(s);if(!M)return"";var all=(t.eq||[]).concat(t.prep||[]).join(" ");if(!/50[.,]5/.test(all)&&!MINEON[t.id])return"";
+function mineCard(s,t,tid){var M=mine(s);if(!M)return"";var all=(t.eq||[]).concat(t.prep||[]).join(" ");if(!/50[.,]5/.test(all)&&!MINEON[tid])return"";
  var T=MY[LANG]||MY.ru,r=function(a,b){return'<tr><td>'+esc(a)+'</td><td class="n">'+b+'</td></tr>'};
- return'<div class="g-mine"><b>'+esc(T.t)+' — '+esc(selDesc(s.mat,s.sel))+'</b><p class="hint">'+esc(T.grain.replace("{0}",M.D))+'</p><table><tbody>'+r(T.d,fmt(M.d,1))+r(T.h,fmt(M.d,1))+r(T.A,fmt(M.A,2))+r(T.F40,fmt(M.F40,1))+r(T.F20,fmt(M.F20,1))+
-  r(T.rho,'<input class="num" inputmode="decimal" data-rho="1" value="'+esc(s.rho!=null?s.rho:(LANG==="en"?"2.36":"2,36"))+'">')+r(T.m,fmt(M.m,0))+(M.T?r(T.tm,esc(M.T)):"")+'</tbody></table><p class="hint">'+esc(T.note)+'</p></div>'}
+ return'<div class="g-mine"><b>'+esc(T.t)+' — '+esc(selDesc(s.mat,s.sel))+'</b><p class="hint">'+esc(T.grain.replace("{0}",M.D))+'</p><table><tbody>'+(MINEX[tid]?'':r(T.d,fmt(M.d,1))+r(T.h,fmt(M.d,1))+r(T.A,fmt(M.A,2))+r(T.F40,fmt(M.F40,1))+r(T.F20,fmt(M.F20,1)))+(tid==='a_sample'?r(T.smp,[1,2,6][M.cls]):'')+(tid==='a_bind'?r(T.ext,M.cls===2?'1000–2000':'500–1000'):'')+(tid==='a_marsh'?r(T.mar,'≈ 1200'):'')+(M.TT?r(T.tShip,esc(M.TT.a))+(M.TT.c?r(T.tComp,esc(M.TT.c)):''):'')+
+  (MINEX[tid]?'':r(T.rho,'<input class="num" inputmode="decimal" data-rho="1" value="'+esc(s.rho!=null?s.rho:(LANG==="en"?"2.36":"2,36"))+'">')+r(T.m,fmt(M.m,0)))+(M.T&&!M.TT?r(T.tm,esc(M.T)):"")+'</tbody></table><p class="hint">'+esc(MINEX[tid]?T.tSrc:T.note)+'</p></div>'}
 function mineLine(s,tid,x){var M=mine(s);if(!M)return"";var T=MY[LANG]||MY.ru,ln=function(z){return'<p class="g-mineline">→ '+esc(z)+'</p>'};
  if(/50[.,]5/.test(x)&&/101[.,]0/.test(x))return ln(T.line.replace("{0}",M.D).split("{1}").join(fmt(M.d,1)));
  if(tid==="a_form"&&/`F`/.test(x))return ln(T.lineF.replace("{0}",fmt(M.d,1)).replace("{1}",fmt(M.F40,1)));
@@ -574,7 +583,7 @@ function vRun(s,tid){var l=L(),t=testById(tid);if(!t){ST.view={v:"home"};return 
   (FIGON[tid]!==false?'<div class="card lib-fig g-fig" id="g_figbox" role="button" tabindex="0" title="'+esc(l.zoom)+'">'+figStep(t,cur,st.step,A,idx)+'<p class="hint g-zh">⤢ '+esc(l.zoom)+'</p></div>':'');
  var body="";
  if(cur.k==="eq"){body='<h3>'+esc(l.eqH)+'</h3><p class="hint">'+esc(l.eqHint)+'</p><ul class="g-chk">'+(t.eq||[]).map(function(e,i){return'<li><label><input type="checkbox" data-chk="'+i+'"'+(st.chk[i]?" checked":"")+'> <span>'+DorLib.md(e)+'</span></label></li>'}).join("")+'</ul>'+
-   mineCard(s,t)+'<div class="g-ww"><p><span class="g-k">'+esc(l.why)+':</span> '+DorLib.md(t.goal||"")+'</p><p><span class="g-k">'+esc(l.when)+':</span> '+DorLib.md(t.when||"")+'</p></div>'+
+   mineCard(s,t,tid)+'<div class="g-ww"><p><span class="g-k">'+esc(l.why)+':</span> '+DorLib.md(t.goal||"")+'</p><p><span class="g-k">'+esc(l.when)+':</span> '+DorLib.md(t.when||"")+'</p></div>'+
    (PARAMS[tid]?'<h3>'+esc(l.param)+'</h3><div class="fields">'+PARAMS[tid].map(function(p){return'<label class="f">'+esc(p[0]==="d"?p[1]:p[1])+'<input class="num" inputmode="decimal" data-p="'+p[0]+'" value="'+esc(st.p[p[0]]!=null?st.p[p[0]]:pdef(p).replace(".",LANG==="en"?".":","))+'"></label>'}).join("")+'</div>':'')}
  else if(cur.k==="prep"||cur.k==="run"){var ti=durations(cur.x);
   body='<p class="g-k">'+esc(cur.k==="prep"?l.prepH:l.runH)+'</p><p class="g-step">'+DorLib.md(cur.x)+'</p>'+mineLine(s,tid,cur.x)+
