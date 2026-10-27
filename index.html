@@ -602,7 +602,7 @@ function render(){
   /* ---- grading ---- */
   var g=S.gr,gm=L.units[g.mu];
   h+='<section class="panel" data-panel="gr">'+method(M[S.lang].gr)+
-   '<div class="card"><h2>'+L.grH+'</h2><p class="hint">'+L.grHint+'</p><div class="fields"><label class="f">'+L.total+', '+gm+inp("gr_total",g.total)+'</label><label class="f">'+L.massUnit+unitSel("gr_mu",g.mu,["g","kg"])+'</label></div>'+
+   '<div class="card"><h2>'+L.grH+'</h2><p class="hint">'+L.grHint+'</p><div class="fields">'+grMixSel()+'<label class="f">'+L.total+', '+gm+inp("gr_total",g.total)+'</label><label class="f">'+L.massUnit+unitSel("gr_mu",g.mu,["g","kg"])+'</label></div>'+
    '<div class="tbl"><table><thead><tr>'+L.gcols.map(function(c,i){return'<th class="n">'+c+(i===1?', '+gm:'')+'</th>'}).join("")+'</tr></thead><tbody>'+
    SIEVES.map(function(s,i){var last=s==="pan";return'<tr><td class="n">'+(last?L.bottom:s)+'</td><td>'+inp("grr"+i,g.ret[i])+'</td><td class="n" id="grc_'+i+'"></td><td class="n" id="grf_'+i+'"></td><td class="n res" id="grp_'+i+'"></td><td>'+(last?"":inp("grmin"+i,g.min[i]))+'</td><td>'+(last?"":inp("grmax"+i,g.max[i]))+'</td><td id="grv_'+i+'"></td></tr>'}).join("")+
    '</tbody></table></div><p class="formula" id="gr_loss"></p><svg class="chart" id="gr_chart" viewBox="0 0 640 240" role="img" aria-label="'+L.grH+'"></svg></div>'+
@@ -669,7 +669,7 @@ function wire(){if(window.DorBrand)DorBrand.wire();document.querySelectorAll("[d
   on("bit_grade",function(v){b.grade=v;save();render()},"change");
   BIT_KEYS.forEach(function(k){b[k].forEach(function(_,i){on("bit"+k+i,function(v){b[k][i]=v})});[0,1].forEach(function(ix){on("bitq_"+k+ix,function(v){b.req[b.grade][k][ix]=v===""?null:v})})});
   var g=S.gr;
-  on("gr_total",function(v){g.total=v});on("gr_mu",function(v){g.mu=v;save();render()},"change");
+  on("gr_total",function(v){g.total=v});on("gr_mix",function(v){applyGrMix(v);save();render()},"change");on("gr_mu",function(v){g.mu=v;save();render()},"change");
   SIEVES.forEach(function(_,i){on("grr"+i,function(v){g.ret[i]=v});on("grmin"+i,function(v){g.min[i]=v});on("grmax"+i,function(v){g.max[i]=v})});
   ["m0","m1","target","tol"].forEach(function(k){on("bc_"+k,function(v){S.bc[k]=v})});
   ["m","m1","m2","max"].forEach(function(k){on("dr_"+k,function(v){S.dr[k]=v})});
@@ -699,6 +699,14 @@ function calcBit(){
   return{pen:{v:Math.round(pm),ok:isFinite(pS)?pS<=pTol:null,txt:"Δ "+f(pS,0)+" ("+L.tolTxt+" "+pTol+")"},
     kish:{v:Math.round(km*10)/10,ok:isFinite(kS)?kS<=1.0001:null,txt:"Δ "+f(kS,1)+" °C ("+L.tolTxt+" 1)"},
     duct:{v:Math.round(dm),ok:isFinite(dD)?dD<=10.0001:null,txt:L.dev+" "+f(dD,1)+" % ("+L.tolTxt+" 10)"}}}
+var GRM={ru:["\u041c\u0430\u0442\u0435\u0440\u0438\u0430\u043b (\u0442\u0438\u043f \u0441\u043c\u0435\u0441\u0438)","\u2014 \u0432\u0440\u0443\u0447\u043d\u0443\u044e \u2014"],fr:["Mat\u00e9riau (type de m\u00e9lange)","\u2014 saisie libre \u2014"],en:["Material (mix type)","\u2014 manual entry \u2014"]};
+function grMixCur(){var id=S.gr.mixId;return MIXES.filter(function(m){return m.id===id})[0]}
+function grMixSel(){var g=S.gr,T=GRM[S.lang]||GRM.ru,cur=grMixCur();
+ return '<label class="f wide">'+T[0]+'<select id="gr_mix"><option value="">'+T[1]+'</option>'+MIXES.map(function(m){return '<option value="'+esc(m.id)+'"'+(m.id===g.mixId?' selected':'')+'>'+esc(m.title)+' \u2014 '+esc(m.norm)+'</option>'}).join('')+'</select>'+(cur?'<span class="hint">'+esc(cur.norm)+'</span>':'')+'</label>'}
+function applyGrMix(id){var g=S.gr,m=MIXES.filter(function(x){return x.id===id})[0];g.mixId=id||"";if(!m)return;
+ SIEVES.forEach(function(s,i){if(s==="pan")return;var j=-1;m.sieves.forEach(function(v,k){if(v===s)j=k});g.min[i]=j>=0&&m.min[j]!=null?String(m.min[j]):"";g.max[i]=j>=0&&m.max[j]!=null?String(m.max[j]):""})}
+function grMixName(){var m=grMixCur();return m?" \u2014 "+esc(m.title):""}
+function grMixNorm(){var m=grMixCur();return m?esc(m.norm):""}
 function calcGr(){
   var g=S.gr,tot=num(g.total),cum=0,sum=0,rows=[];
   g.ret.forEach(function(r){var x=num(r);sum+=isFinite(x)?x:0});
@@ -749,7 +757,7 @@ function protoRows(all){
   AB_KEYS.forEach(function(r){rows.push([L.matAB,L.abRows[r[0]],f(ab[r[0]],r[1]),r[2]?reqText(req[r[2]]):L.ref,r[2]?check(Number(f(ab[r[0]],r[1])),req[r[2]]):"na","ab_"+r[0]])});
   var bt=last.bit,breq=S.bit.req[S.bit.grade];
   BIT_KEYS.forEach(function(k){var x=bt[k];rows.push([L.matBit+" БНД "+S.bit.grade,L.bitRows[k],isFinite(x.v)?String(x.v):"—",reqText(breq[k]),x.ok===false?"bad":check(x.v,breq[k]),"bit_"+k])});
-  rows.push([L.matMin,L.grRow,last.gr.bad?last.gr.bad+" "+L.grOut:L.grIn,L.byRecipe,last.gr.st,"gr"]);
+  rows.push([L.matMin,L.grRow+grMixName(),last.gr.bad?last.gr.bad+" "+L.grOut:L.grIn,grMixNorm()||L.byRecipe,last.gr.st,"gr"]);
   rows.push([L.matMix,L.bcRow,f(last.bc.q,2),last.bc.req,last.bc.st,"bc"]);
   if(S.ab.type==="SMA")rows.push([L.matSMA,L.drRow,f(last.dr.v,2),L.notMore+" "+S.dr.max,last.dr.st,"dr"]);
   if(last.mx)rows.push([L.matMin,L.mxRow+" — "+esc(S.mx.title),last.mx.bad?last.mx.bad+" "+L.grOut:L.grIn,esc(S.mx.norm),(last.mx.bad||!last.mx.ok)?"bad":"ok","mx"]);
