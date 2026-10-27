@@ -167,7 +167,7 @@ function freezer(x,y,t){var s="",i;for(i=0;i<4;i++)s+=P("M"+(x+28+i*24)+" "+(y+1
  return R(x,y,120,130,"sk",8)+R(x+8,y+8,104,114,"sin",4)+s+L(x+8,y+52,x+112,y+52,"sl")+R(x+112,y+50,6,24,"sk",2)+(t?tx(x+60,y+148,t,{c:"sv",a:"middle"}):"")}
 function bag(x,y,w,h){return R(x-4,y-4,w+8,h+8,"sdash",6)+spec(x,y,w,h)}
 S.bend=function(){return num(48,34,1)+therm(80,110,130)+R(110,190,110,40,"fconc")+R(110,190,110,40,"fasp")+stopwatch(170,140,"2 h")+tx(165,268,W("воздух 20 ± 2 °C","air 20 ± 2 °C","air 20 ± 2 °C"),{c:"sv",a:"middle"})+
- flow(250,290,214)+num(306,34,2)+press(470,100,"beam","P","50 mm/min")+
+ flow(250,290,214)+num(306,34,2)+press(470,100,"beam","P","3 mm/min")+
  co(424,232,612,330,W("опоры, пролёт l","appuis, portée l","supports, span l"))+co(486,225,612,120,W("стержень ⌀ 10 мм","barreau ⌀ 10 mm","rod ⌀ 10 mm"))+
  R(590,190,60,40,"sk",4)+C(620,210,13,"sin")+L(620,210,628,202,"sacc2")+co(620,197,676,160,W("прогиб f","flèche f","deflection f"))+
  note(["Rизг = 3·P·l / (2·b·h²) · 10⁻²;  εпр = 6·f·h / l²","E = P·l³ / (4·f·b·h³) · 10⁻²"])}

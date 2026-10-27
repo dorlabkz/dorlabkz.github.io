@@ -311,11 +311,11 @@ function selDesc(m,x){if(x&&SEL1[m])return sel2Desc(m,x);if(!x||!ASPHM[m])return
  else{a.push(t.smaW+"-"+x.kind);a.push(t.bmp[x.bit])}
  return a.join(" · ")}
 function progFor(m,p,x){var dense=m!=="hot"||x.kind==="hd"||x.kind==="dense",B=["b_pen","b_rb","b_duct","b_adh"],BP=["b_pen","b_rb","b_duct","b_elast","b_adh"],AG=["g_sieve","g_crush","g_flaky","s_sieve","p_grain"],
- SITE=["a_sample","a_mixtemp","f_core","a_dens","a_wsat","a_por","f_thick","f_ruler"],CORE=["a_form","a_dens","a_true","a_por","a_wsat","a_comp"];
+ SITE=["a_sample","a_mixtemp","f_core","a_dens","a_wsat","a_por","f_ruler"],CORE=["a_form","a_dens","a_true","a_por","a_wsat","a_comp"];
  if(m==="hot"){if(p==="design")return B.concat(AG,CORE,["a_wres","a_wlong","a_adhmix"],dense?["a_shear","a_split"]:[],dense&&x.mark==="I"&&x.size!=="coarse"?["a_marsh"]:[]);
   if(p==="lot")return["a_sample","a_mixtemp"].concat(CORE,["a_wres","a_bind","a_grad","a_wlong","a_adhmix","a_homog"],dense?["a_shear","a_split"]:[]);return SITE}
  if(m==="cold"){if(p==="design")return["g_sieve","s_sieve","p_grain"].concat(CORE,["a_wres","a_cake"]);
-  if(p==="lot")return["a_sample","a_mixtemp","a_form","a_dens","a_wsat","a_comp","a_bind","a_grad","a_cake","a_homog"];return["a_sample","f_core","a_dens","a_wsat","f_thick","f_ruler"]}
+  if(p==="lot")return["a_sample","a_mixtemp","a_form","a_dens","a_wsat","a_comp","a_bind","a_grad","a_cake","a_homog"];return["a_sample","f_core","a_dens","a_wsat","f_ruler"]}
  if(m==="pma"){if(p==="design")return BP.concat(AG,CORE,["a_shear","a_split","a_wlong","a_adhmix","a_marsh","a_rut"]);
   if(p==="lot")return["a_sample","a_mixtemp"].concat(CORE,["a_bind","a_grad","a_shear","a_split","a_wlong","a_adhmix","a_homog"]);return SITE}
  if(p==="design")return BP.concat(AG,CORE,["a_shear","a_split","a_wlong","a_drain","a_rut"]);
@@ -477,6 +477,35 @@ function durations(txt){var out=[],re=/(\d+(?:[.,]\d+)?)\s*(ч|h|мин|min|с|s
 
 /* ---------------- views ---------------- */
 var ROOT=null,DATA=null,FIGON={},FIGFULL={};
+var CURS=null;
+var MINEON={a_shear:1,a_wlong:1,a_wacc:1,a_wacc60:1,a_frost:1,a_swell:1,a_wsat:1};
+var MY={
+ ru:{t:"Для вашего материала",grain:"Крупность зерна до {0} мм",d:"Форма ⌀ d, мм",h:"Высота образца h, мм (= d)",A:"Площадь A, см²",F40:"Нагрузка пресса при 40 МПа, кН",F20:"При 20 МПа, кН (комбинированный способ)",rho:"Ожидаемая плотность ρ, г/см³ (по рецепту)",m:"Навеска на один образец, г",tm:"Температура смеси, °C",
+  line:"Для вашего материала (зерно до {0} мм): d = {1} мм, h = {1} мм.",lineF:"Для вашего материала (форма ⌀ {0} мм): F = {1} кН при 40 МПа.",lineM:"Для вашего материала: навеска m ≈ {0} г (при ρ = {1} г/см³ — укажите плотность по рецепту в карточке «Для вашего материала» на первом шаге).",note:"Расчёт по формулам карточки «Изготовление образцов»: A = π·d²/4, m = A·h·ρ, F = p·A."},
+ fr:{t:"Pour ton matériau",grain:"Grain maximal : {0} mm",d:"Moule ⌀ d, mm",h:"Hauteur de l'éprouvette h, mm (= d)",A:"Section A, cm²",F40:"Charge de presse à 40 MPa, kN",F20:"À 20 MPa, kN (méthode combinée)",rho:"Masse volumique attendue ρ, g/cm³ (selon la formule)",m:"Masse à peser par éprouvette, g",tm:"Température du mélange, °C",
+  line:"Pour ton matériau (grain jusqu'à {0} mm) : d = {1} mm, h = {1} mm.",lineF:"Pour ton matériau (moule ⌀ {0} mm) : F = {1} kN à 40 MPa.",lineM:"Pour ton matériau : masse m ≈ {0} g (avec ρ = {1} g/cm³ — indique la masse volumique de ta formule dans la carte « Pour ton matériau » à la première étape).",note:"Calcul avec les formules de la fiche « Confection des éprouvettes » : A = π·d²/4, m = A·h·ρ, F = p·A."},
+ en:{t:"For your material",grain:"Maximum grain size: {0} mm",d:"Mould ⌀ d, mm",h:"Specimen height h, mm (= d)",A:"Area A, cm²",F40:"Press load at 40 MPa, kN",F20:"At 20 MPa, kN (combined method)",rho:"Expected density ρ, g/cm³ (from the job mix)",m:"Mass to weigh per specimen, g",tm:"Mix temperature, °C",
+  line:"For your material (grain up to {0} mm): d = {1} mm, h = {1} mm.",lineF:"For your material (mould ⌀ {0} mm): F = {1} kN at 40 MPa.",lineM:"For your material: mass m ≈ {0} g (at ρ = {1} g/cm³ — enter the job-mix density in the “For your material” card at step 1).",note:"Calculated with the formulas of the “Specimen preparation” method: A = π·d²/4, m = A·h·ρ, F = p·A."}
+};
+function mgrain(m,x){if(m==="hot"){if(x.kind==="hps"||x.size==="sand")return 5;return x.size==="coarse"?40:20}
+ if(m==="cold")return(x.type==="Гх"||x.type==="Дх")?5:20;
+ if(m==="pma")return x.size==="coarse"?20:15;
+ if(m==="sma"){var q=/\((\d+)\)/.exec(x.kind||"");return q?+q[1]:null}return null}
+function mine(s){if(!s||s.kind!=="prog"||!s.sel||!ASPHM[s.mat])return null;var D=mgrain(s.mat,s.sel);if(D==null)return null;
+ var d=D<=5?50.5:D<=20?71.4:101.0,rho=num(s.rho!=null?s.rho:"2.36");if(!isFinite(rho)||rho<=0)rho=2.36;
+ var A=Math.PI*d*d/4/100,T=null;try{var o=LIM(s);if(o&&o.T)T=limTxt(o.T,"T")}catch(e){}
+ return{D:D,d:d,A:A,F40:A*100*40/1000,F20:A*100*20/1000,rho:rho,m:A*(d/10)*rho,T:T}}
+function pdef(x){if(x[0]==="d"&&x[2]==="71.4"){var M=mine(CURS);if(M)return M.d.toFixed(1)}return x[2]}
+function mineCard(s,t){var M=mine(s);if(!M)return"";var all=(t.eq||[]).concat(t.prep||[]).join(" ");if(!/50[.,]5/.test(all)&&!MINEON[t.id])return"";
+ var T=MY[LANG]||MY.ru,r=function(a,b){return'<tr><td>'+esc(a)+'</td><td class="n">'+b+'</td></tr>'};
+ return'<div class="g-mine"><b>'+esc(T.t)+' — '+esc(selDesc(s.mat,s.sel))+'</b><p class="hint">'+esc(T.grain.replace("{0}",M.D))+'</p><table><tbody>'+r(T.d,fmt(M.d,1))+r(T.h,fmt(M.d,1))+r(T.A,fmt(M.A,2))+r(T.F40,fmt(M.F40,1))+r(T.F20,fmt(M.F20,1))+
+  r(T.rho,'<input class="num" inputmode="decimal" data-rho="1" value="'+esc(s.rho!=null?s.rho:(LANG==="en"?"2.36":"2,36"))+'">')+r(T.m,fmt(M.m,0))+(M.T?r(T.tm,esc(M.T)):"")+'</tbody></table><p class="hint">'+esc(T.note)+'</p></div>'}
+function mineLine(s,tid,x){var M=mine(s);if(!M)return"";var T=MY[LANG]||MY.ru,ln=function(z){return'<p class="g-mineline">→ '+esc(z)+'</p>'};
+ if(/50[.,]5/.test(x)&&/101[.,]0/.test(x))return ln(T.line.replace("{0}",M.D).split("{1}").join(fmt(M.d,1)));
+ if(tid==="a_form"&&/`F`/.test(x))return ln(T.lineF.replace("{0}",fmt(M.d,1)).replace("{1}",fmt(M.F40,1)));
+ if(tid==="a_form"&&x.indexOf("π·d²/4 · h · ρ")>=0)return ln(T.lineM.replace("{0}",fmt(M.m,0)).replace("{1}",fmt(M.rho,2)));
+ return""}
+
 function testById(id){return DATA&&DATA.tests.filter(function(t){return t.id===id})[0]}
 function idxOf(id){var i=-1;DATA.tests.forEach(function(t,k){if(t.id===id)i=k});return i}
 function go(v){ST.view=v;store();draw();try{ROOT.scrollIntoView({block:"start"})}catch(e){}}
@@ -538,17 +567,17 @@ function stepInputs(st,T,txt){if(!T)return"";var chips=[],re=/`([^`]+)`/g,m;whil
   if(T.kv){T.rows.forEach(function(r,ri){if(String(r[0]).trim()===ch)h+='<label class="f">'+esc(ch)+cell(st,T,ri,1)+'</label>'})}
   else{var c=-1;T.h.forEach(function(x,i){if(i&&keyOf(x)===ch)c=i});if(c<0)return;h+='<div class="g-in"><b>'+esc(T.h[c])+'</b><div class="fields">'+T.rows.map(function(r,ri){return'<label class="f">'+esc(isFinite(num(r[0]))?l.sample+" "+r[0]:r[0])+cell(st,T,ri,c)+'</label>'}).join("")+'</div></div>'}});
  return h?'<div class="g-rec"><p class="g-k">'+esc(l.enter)+'</p>'+h+'</div>':""}
-function vRun(s,tid){var l=L(),t=testById(tid);if(!t){ST.view={v:"home"};return vHome()}var st=tstate(s,tid),A=steps(t),n=A.length;if(st.step>=n)st.step=n-1;var cur=A[st.step],T=inpTable(t),idx=idxOf(tid);
+function vRun(s,tid){var l=L(),t=testById(tid);if(!t){ST.view={v:"home"};return vHome()}CURS=s;var st=tstate(s,tid),A=steps(t),n=A.length;if(st.step>=n)st.step=n-1;var cur=A[st.step],T=inpTable(t),idx=idxOf(tid);
  var h=(s.kind==="prog"?'<button class="lib-back" data-go2="'+s.id+'">← '+esc(l.prog)+'</button>':crumbs())+
   '<div class="card g-head"><h2>'+esc(t.t)+'</h2><p class="lib-norm">'+esc(t.norm)+'</p><div class="g-prog"><i style="width:'+Math.round((st.step+1)/n*100)+'%"></i></div><p class="hint">'+esc(l.step)+' '+(st.step+1)+' '+esc(l.of)+' '+n+'</p>'+
   '<div class="g-row"><button class="b sm ghost" id="g_fig">'+esc(FIGON[tid]!==false?l.hideFig:l.showFig)+'</button>'+(cur.k!=="eq"&&FIGON[tid]!==false?'<button class="b sm ghost" id="g_full">'+esc(FIGFULL[tid]?l.stepFig:l.fullFig)+'</button>':'')+'<button class="b sm ghost" data-gm="'+tid+'">'+esc(l.method)+'</button></div></div>'+
   (FIGON[tid]!==false?'<div class="card lib-fig g-fig" id="g_figbox" role="button" tabindex="0" title="'+esc(l.zoom)+'">'+figStep(t,cur,st.step,A,idx)+'<p class="hint g-zh">⤢ '+esc(l.zoom)+'</p></div>':'');
  var body="";
  if(cur.k==="eq"){body='<h3>'+esc(l.eqH)+'</h3><p class="hint">'+esc(l.eqHint)+'</p><ul class="g-chk">'+(t.eq||[]).map(function(e,i){return'<li><label><input type="checkbox" data-chk="'+i+'"'+(st.chk[i]?" checked":"")+'> <span>'+DorLib.md(e)+'</span></label></li>'}).join("")+'</ul>'+
-   '<div class="g-ww"><p><span class="g-k">'+esc(l.why)+':</span> '+DorLib.md(t.goal||"")+'</p><p><span class="g-k">'+esc(l.when)+':</span> '+DorLib.md(t.when||"")+'</p></div>'+
-   (PARAMS[tid]?'<h3>'+esc(l.param)+'</h3><div class="fields">'+PARAMS[tid].map(function(p){return'<label class="f">'+esc(p[0]==="d"?p[1]:p[1])+'<input class="num" inputmode="decimal" data-p="'+p[0]+'" value="'+esc(st.p[p[0]]!=null?st.p[p[0]]:p[2].replace(".",LANG==="en"?".":","))+'"></label>'}).join("")+'</div>':'')}
+   mineCard(s,t)+'<div class="g-ww"><p><span class="g-k">'+esc(l.why)+':</span> '+DorLib.md(t.goal||"")+'</p><p><span class="g-k">'+esc(l.when)+':</span> '+DorLib.md(t.when||"")+'</p></div>'+
+   (PARAMS[tid]?'<h3>'+esc(l.param)+'</h3><div class="fields">'+PARAMS[tid].map(function(p){return'<label class="f">'+esc(p[0]==="d"?p[1]:p[1])+'<input class="num" inputmode="decimal" data-p="'+p[0]+'" value="'+esc(st.p[p[0]]!=null?st.p[p[0]]:pdef(p).replace(".",LANG==="en"?".":","))+'"></label>'}).join("")+'</div>':'')}
  else if(cur.k==="prep"||cur.k==="run"){var ti=durations(cur.x);
-  body='<p class="g-k">'+esc(cur.k==="prep"?l.prepH:l.runH)+'</p><p class="g-step">'+DorLib.md(cur.x)+'</p>'+
+  body='<p class="g-k">'+esc(cur.k==="prep"?l.prepH:l.runH)+'</p><p class="g-step">'+DorLib.md(cur.x)+'</p>'+mineLine(s,tid,cur.x)+
    (ti.length?'<div class="g-row">'+ti.map(function(d){return'<button class="b g-tbtn" data-tm="'+d[0]+'">⏱ '+esc(l.timer)+' '+esc(d[1])+'</button>'}).join("")+'</div>':'')+stepInputs(st,T,cur.x)}
  else if(cur.k==="meas"){body='<h3>'+esc(l.measH)+'</h3><p class="hint">'+esc(l.measHint)+'</p>'+fullTable(st,T)}
  else{var f=CALC[tid],out=null;if(f&&T){try{out=f(grid(st,T),paramsOf(st,tid))}catch(e){out=null}}
@@ -561,7 +590,7 @@ function vRun(s,tid){var l=L(),t=testById(tid);if(!t){ST.view={v:"home"};return 
  h+='<div class="card g-body">'+body+'</div><div class="g-nav">'+(st.step>0?'<button class="b ghost" id="g_prev">'+esc(l.prev)+'</button>':'<span></span>')+
   (last?(nxt?'<button class="b" id="g_fin" data-next="'+nxt+'">'+esc(l.next2)+' →</button>':'<button class="b" id="g_fin">'+esc(l.finish)+'</button>'):'<button class="b" id="g_next">'+esc(l.next)+'</button>')+'</div>';
  return h}
-function paramsOf(st,tid){var p={};(PARAMS[tid]||[]).forEach(function(x){p[x[0]]=st.p[x[0]]!=null?st.p[x[0]]:x[2]});return p}
+function paramsOf(st,tid){var p={};(PARAMS[tid]||[]).forEach(function(x){p[x[0]]=st.p[x[0]]!=null?st.p[x[0]]:pdef(x)});return p}
 
 /* ---------------- recipe ---------------- */
 var BIT_DEF={"КЗтипА":5.0,"КЗтипБ":5.5,"МЗтипА":5.0,"МЗтипБ":5.5,"МЗтипВ":6.5,"МЗтипГ":7.0,"МЗтипД":8.0,"МЗтипБх":5.5,"МЗтипВх":6.5,"МЗтипГхДх":7.5,"КЗпористый":4.0,"КЗвысокопористый":3.0,"Высокопористый песчаный":3.5,"ЩМА10":6.5,"ЩМА15":6.2,"ЩМА20":6.0,"ПМА5":8.0,"ПМА10":7.0,"ПМА15":6.5};
@@ -617,7 +646,7 @@ function wire(){var l=L(),v=ST.view;
   function touch(){s.at=Date.now();store()}
   ROOT.querySelectorAll("[data-chk]").forEach(function(c){c.onchange=function(){st.chk[c.dataset.chk]=c.checked;touch()}});
   ROOT.querySelectorAll("[data-v]").forEach(function(i){i.oninput=function(){st.v[i.dataset.v]=i.value;st.xf=false;touch()}});
-  ROOT.querySelectorAll("[data-p]").forEach(function(i){i.oninput=function(){st.p[i.dataset.p]=i.value;st.xf=false;touch()}});
+  ROOT.querySelectorAll("[data-p]").forEach(function(i){i.oninput=function(){st.p[i.dataset.p]=i.value;st.xf=false;touch()}});ROOT.querySelectorAll("[data-rho]").forEach(function(i){i.onchange=function(){s.rho=i.value;touch();draw()}});
   ROOT.querySelectorAll("[data-tm]").forEach(function(b){b.onclick=function(){var t=testById(v.t);startTimer(+b.dataset.tm,t.t+" · "+l.step+" "+(st.step+1))}});
   var f=$("g_fig");if(f)f.onclick=function(){FIGON[v.t]=FIGON[v.t]===false;draw()};var gf=$("g_full");if(gf)gf.onclick=function(){FIGFULL[v.t]=!FIGFULL[v.t];draw()};
   var fb=$("g_figbox");if(fb){var zo=function(){var o=document.createElement("div");o.className="g-zoom";o.innerHTML='<button class="b sm" aria-label="×">✕</button><div class="g-zi">'+fb.querySelector("svg").outerHTML+'</div>';o.onclick=function(e){if(e.target===o||e.target.tagName==="BUTTON")o.remove()};document.body.appendChild(o)};fb.onclick=zo;fb.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();zo()}}}
@@ -657,7 +686,8 @@ var CSS=".g-fig{cursor:zoom-in}.g-fig .lsvg{min-width:0!important;width:100%}.g-
 ".g-timer{position:fixed;left:12px;right:12px;bottom:12px;z-index:900;display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:12px;background:var(--ink);color:var(--bg);box-shadow:0 8px 30px rgba(0,0,0,.35);max-width:560px;margin:0 auto}"+
 ".g-timer div{display:grid}.g-timer b{font:700 22px var(--mono)}.g-timer span{font-size:13px;opacity:.85}.g-timer small{font-size:12px;opacity:.7}.g-timer.ring{background:var(--bad);color:#fff;animation:gpulse 1s steps(2) infinite}"+
 "@keyframes gpulse{50%{background:#7a1010}}@media (prefers-reduced-motion:reduce){.g-timer.ring{animation:none}}"+
-".g-bub{position:absolute;z-index:950;background:var(--ink);color:var(--bg);padding:10px 12px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:14px}.g-bub p{margin:4px 0 8px}.g-bub b{font-size:13px}.g-bub .g-bub-b{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.g-bub .link{color:inherit;opacity:.75;background:none;border:0;text-decoration:underline;cursor:pointer;font:inherit;font-size:12px}";
+".g-bub{position:absolute;z-index:950;background:var(--ink);color:var(--bg);padding:10px 12px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:14px}.g-bub p{margin:4px 0 8px}.g-bub b{font-size:13px}.g-bub .g-bub-b{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.g-bub .link{color:inherit;opacity:.75;background:none;border:0;text-decoration:underline;cursor:pointer;font:inherit;font-size:12px}"+
+".g-mine{margin:12px 0;padding:12px;border:1px solid var(--accent);border-radius:10px}.g-mine table{width:100%;font-size:14px;border-collapse:collapse}.g-mine td{padding:5px 0;border-bottom:1px solid var(--line)}.g-mine td.n{text-align:right;font-family:var(--mono);font-weight:600}.g-mine input{width:90px}.g-mineline{margin:6px 0 10px;padding:8px 10px;border-left:3px solid var(--accent);background:var(--soft);font-weight:600}";
 function css(){if(!document.getElementById("guide_css")){var s=document.createElement("style");s.id="guide_css";s.textContent=CSS;document.head.appendChild(s)}}
 
 function render(el,lang){css();LANG=lang||"ru";ROOT=el;draw()}
