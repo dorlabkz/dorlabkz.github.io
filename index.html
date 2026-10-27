@@ -852,7 +852,9 @@ function wireMx(){var x=S.mx;if(!$("mx_id"))return;
 function pdfWorker(){var el=document.createElement("div");el.className="pdfsheet";renderProto();el.innerHTML=$("proto").innerHTML;
   var fn=(t().protoT+" "+(S.p.no||"")).trim().replace(/[\\/:*?"<>|№]+/g,"").replace(/\s+/g,"_")+".pdf";
   var off=window.DorBrand&&DorBrand.official&&DorBrand.official(),w=html2pdf().set({margin:off?[20,20,18,15]:[12,12,14,12],filename:fn,image:{type:"jpeg",quality:0.96},
-    html2canvas:{scale:2,backgroundColor:"#ffffff"},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},pagebreak:{mode:["css","legacy"],avoid:"tr"}}).from(el);
+    html2canvas:{scale:2,backgroundColor:"#ffffff",scrollX:0,scrollY:0,onclone:function(d){d.documentElement.removeAttribute("data-ui");back()}},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},pagebreak:{mode:["css","legacy"],avoid:"tr"}}).from(el);
+  /* PDF: sheet width = A4 minus side margins; dark theme off while the page is measured and copied */
+  el.style.width=(off?175:186)+"mm";var R=document.documentElement,ui=R.getAttribute("data-ui"),back=function(){if(ui){R.setAttribute("data-ui",ui);ui=null}};if(ui){R.removeAttribute("data-ui");setTimeout(back,30000)}
   if(off)w=w.toPdf().get("pdf").then(function(pdf){DorBrand.pages(pdf)});
   return{fn:fn,w:w}}
 async function sharePdf(){var L=t(),m=$("p_msg");m.textContent=L.pdfWait;
