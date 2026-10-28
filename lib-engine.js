@@ -518,11 +518,36 @@ function load(lang,cb){var dl=(lang==="fr"||lang==="en")?lang:"ru";if(DATA[dl])r
 var ST={fam:"all",q:"",open:null};
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 /* inline markup: `x` → chip; **b** → bold */
-function md(s){return esc(s).replace(/`([^`]+)`/g,'<span class="lib-chip">$1</span>').replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>")}
+/* force/pression : МПа, кН -> aussi en кгс/см², кгс, тс (demande de l'utilisateur) */
+var FEU={ru:["кгс/см²","кгс","тс"],fr:["kgf/cm²","kgf","tf"],en:["kgf/cm²","kgf","tf"]};
+function fN(v,d,lang){var s=v.toFixed(d);return lang==="en"?s:s.replace(".",",")}
+function eqf(s,lang){lang=lang||LANG;var U=FEU[lang]||FEU.ru;s=String(s==null?"":s);
+ return s.replace(/(\d+(?:[.,]\d+)?)(\s*[–\-]\s*(\d+(?:[.,]\d+)?))?(\s*)(МПа|MPa|кН|kN|Н|N)(?![A-Za-zА-Яа-яЁё/·²³0-9])/g,function(m,a,rg,b,sp,u,off,str){
+  if(/=\s*$/.test(str.slice(Math.max(0,off-3),off))||/^\s*\(≈/.test(str.slice(off+m.length,off+m.length+4)))return m;
+  var nw=(u==="Н"||u==="N"),kn=(u==="кН"||u==="kN"),xs=[parseFloat(a.replace(",","."))];if(b)xs.push(parseFloat(b.replace(",",".")));
+  var o=xs.map(function(n){return nw?fN(n/9.80665,n/9.80665>=100?0:1,lang):kn?fN(n*101.972,0,lang):fN(n*10.1972,n*10.1972>=10?0:1,lang)}).join("–");
+  var r=" (≈ "+o+" "+((kn||nw)?U[1]:U[0]);
+  if(kn&&xs[xs.length-1]>=9.81)r+=" = "+xs.map(function(n){return fN(n/9.80665,2,lang)}).join("–")+" "+U[2];
+  return m+r+")"})}
+function md(s){s=eqf(s);return esc(s).replace(/`([^`]+)`/g,'<span class="lib-chip">$1</span>').replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>")}
 function table(t){if(!t)return"";return'<div class="tbl"><table><thead><tr>'+t.h.map(function(c,i){return'<th'+(i?' class="n"':'')+'>'+esc(c)+'</th>'}).join("")+'</tr></thead><tbody>'+
  t.r.map(function(r){return'<tr'+(r.b?' style="font-weight:600"':'')+'>'+(r.c||r).map(function(c,i){return'<td'+(i?' class="n"':'')+'>'+esc(c)+'</td>'}).join("")+'</tr>'}).join("")+'</tbody></table></div>'}
 function list(items,tag){return'<'+tag+'>'+items.map(function(x){return'<li>'+md(x)+'</li>'}).join("")+'</'+tag+'>'}
 function sec(h,body){return body?'<div class="card lib-sec"><h3>'+esc(h)+'</h3>'+body+'</div>':""}
+/* variantes par matériau (voir guide.js) */
+var MATL={ru:{hot:"Горячие смеси (СТ РК 1225)",cold:"Холодные смеси (СТ РК 1225)",pma:"ПМА (СТ РК 1223)",sma:"ЩМПА (СТ РК 2373)",black:"Чёрный щебень и смеси (СТ РК 1215, 1216)",bitum:"Битум","bitum:bnd":"БНД (СТ РК 1373)","bitum:bmp":"БМП (СТ РК 2534)","bitum:mast":"Мастика (СТ РК 2367)",emul:"Эмульсии (СТ РК 1274)",crushed:"Щебень, гравий (СТ РК 1213)",sand:"Песок (СТ РК 1217)",powder:"Минеральный порошок (СТ РК 1276)",shgps:"ЩГПС (СТ РК 1549)"},
+fr:{hot:"Enrobés à chaud (СТ РК 1225)",cold:"Enrobés à froid (СТ РК 1225)",pma:"Polymère-asphalte ПМА (СТ РК 1223)",sma:"ЩМПА (СТ РК 2373)",black:"Concassé noir et mélanges noirs (СТ РК 1215, 1216)",bitum:"Bitume","bitum:bnd":"БНД (СТ РК 1373)","bitum:bmp":"БМП (СТ РК 2534)","bitum:mast":"Mastic (СТ РК 2367)",emul:"Émulsions (СТ РК 1274)",crushed:"Concassé, gravier (СТ РК 1213)",sand:"Sable (СТ РК 1217)",powder:"Filler minéral (СТ РК 1276)",shgps:"ЩГПС (СТ РК 1549)"},
+en:{hot:"Hot mixes (ST RK 1225)",cold:"Cold mixes (ST RK 1225)",pma:"Polymer asphalt PMA (ST RK 1223)",sma:"Polymer SMA (ST RK 2373)",black:"Black crushed stone and mixes (ST RK 1215, 1216)",bitum:"Bitumen","bitum:bnd":"BND (ST RK 1373)","bitum:bmp":"BMP (ST RK 2534)","bitum:mast":"Mastic (ST RK 2367)",emul:"Emulsions (ST RK 1274)",crushed:"Crushed stone, gravel (ST RK 1213)",sand:"Sand (ST RK 1217)",powder:"Mineral filler (ST RK 1276)",shgps:"ST RK 1549 mixes"}};
+var MVT={ru:["Варианты по материалам","Для этого материала порядок и значения по его СТ РК отличаются от общей карточки выше. Выберите свой материал:"],fr:["Variantes par matériau","Pour ce matériau, la procédure et les valeurs de son СТ РК diffèrent de la fiche générale ci-dessus. Choisissez votre matériau :"],en:["Variants by material","For this material the procedure and values of its ST RK differ from the general card above. Pick your material:"]};
+function withV(t,vk){if(!t||!t.mv)return t;var r=null;(vk||[]).forEach(function(k){var o=t.mv[k];if(!o)return;if(!r){r={};for(var q in t)if(q!=="mv")r[q]=t[q]}for(q in o)r[q]=o[q]});return r||t}
+function mvDoc(x,U){if(!x.mv)return"";var L=MATL[LANG]||MATL.ru,T=MVT[LANG]||MVT.ru;
+ var ks=Object.keys(x.mv);if(!ks.length)return"";
+ return'<div class="card lib-sec"><h2>'+esc(T[0])+'</h2><p class="hint">'+esc(T[1])+'</p>'+ks.map(function(k){var o=x.mv[k];
+  return'<details class="lib-mv"><summary><b>'+esc(L[k]||k)+'</b>'+(o.norm?' <span class="ln">'+esc(o.norm)+'</span>':'')+'</summary>'+
+   (o.when?'<p>'+md(o.when)+'</p>':'')+(o.goal?'<p>'+md(o.goal)+'</p>':'')+
+   (o.eq?'<h3>'+esc(U.eq)+'</h3>'+list(o.eq,"ul"):'')+(o.prep?'<h3>'+esc(U.prep)+'</h3>'+list(o.prep,"ol"):'')+(o.steps?'<h3>'+esc(U.steps)+'</h3>'+list(o.steps,"ol"):'')+
+   (o.f?o.f.map(function(f){return'<div class="lib-f">'+esc(f)+'</div>'}).join(""):'')+
+   (o.req?'<h3>'+esc(U.req)+'</h3>'+list(o.req,"ul"):'')+(o.notes?'<h3>'+esc(U.notes)+'</h3>'+list(o.notes,"ul"):'')+'</details>'}).join("")+'</div>'}
 function testDoc(d,x,U,idx){LG=LANG;var fn=S[x.sch];var fig=fn?sheet(fn(),x.norm.split(" / ")[0].slice(0,34),U.fig+" "+(idx+1),x.t):"";
  var ex=x.ex||{};
  return'<div class="lib-doc"><button class="lib-back" id="lib_back">← '+esc(U.back)+'</button>'+
@@ -536,7 +561,7 @@ function testDoc(d,x,U,idx){LG=LANG;var fn=S[x.sch];var fig=fn?sheet(fn(),x.norm
    (ex.calc?'<h3>'+esc(U.exCalc)+'</h3><ol class="lib-calc">'+ex.calc.map(function(c){return'<li>'+(c[0]?'<span>'+md(c[0])+'</span>':'')+esc(c[1])+'</li>'}).join("")+'</ol>':'')+
    (ex.res?'<h3>'+esc(U.exRes)+'</h3>'+table(ex.res):'')+
    (ex.concl?'<div class="lib-concl"><b>'+esc(U.concl)+'.</b> '+md(ex.concl)+'</div>':'')+'</div>':'')+
- sec(U.req,x.req&&list(x.req,"ul"))+sec(U.notes,x.notes&&list(x.notes,"ul"))+
+ sec(U.req,x.req&&list(x.req,"ul"))+sec(U.notes,x.notes&&list(x.notes,"ul"))+mvDoc(x,U)+
  '<div class="lib-tools"><p class="lib-note">'+esc(U.check)+'</p><button class="b" id="lib_print">'+esc(U.print)+'</button></div></div>'}
 function norm(s){return String(s).toLowerCase().replace(/ё/g,"е").replace(/[\s\-–.,()\/]+/g," ")}
 function listDoc(d,U){var q=norm(ST.q).trim(),fams=d.fams,tests=d.tests.filter(function(x){return(ST.fam==="all"||x.fam===ST.fam)&&(!q||norm(x.t+" "+x.norm+" "+(x.goal||"")+" "+(x.kw||"")).indexOf(q)>=0)});
@@ -574,7 +599,7 @@ function css(){if(!document.getElementById("lib_css")){var st=document.createEle
  if(!document.getElementById("lib_css2")){var s2=document.createElement("style");s2.id="lib_css2";s2.textContent=POPCSS;document.head.appendChild(s2)}}
 function uniq(html,suf){suf=suf||"_pp";var ids={};html.replace(/\sid="([^"]+)"/g,function(_,i){ids[i]=1});
  return html.replace(/(\sid="|url\(#|href="#)([^")]+)/g,function(m,a,i){return ids[i]?a+i+suf:m})}
-function popup(id,lang){css();lang=lang||LANG;var U=ui(lang),H=HOW[lang]||HOW.ru,last=document.activeElement;
+function popup(id,lang,vk){css();lang=lang||LANG;var U=ui(lang),H=HOW[lang]||HOW.ru,last=document.activeElement;
  var ov=document.createElement("div");ov.className="lib-pop";ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");
  ov.innerHTML='<div class="lib-pop-in"><button class="lib-pop-x">✕ '+esc(H[1])+'</button><div class="lib-pop-body"><p class="hint">'+esc(U.loading)+'</p></div></div>';
  document.body.appendChild(ov);var prev=document.body.style.overflow;document.body.style.overflow="hidden";
@@ -583,7 +608,7 @@ function popup(id,lang){css();lang=lang||LANG;var U=ui(lang),H=HOW[lang]||HOW.ru
  document.addEventListener("keydown",key);ov.onclick=function(e){if(e.target===ov)close()};var x=ov.querySelector(".lib-pop-x");x.onclick=close;x.focus();
  load(lang,function(d){var b=ov.querySelector(".lib-pop-body");if(!b)return;if(!d){b.innerHTML='<p class="err">'+esc(failMsg(U))+'</p>';return}
   var idx=-1;d.tests.forEach(function(t,i){if(t.id===id)idx=i});if(idx<0){close();return}
-  var keep=LANG;LANG=lang;b.innerHTML=uniq(testDoc(d,d.tests[idx],U,idx));LANG=keep})}
+  var keep=LANG;LANG=lang;b.innerHTML=uniq(testDoc(d,withV(d.tests[idx],vk),U,idx));LANG=keep})}
 function btn(id,lang){var H=HOW[lang]||HOW.ru;return'<button type="button" class="lib-how" data-how="'+id+'" title="'+esc(H[0])+'" aria-label="'+esc(H[0])+'">?</button>'}
 function decorate(root,lang){if(!root)return;css();lang=lang||"ru";
  Object.keys(CELLS).forEach(function(cid){var c=root.querySelector("#"+cid);if(!c)return;var td=c.parentElement&&c.parentElement.firstElementChild;if(td&&!td.querySelector(".lib-how"))td.insertAdjacentHTML("beforeend",btn(CELLS[cid],lang))});
@@ -649,5 +674,5 @@ function stepFig(t,kind,i,total,n,txt,lang){var keep=LANG;LANG=lang||"ru";LG=LAN
 
 function figOf(x,idx,lang){var keep=LANG;LANG=lang||"ru";LG=LANG;var U=ui(LANG),fn=S[x.sch];var h=fn?sheet(fn(),x.norm.split(" / ")[0].slice(0,34),U.fig+" "+(idx+1),x.t):"";LANG=keep;return uniq(h,"_g")}
 function failMsg(U){return DENIED?U.denied:U.fail}
-window.DorLib={stepFig:stepFig,failMsg:function(lang){return failMsg(ui(lang))},reset:function(){DATA={};DENIED=false},data:function(lang,cb){css();load(lang,cb)},fig:figOf,md:md,ui:ui,popup:popup,decorate:decorate,render:render,tab:function(lang){return ui(lang).tab},wantsOpen:function(){return/^#m\//.test(location.hash)},_S:S,_sheet:sheet};
+window.DorLib={eqf:eqf,stepFig:stepFig,failMsg:function(lang){return failMsg(ui(lang))},reset:function(){DATA={};DENIED=false},data:function(lang,cb){css();load(lang,cb)},fig:figOf,md:md,ui:ui,popup:popup,decorate:decorate,render:render,tab:function(lang){return ui(lang).tab},wantsOpen:function(){return/^#m\//.test(location.hash)},_S:S,_sheet:sheet};
 })();
