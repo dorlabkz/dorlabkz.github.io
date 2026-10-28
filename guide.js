@@ -512,7 +512,7 @@ function mineCard(s,t,tid){var M=mine(s);if(!M)return"";var all=(t.eq||[]).conca
   (MINEX[tid]?'':r(T.rho,'<input class="num" inputmode="decimal" data-rho="1" value="'+esc(s.rho!=null?s.rho:(LANG==="en"?"2.36":"2,36"))+'">')+r(T.m,fmt(M.m,0)))+(M.T&&!M.TT?r(T.tm,esc(M.T)):"")+'</tbody></table><p class="hint">'+esc(MINEX[tid]?T.tSrc:T.note)+'</p></div>'}
 function mineLine(s,tid,x){var M=mine(s);if(!M)return"";var T=MY[LANG]||MY.ru,ln=function(z){return'<p class="g-mineline">→ '+esc(z)+'</p>'};
  if(/50[.,]5/.test(x)&&/101[.,]0/.test(x))return ln(T.line.replace("{0}",M.D).split("{1}").join(fmt(M.d,1)));
- if(tid==="a_form"&&/`F`/.test(x))return ln(T.lineF.replace("{0}",fmt(M.d,1)).replace("{1}",fmt(M.F40,1)));
+ if(tid==="a_form"&&/`F`/.test(x))return ln(T.lineF.replace("{0}",fmt(M.d,1)).replace("{1}",fmt(M.F40,1)).replace(/(кН|kN)/,"$1 (≈ "+fmt(M.F40/9.80665,2)+" "+(LANG==="ru"?"тс":"tf")+" = "+fmt(M.F40*101.972,0)+" "+(LANG==="ru"?"кгс":"kgf")+")"));
  if(tid==="a_form"&&x.indexOf("π·d²/4 · h · ρ")>=0)return ln(T.lineM.replace("{0}",fmt(M.m,0)).replace("{1}",fmt(M.rho,2)));
  return""}
 
