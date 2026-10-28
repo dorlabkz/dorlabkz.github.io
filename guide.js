@@ -587,15 +587,15 @@ function vRun(s,tid){var l=L(),t=testById(tid);if(!t){ST.view={v:"home"};return 
   '<div class="g-row"><button class="b sm ghost" id="g_fig">'+esc(FIGON[tid]!==false?l.hideFig:l.showFig)+'</button>'+(cur.k!=="eq"&&FIGON[tid]!==false?'<button class="b sm ghost" id="g_full">'+esc(FIGFULL[tid]?l.stepFig:l.fullFig)+'</button>':'')+'<button class="b sm ghost" data-gm="'+tid+'">'+esc(l.method)+'</button></div></div>'+
   (FIGON[tid]!==false?'<div class="card lib-fig g-fig" id="g_figbox" role="button" tabindex="0" title="'+esc(l.zoom)+'">'+figStep(t,cur,st.step,A,idx)+'<p class="hint g-zh">⤢ '+esc(l.zoom)+'</p></div>':'');
  var body="";
- if(cur.k==="eq"){body='<h3>'+esc(l.eqH)+'</h3><p class="hint">'+esc(l.eqHint)+'</p><ul class="g-chk">'+(t.eq||[]).map(function(e,i){return'<li><label><input type="checkbox" data-chk="'+i+'"'+(st.chk[i]?" checked":"")+'> <span>'+DorLib.md(e)+'</span></label></li>'}).join("")+'</ul>'+
+ if(cur.k==="eq"){body='<h3>'+esc(l.eqH)+'</h3><p class="hint">'+esc(l.eqHint)+'</p><ul class="g-chk">'+(t.eq||[]).map(function(e,i){return'<li><label><input type="checkbox" data-chk="'+i+'"'+(st.chk[i]?" checked":"")+'> <span>'+(DorLib.mdf||DorLib.md)(e)+'</span></label></li>'}).join("")+'</ul>'+
    mineCard(s,t,tid)+'<div class="g-ww"><p><span class="g-k">'+esc(l.why)+':</span> '+DorLib.md(t.goal||"")+'</p><p><span class="g-k">'+esc(l.when)+':</span> '+DorLib.md(t.when||"")+'</p></div>'+
    (PARAMS[tid]?'<h3>'+esc(l.param)+'</h3><div class="fields">'+PARAMS[tid].map(function(p){return'<label class="f">'+esc(p[0]==="d"?p[1]:p[1])+'<input class="num" inputmode="decimal" data-p="'+p[0]+'" value="'+esc(st.p[p[0]]!=null?st.p[p[0]]:pdef(p).replace(".",LANG==="en"?".":","))+'"></label>'}).join("")+'</div>':'')}
  else if(cur.k==="prep"||cur.k==="run"){var ti=durations(cur.x);
-  body='<p class="g-k">'+esc(cur.k==="prep"?l.prepH:l.runH)+'</p><p class="g-step">'+DorLib.md(cur.x)+'</p>'+mineLine(s,tid,cur.x)+
+  body='<p class="g-k">'+esc(cur.k==="prep"?l.prepH:l.runH)+'</p><p class="g-step">'+(DorLib.mdf||DorLib.md)(cur.x)+'</p>'+mineLine(s,tid,cur.x)+
    (ti.length?'<div class="g-row">'+ti.map(function(d){return'<button class="b g-tbtn" data-tm="'+d[0]+'">⏱ '+esc(l.timer)+' '+esc(d[1])+'</button>'}).join("")+'</div>':'')+stepInputs(st,T,cur.x)}
  else if(cur.k==="meas"){body='<h3>'+esc(l.measH)+'</h3><p class="hint">'+esc(l.measHint)+'</p>'+fullTable(st,T)}
  else{var f=CALC[tid],out=null;if(f&&T){try{out=f(grid(st,T),paramsOf(st,tid))}catch(e){out=null}}
-  body='<h3>'+esc(l.resH)+'</h3>'+(out?'<ul class="g-res">'+out.map(function(o){return'<li'+(o[2]?' class="b"':'')+'><span>'+esc(o[0])+'</span><span>'+esc(DorLib.eqf?DorLib.eqf(o[1],LANG):o[1])+'</span></li>'}).join("")+'</ul>':'<p class="hint">'+esc(l.noCalc)+'</p>')+(s.kind==="prog"?checks(s,out):"")+
+  body='<h3>'+esc(l.resH)+'</h3>'+(out?'<ul class="g-res">'+out.map(function(o){return'<li'+(o[2]?' class="b"':'')+'><span>'+esc(o[0])+'</span><span>'+esc(o[1])+'</span></li>'}).join("")+'</ul>':'<p class="hint">'+esc(l.noCalc)+'</p>')+(s.kind==="prog"?checks(s,out):"")+
    (t.f?'<div class="g-f">'+t.f.map(function(x){return'<div class="lib-f">'+esc(x)+'</div>'}).join("")+'</div>':'')+
    (t.req?'<ul class="g-req">'+t.req.map(function(x){return'<li>'+DorLib.md(x)+'</li>'}).join("")+'</ul>':'')+
    (XFER[tid]&&T?'<div class="g-xf"><button class="b" id="g_xfer">'+esc(st.xf?l.transferred:l.transfer)+'</button><p class="hint">'+esc(l.transferD)+'</p></div>':'<p class="hint">'+esc(l.journalD)+'</p>')+

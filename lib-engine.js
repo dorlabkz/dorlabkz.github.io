@@ -529,10 +529,13 @@ function eqf(s,lang){lang=lang||LANG;var U=FEU[lang]||FEU.ru;s=String(s==null?""
   var r=" (≈ "+o+" "+((kn||nw)?U[1]:U[0]);
   if(kn&&xs[xs.length-1]>=9.81)r+=" = "+xs.map(function(n){return fN(n/9.80665,2,lang)}).join("–")+" "+U[2];
   return m+r+")"})}
-function md(s){s=eqf(s);return esc(s).replace(/`([^`]+)`/g,'<span class="lib-chip">$1</span>').replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>")}
+function md(s){return esc(s).replace(/`([^`]+)`/g,'<span class="lib-chip">$1</span>').replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>")}
 function table(t){if(!t)return"";return'<div class="tbl"><table><thead><tr>'+t.h.map(function(c,i){return'<th'+(i?' class="n"':'')+'>'+esc(c)+'</th>'}).join("")+'</tr></thead><tbody>'+
  t.r.map(function(r){return'<tr'+(r.b?' style="font-weight:600"':'')+'>'+(r.c||r).map(function(c,i){return'<td'+(i?' class="n"':'')+'>'+esc(c)+'</td>'}).join("")+'</tr>'}).join("")+'</tbody></table></div>'}
-function list(items,tag){return'<'+tag+'>'+items.map(function(x){return'<li>'+md(x)+'</li>'}).join("")+'</'+tag+'>'}
+/* kgf/tf seulement quand on utilise la presse ou qu'on pose une charge sur l'éprouvette */
+var PRESSRE=/пресс|нагруз|груз|давлен|усили|штамп|вибр|press|load|weight|pression|poids|charge|force/i;
+function mdf(s){s=String(s==null?"":s);return md(PRESSRE.test(s)?eqf(s):s)}
+function list(items,tag,f){var M=f?mdf:md;return'<'+tag+'>'+items.map(function(x){return'<li>'+M(x)+'</li>'}).join("")+'</'+tag+'>'}
 function sec(h,body){return body?'<div class="card lib-sec"><h3>'+esc(h)+'</h3>'+body+'</div>':""}
 /* variantes par matériau (voir guide.js) */
 var MATL={ru:{hot:"Горячие смеси (СТ РК 1225)",cold:"Холодные смеси (СТ РК 1225)",pma:"ПМА (СТ РК 1223)",sma:"ЩМПА (СТ РК 2373)",black:"Чёрный щебень и смеси (СТ РК 1215, 1216)",bitum:"Битум","bitum:bnd":"БНД (СТ РК 1373)","bitum:bmp":"БМП (СТ РК 2534)","bitum:mast":"Мастика (СТ РК 2367)",emul:"Эмульсии (СТ РК 1274)",crushed:"Щебень, гравий (СТ РК 1213)",sand:"Песок (СТ РК 1217)",powder:"Минеральный порошок (СТ РК 1276)",shgps:"ЩГПС (СТ РК 1549)"},
@@ -545,7 +548,7 @@ function mvDoc(x,U){if(!x.mv)return"";var L=MATL[LANG]||MATL.ru,T=MVT[LANG]||MVT
  return'<div class="card lib-sec"><h2>'+esc(T[0])+'</h2><p class="hint">'+esc(T[1])+'</p>'+ks.map(function(k){var o=x.mv[k];
   return'<details class="lib-mv"><summary><b>'+esc(L[k]||k)+'</b>'+(o.norm?' <span class="ln">'+esc(o.norm)+'</span>':'')+'</summary>'+
    (o.when?'<p>'+md(o.when)+'</p>':'')+(o.goal?'<p>'+md(o.goal)+'</p>':'')+
-   (o.eq?'<h3>'+esc(U.eq)+'</h3>'+list(o.eq,"ul"):'')+(o.prep?'<h3>'+esc(U.prep)+'</h3>'+list(o.prep,"ol"):'')+(o.steps?'<h3>'+esc(U.steps)+'</h3>'+list(o.steps,"ol"):'')+
+   (o.eq?'<h3>'+esc(U.eq)+'</h3>'+list(o.eq,"ul",1):'')+(o.prep?'<h3>'+esc(U.prep)+'</h3>'+list(o.prep,"ol",1):'')+(o.steps?'<h3>'+esc(U.steps)+'</h3>'+list(o.steps,"ol",1):'')+
    (o.f?o.f.map(function(f){return'<div class="lib-f">'+esc(f)+'</div>'}).join(""):'')+
    (o.req?'<h3>'+esc(U.req)+'</h3>'+list(o.req,"ul"):'')+(o.notes?'<h3>'+esc(U.notes)+'</h3>'+list(o.notes,"ul"):'')+'</details>'}).join("")+'</div>'}
 function testDoc(d,x,U,idx){LG=LANG;var fn=S[x.sch];var fig=fn?sheet(fn(),x.norm.split(" / ")[0].slice(0,34),U.fig+" "+(idx+1),x.t):"";
@@ -554,7 +557,7 @@ function testDoc(d,x,U,idx){LG=LANG;var fn=S[x.sch];var fig=fn?sheet(fn(),x.norm
  '<div class="card lib-head"><h2>'+esc(x.t)+'</h2><p class="lib-norm">'+esc(x.norm)+'</p>'+'</div>'+
  (x.goal||x.when?'<div class="lib-ww">'+(x.goal?'<div class="card"><h3>'+esc(U.why)+'</h3><p>'+md(x.goal)+'</p></div>':'')+(x.when?'<div class="card"><h3>'+esc(U.when)+'</h3><p>'+md(x.when)+'</p><p class="lib-note">'+esc(U.whenNote)+'</p></div>':'')+'</div>':'')+
  (fig?'<div class="card lib-fig">'+fig+(x.figNote?'<p class="lib-note">'+md(x.figNote)+'</p>':'')+'</div>':'')+
- sec(U.eq,x.eq&&list(x.eq,"ul"))+sec(U.prep,x.prep&&list(x.prep,"ol"))+sec(U.steps,x.steps&&list(x.steps,"ol"))+
+ sec(U.eq,x.eq&&list(x.eq,"ul",1))+sec(U.prep,x.prep&&list(x.prep,"ol",1))+sec(U.steps,x.steps&&list(x.steps,"ol",1))+
  sec(U.calc,(x.f?x.f.map(function(f){return'<div class="lib-f">'+esc(f)+'</div>'}).join(""):"")+(x.leg?'<h3 style="margin-top:6px">'+esc(U.legend)+'</h3><dl class="lib-leg">'+x.leg.map(function(l){return'<dt>'+esc(l[0])+'</dt><dd>'+md(l[1])+'</dd>'}).join("")+'</dl>':""))+
  (ex.inp||ex.calc||ex.res?'<div class="card lib-sec"><h2>'+esc(U.ex)+'</h2>'+(ex.intro?'<p style="margin:0;max-width:72ch">'+md(ex.intro)+'</p>':'')+
    (ex.inp?'<h3>'+esc(U.exIn)+'</h3>'+table(ex.inp):'')+
@@ -674,5 +677,5 @@ function stepFig(t,kind,i,total,n,txt,lang){var keep=LANG;LANG=lang||"ru";LG=LAN
 
 function figOf(x,idx,lang){var keep=LANG;LANG=lang||"ru";LG=LANG;var U=ui(LANG),fn=S[x.sch];var h=fn?sheet(fn(),x.norm.split(" / ")[0].slice(0,34),U.fig+" "+(idx+1),x.t):"";LANG=keep;return uniq(h,"_g")}
 function failMsg(U){return DENIED?U.denied:U.fail}
-window.DorLib={eqf:eqf,stepFig:stepFig,failMsg:function(lang){return failMsg(ui(lang))},reset:function(){DATA={};DENIED=false},data:function(lang,cb){css();load(lang,cb)},fig:figOf,md:md,ui:ui,popup:popup,decorate:decorate,render:render,tab:function(lang){return ui(lang).tab},wantsOpen:function(){return/^#m\//.test(location.hash)},_S:S,_sheet:sheet};
+window.DorLib={eqf:eqf,mdf:mdf,stepFig:stepFig,failMsg:function(lang){return failMsg(ui(lang))},reset:function(){DATA={};DENIED=false},data:function(lang,cb){css();load(lang,cb)},fig:figOf,md:md,ui:ui,popup:popup,decorate:decorate,render:render,tab:function(lang){return ui(lang).tab},wantsOpen:function(){return/^#m\//.test(location.hash)},_S:S,_sheet:sheet};
 })();
