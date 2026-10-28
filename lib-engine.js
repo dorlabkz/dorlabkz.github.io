@@ -534,7 +534,7 @@ function table(t){if(!t)return"";return'<div class="tbl"><table><thead><tr>'+t.h
  t.r.map(function(r){return'<tr'+(r.b?' style="font-weight:600"':'')+'>'+(r.c||r).map(function(c,i){return'<td'+(i?' class="n"':'')+'>'+esc(c)+'</td>'}).join("")+'</tr>'}).join("")+'</tbody></table></div>'}
 /* kgf/tf seulement quand on utilise la presse ou qu'on pose une charge sur l'éprouvette */
 var PRESSRE=/пресс|нагруз|груз|давлен|усили|штамп|вибр|press|load|weight|pression|poids|charge|force/i;
-function mdf(s){s=String(s==null?"":s);return md(PRESSRE.test(s)?eqf(s):s)}
+function mdf(s,lang){s=String(s==null?"":s);return md(PRESSRE.test(s)?eqf(s,lang):s)}
 function list(items,tag,f){var M=f?mdf:md;return'<'+tag+'>'+items.map(function(x){return'<li>'+M(x)+'</li>'}).join("")+'</'+tag+'>'}
 function sec(h,body){return body?'<div class="card lib-sec"><h3>'+esc(h)+'</h3>'+body+'</div>':""}
 /* variantes par matériau (voir guide.js) */
