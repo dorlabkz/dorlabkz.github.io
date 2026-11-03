@@ -680,11 +680,32 @@ function stepSheet(inner,title,n,total,cp,norm){var s='<svg viewBox="0 0 760 300
  var x=40;cp.forEach(function(c){var w=c.length*11+26;s+=R(x,246,w,32,"sdisp",16)+tx(x+w/2,268,c,{c:"sdispt",a:"middle",s:19});x+=w+10});
  s+=tx(742,284,"DorLabKZ · "+norm,{c:"sstamp",a:"end",s:11})+'</svg>';return LG==="en"?s.replace(/(\d),(\d)/g,"$1.$2"):s}
 /* kind: "prep" | "run" | "meas" | "res"; i = index inside the group; txt = step text in the language shown */
-function pickScene(t,s,c){var id=t.id,vac=/vide|вакуум|vacuum|\bPa\b|\bПа\b/i.test(s),wgh=/dans l.eau|в воде|in water/i.test(s)&&/pes|взвес|weigh|`m/i.test(s);
- if(id==="a_true"){if(vac&&!/`g/.test(s))return"vacbell";if(/`g[₁₂₃]?`/.test(s)||(/pycnom|fiole|колб|пикнометр|flask/i.test(s)&&/pes|взвес|weigh/i.test(s)))return"flaskw"}
- if(id==="a_dens"||id==="a_wsat"||id==="a_swell"||id==="a_wres"){if(wgh)return"wgh";if(vac)return"vacbell"}
- if(id==="a_por"||id==="a_form"&&/`F`|MPa|МПа/.test(s)&&c==="gen")return c;
- return c}
+var KW=[
+ ["vacbell",/вакуум|sous vide|(?:dispositif|installation|cloche|pompe|dessiccateur|chambre)s? (?:à|de) vide|vacuum|\bPa\b|\bПа\b|кПа|kPa/i],
+ ["wgh",/(в воде|dans l.eau|in water|гидростат|hydrostat|под водой)[^.;]{0,60}(взвес|pes|weigh)|(взвес|pes|weigh)[^.;]{0,60}(в воде|dans l.eau|in water|гидростат|hydrostat)/i],
+ ["flaskw",/(пикнометр|колб|fiole|pycnom|flask)[^.;]{0,50}(взвес|pes|weigh)|(взвес|pes|weigh)[^.;]{0,50}(пикнометр|колб|fiole|pycnom|flask)/i],
+ ["frz",/морозильн|congélat|freezer|−18|-18 °C/i],
+ ["press",/пресс|presse|\bpress\b|нагрузк|\bload\b|effort|МПа|MPa|кН|\bkN\b|разруш|rupture|failure/i],
+ ["comp",/choisir le moule|выберите форму|choose the mould|штык|piquer|rodding|засып|verser (la|le)? ?(prise|masse|mélange)|pour(ing)? (the )?(portion|mix)|уплотн|compact/i],
+ ["ext",/выдав|извлек|вынут|démoul|éjecter|eject|extrud|снять форму/i],
+ ["meas",/штангенцирк|pied à coulisse|calliper|caliper|измерьте высоту|mesurer (sa|la) hauteur|measure (its|the) height|линейк|règle|ruler|hauteur|высот|\bheight/i],
+ ["bath",/водян(ая|ой) бан|термостат|bain|thermostat|water bath|ледян|glace|ice water|выдерж\w+ (в|не менее)[^.;]{0,20}(воде|ч\b)|immers|погруз/i],
+ ["heat",/нагре|разогре|chauff|préchauff|\bheat|плитк|hot ?plate|нагрев/i],
+ ["dry",/сушильн|высуш|étuve|séch|\boven\b|\bdry\b|до постоянной массы|masse constante|constant mass/i],
+ ["cool",/охлад|остуд|refroid|\bcool|conserver à l.air|храните на воздухе|keep (?:them )?in air|numérot|пронумер|number the/i],
+ ["wash",/промо|промыв|\bлав|laver|lavage|\bwash|отмыть/i],
+ ["sv",/\bсит[аоеу]\b|\bсит\b|tamis|sieve|рассев|tamisage/i],
+ ["mix",/круговы|circulaires|circular|пузыр|bulles|bubbles|перемеш|мешал|mélanger|remuer|\bmix\b|\bstir/i],
+ ["plc",/aiguille|игл[аыуе]|needle|пенетромет|penetromet|кольц|\bring\b|\bbille\b|шарик/i],
+ ["smp",/отбор|отбир|prélève|prélèv|sampl|кварт|quarter|quartage|совок|\bpelle|shovel|пробу|échantillon moyen|average sample/i],
+ ["wg",/взвес|взвеш|весы|пес(ée|er)|peser|balance|\bweigh|g₁|m₁/i],
+ ["pour",/залей|налей|влей|verser|\bpour(?:ing)? (?:the |into |a |some |water|portion|mix|\d)|добавьте воду|ajouter de l.eau|add water/i],
+ ["obs",/визуальн|осмотр|\bvisuel|inspect|\bobserv|окраш|цвет|aspect|\bvisual|определите по/i],
+ ["calc",/рассчит|вычисл|\bcalcul|\bcalculate|формул|formule|formula/i],
+ ["rec",/запиш|занесите|noter|\bnote\b|\brecord|enter the|saisir/i]];
+function pickScene(t,s,c){var tx2=String(s).replace(/[`*]/g,""),best=null,bi=1e9;if(t.id==="a_true"&&/`g[₁₂₃]?`/.test(s)&&!/вакуум|dispositif à vide|vacuum/i.test(s))return"flaskw";
+ for(var k=0;k<KW.length;k++){var m=KW[k][1].exec(tx2);if(m){var pos=m.index;/* early verb wins, vacuum / water weighing / flask always win */var w=k<3?-1:pos;if(w<bi){bi=w;best=KW[k][0]}}}
+ return best||c}
 function stepFig(t,kind,i,total,n,txt,lang){var keep=LANG;LANG=lang||"ru";LG=LANG;var li=LANG==="fr"?1:LANG==="en"?2:0,m=SM[t.id]||{},c=kind==="meas"?"rec":kind==="res"?"calc":((kind==="prep"?m.p:m.s)||[])[i]||"gen";if(kind==="prep"||kind==="run")c=pickScene(t,String(txt||""),c);
  var h=stepSheet(SC(c,t),SCN[c][li],n,total,kind==="meas"||kind==="res"?[]:chips(txt),t.norm.split(" / ")[0].slice(0,30));LANG=keep;return uniq(h,"_s")}
 

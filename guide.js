@@ -23,7 +23,7 @@ var G={
   enter:"Запишите:",sample:"Образец",ex:"пример",timer:"Таймер",tStart:"Запустить",tStop:"Стоп",tLeft:"Осталось",tDone:"Время вышло!",tOk:"Понятно",
   tKeep:"Экран не погаснет, пока идёт таймер. Держите телефон рядом.",tNoWake:"Не блокируйте телефон: на заблокированном телефоне сайт не может звонить.",
   transfer:"Перенести в расчёт",transferD:"Числа попадут во вкладку расчёта — оттуда можно сохранить в журнал.",transferred:"Перенесено ✓",journal:"В журнал",journalD:"Черновик попадёт в журнал только если вы сами отправите его из вкладки расчёта.",
-  next2:"Следующее испытание",allDone:"Все испытания программы выполнены.",keepDraft:"Черновик сохранён на этом устройстве.",
+  next2:"Следующее испытание",skip:"Пропустить шаг (сделаю позже)",later:"Сделаю это испытание позже",backSkip:"Вернуться к пропущенным шагам",skipped:"Этот шаг пропущен — вернитесь к нему, когда сможете.",allDone:"Все испытания программы выполнены.",keepDraft:"Черновик сохранён на этом устройстве.",
   helpOff:"Больше не показывать",helpOn:"Подсказки к полям: вкл.",helpOffS:"Подсказки к полям: выкл.",
   why:"Зачем",when:"Когда",param:"Исходные данные",
   rec:"Рецепт смеси",recHint:"Выберите тип смеси и проверьте зерновой состав ваших материалов (берётся из вкладки «Подбор состава»). Сайт подберёт доли так, чтобы кривая была ближе к середине границ.",
@@ -45,7 +45,7 @@ var G={
   enter:"Note :",sample:"Éprouvette",ex:"exemple",timer:"Minuteur",tStart:"Lancer",tStop:"Arrêter",tLeft:"Reste",tDone:"C'est l'heure !",tOk:"OK",
   tKeep:"L'écran reste allumé tant que le minuteur tourne. Garde le téléphone à côté.",tNoWake:"Ne verrouille pas le téléphone : verrouillé, le site ne peut pas sonner.",
   transfer:"Envoyer dans le calcul",transferD:"Les chiffres vont dans l'onglet de calcul — de là, tu peux enregistrer au journal.",transferred:"Envoyé ✓",journal:"Au journal",journalD:"Le brouillon ne va au journal que si tu l'envoies toi-même depuis l'onglet de calcul.",
-  next2:"Essai suivant",allDone:"Tous les essais du programme sont faits.",keepDraft:"Brouillon gardé sur cet appareil.",
+  next2:"Essai suivant",skip:"Passer cette étape (je la ferai plus tard)",later:"Faire cet essai plus tard",backSkip:"Revenir aux étapes passées",skipped:"Étape passée : reviens la faire quand tu peux.",allDone:"Tous les essais du programme sont faits.",keepDraft:"Brouillon gardé sur cet appareil.",
   helpOff:"Ne plus afficher",helpOn:"Aide sur les cases : activée",helpOffS:"Aide sur les cases : désactivée",
   why:"Pourquoi",when:"Quand",param:"Données de départ",
   rec:"Recette de l'enrobé",recHint:"Choisis le type de mélange et vérifie la granulométrie de tes matériaux (reprise de l'onglet « Formulation »). Le site calcule les pourcentages pour que la courbe soit au plus près du milieu du fuseau.",
@@ -67,7 +67,7 @@ var G={
   enter:"Record:",sample:"Specimen",ex:"example",timer:"Timer",tStart:"Start",tStop:"Stop",tLeft:"Left",tDone:"Time is up!",tOk:"OK",
   tKeep:"The screen stays on while the timer runs. Keep the phone nearby.",tNoWake:"Don't lock the phone: a locked phone can't ring from a website.",
   transfer:"Send to calculation",transferD:"The numbers go to the calculation tab — save to the log from there.",transferred:"Sent ✓",journal:"To the log",journalD:"The draft only goes to the log if you send it yourself from the calculation tab.",
-  next2:"Next test",allDone:"Every test in the programme is done.",keepDraft:"Draft kept on this device.",
+  next2:"Next test",skip:"Skip this step (I will do it later)",later:"Do this test later",backSkip:"Back to skipped steps",skipped:"Step skipped: come back to it when you can.",allDone:"Every test in the programme is done.",keepDraft:"Draft kept on this device.",
   helpOff:"Don't show again",helpOn:"Field help: on",helpOffS:"Field help: off",
   why:"Why",when:"When",param:"Input data",
   rec:"Mix recipe",recHint:"Pick the mix type and check your materials' gradings (taken from the Mix design tab). The site finds the shares that put the curve closest to the middle of the envelope.",
@@ -658,7 +658,7 @@ function vRun(s,tid){var l=L(),t=testById(tid);if(!t){ST.view={v:"home"};return 
    '<p class="hint">'+esc(l.keepDraft)+'</p>'}
  var last=st.step===n-1,nxt=null;if(last&&s.kind==="prog"){var k=s.tests.indexOf(tid);for(var i=1;i<=s.tests.length;i++){var c=s.tests[(k+i)%s.tests.length];if(!(s.st[c]&&s.st[c].done)&&c!==tid){nxt=c;break}}}
  h+='<div class="card g-body">'+body+'</div><div class="g-nav">'+(st.step>0?'<button class="b ghost" id="g_prev">'+esc(l.prev)+'</button>':'<span></span>')+
-  (last?(nxt?'<button class="b" id="g_fin" data-next="'+nxt+'">'+esc(l.next2)+' →</button>':'<button class="b" id="g_fin">'+esc(l.finish)+'</button>'):'<button class="b" id="g_next">'+esc(l.next)+'</button>')+'</div>';
+  (last?(nxt?'<button class="b" id="g_fin" data-next="'+nxt+'">'+esc(l.next2)+' →</button>':'<button class="b" id="g_fin">'+esc(l.finish)+'</button>'):'<button class="b" id="g_next">'+esc(l.next)+'</button>')+'</div>'+(function(){var sk=st.skip||{},ks=Object.keys(sk).filter(function(k){return sk[k]&&+k!==st.step}),b='';if(!last)b+='<button class="b ghost sm" id="g_skip">⏭ '+esc(l.skip)+'</button>';if(s.kind==="prog"&&!st.done)b+='<button class="b ghost sm" id="g_later">⏳ '+esc(l.later)+'</button>';if(ks.length)b+='<button class="b ghost sm" id="g_bks">↩ '+esc(l.backSkip)+' ('+ks.length+')</button>';return(sk[st.step]?'<p class="hint">'+esc(l.skipped)+'</p>':'')+(b?'<div class="g-row g-later">'+b+'</div>':'')})();
  return h}
 function paramsOf(st,tid){var p={};(PARAMS[tid]||[]).forEach(function(x){p[x[0]]=st.p[x[0]]!=null?st.p[x[0]]:pdef(x)});return p}
 
@@ -721,7 +721,10 @@ function wire(){var l=L(),v=ST.view;
   var f=$("g_fig");if(f)f.onclick=function(){FIGON[v.t]=FIGON[v.t]===false;draw()};var gf=$("g_full");if(gf)gf.onclick=function(){FIGFULL[v.t]=!FIGFULL[v.t];draw()};
   var fb=$("g_figbox");if(fb){var zo=function(){var o=document.createElement("div");o.className="g-zoom";o.innerHTML='<button class="b sm" aria-label="×">✕</button><div class="g-zi">'+fb.querySelector("svg").outerHTML+'</div>';o.onclick=function(e){if(e.target===o||e.target.tagName==="BUTTON")o.remove()};document.body.appendChild(o)};fb.onclick=zo;fb.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();zo()}}}
   var pv=$("g_prev");if(pv)pv.onclick=function(){st.step=Math.max(0,st.step-1);touch();draw();ROOT.scrollIntoView()};
-  var nx=$("g_next");if(nx)nx.onclick=function(){st.step=Math.min(A.length-1,st.step+1);touch();draw();ROOT.scrollIntoView()};
+  var nx=$("g_next");if(nx)nx.onclick=function(){if(st.skip)delete st.skip[st.step];st.step=Math.min(A.length-1,st.step+1);touch();draw();ROOT.scrollIntoView()};
+  var sp=$("g_skip");if(sp)sp.onclick=function(){st.skip=st.skip||{};st.skip[st.step]=1;st.step=Math.min(A.length-1,st.step+1);touch();draw();ROOT.scrollIntoView()};
+  var lt=$("g_later");if(lt)lt.onclick=function(){var k=s.tests.indexOf(v.t);if(k>=0){s.tests.splice(k,1);s.tests.push(v.t)}touch();var n2=null;for(var i=0;i<s.tests.length;i++){var c=s.tests[i];if(c!==v.t&&!(s.st[c]&&s.st[c].done)){n2=c;break}}go(n2?{v:"run",s:s.id,t:n2}:{v:"prog",s:s.id})};
+  var bk=$("g_bks");if(bk)bk.onclick=function(){var sk=st.skip||{},ks=Object.keys(sk).filter(function(k){return sk[k]&&+k!==st.step}).map(Number).sort(function(a,b){return a-b});if(ks.length){st.step=ks[0];touch();draw();ROOT.scrollIntoView()}};
   var fi=$("g_fin");if(fi)fi.onclick=function(){st.done=true;touch();if(fi.dataset.next)go({v:"run",s:s.id,t:fi.dataset.next});else go(s.kind==="prog"?{v:"prog",s:s.id}:{v:"home"})};
   var xf=$("g_xfer");if(xf)xf.onclick=function(){var A2=window.DorApp,x=XFER[v.t],T=inpTable(testById(v.t));if(!A2||!x||!T)return;x[1](A2.S,grid(st,T),paramsOf(st,v.t));st.xf=true;touch();A2.save();A2.go(x[0])}}
  if(v.v==="rec"){var R=recState(),A3=window.DorApp;
