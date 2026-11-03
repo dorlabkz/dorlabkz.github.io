@@ -267,21 +267,21 @@ var CALC={
   var o=[["n",String(n)+(n<20?" (< 20!)":"")],["X̄","= "+fmt(m,3)],["Sn","= "+fmt(sd,3)],["Cv","Sn / X̄ = "+fmt(cv,2),1]];o.v={Cv:cv};return o},
  a_mixtemp:function(g){var v=[];for(var r=0;r<g.R;r++)v=v.concat(rowv(g,r).filter(isFinite));var o=[["T","= "+fmt(avg(v),0)+" °C",1],["min / max",fmt(Math.min.apply(null,v),0)+" / "+fmt(Math.max.apply(null,v),0)+" °C"]];o.v={T:avg(v)};return o},
  a_pavtemp:function(g){var v=rowv(g,0).filter(isFinite);return[["T",v.map(function(x){return fmt(x,1)}).join(" · ")+" → "+fmt(avg(v),1)+" °C",1]]},
- a_grad:function(g,p){var tot=num(p.tot),o=[],sum=0,cum=0,n=0;
-  for(var r=0;r<g.R;r++){var x=g(r,1);if(isFinite(x)){sum+=x;n++}}
+ a_grad:function(g,p){var tot=g(0,1),o=[],sum=0,cum=0,n=0;
+  for(var r=1;r<g.R;r++){var x=g(r,1);if(isFinite(x)){sum+=x;n++}}
   if(!n){o.push(["—","…"]);return o}
-  var T=isFinite(tot)&&tot>0?tot:sum;
-  for(var r=0;r<g.R;r++){var x=g(r,1);if(!isFinite(x))continue;var c=x/T*100;cum+=c;if(isNaN(g(r,0)))continue;o.push([String(g.lab(r)),(LANG==="ru"?"частный ":LANG==="en"?"partial ":"partiel ")+fmt(c,1)+" % · "+(LANG==="ru"?"полный ":LANG==="en"?"cumulative ":"cumulé ")+fmt(cum,1)+" % · "+(LANG==="ru"?"проход ":LANG==="en"?"passing ":"passant ")+fmt(Math.abs(100-cum)<0.05?0:100-cum,1)+" %"])}
-  o.push([LANG==="ru"?"Потери":LANG==="en"?"Loss":"Perte au tamisage",fmt((T-sum)/T*100,2)+" %",1]);return o},
+  var T=isFinite(tot)&&tot>0?tot:sum,w=function(a,b,c){return LANG==="ru"?a:LANG==="en"?b:c};
+  for(var r=1;r<g.R;r++){var x=g(r,1);if(!isFinite(x))continue;var c=x/T*100;cum+=c;if(isNaN(g(r,0)))continue;o.push([String(g.lab(r)),w("частный ","partial ","partiel ")+fmt(c,1)+" % · "+w("полный ","cumulative ","cumulé ")+fmt(cum,1)+" % · "+w("проход ","passing ","passant ")+fmt(Math.abs(100-cum)<0.05?0:100-cum,1)+" %"])}
+  o.push([w("Потери","Loss","Perte au tamisage"),fmt((T-sum)/T*100,2)+" %",1]);return o},
  a_tsr:function(g,p){var d=num(p.d),G={};for(var r=0;r<g.R;r++){var S=2000*g(r,3)/(Math.PI*g(r,2)*d);if(!isFinite(S))continue;var k=String(g(r,1));(G[k]=G[k]||[]).push(S)}
   var s1=avg(G["1"]||[]),s2=avg(G["2"]||[]);return[["S₁","= "+fmt(s1,1)+" kPa"],["S₂","= "+fmt(s2,1)+" kPa"],["TSR","S₂ / S₁ = "+fmt(s2/s1,2),1]]},
  a_bend:function(g,p){var b=num(p.b),h=num(p.h),l=num(p.l),o=[],R=[],e=[],E=[];for(var r=0;r<g.R;r++){var P=g(r,1),f=g(r,2);if(!isFinite(P))continue;R.push(3*P*l/(2*b*h*h)/100);e.push(6*f*h/(l*l));E.push(P*l*l*l/100/(4*f*b*h*h*h))}
   return[["Rизг",R.map(function(x){return fmt(x,2)}).join(" · ")+" → "+fmt(avg(R),2)+" MPa",1],["εпр",fmt(avg(e),4),1],["E",fmt(avg(E),0)+" MPa",1]]}
 };
-var PARAMS={a_grad:[["tot","m, g","1200"]],a_dens:[["rw","ρw, g/cm³","0.9982"]],a_true:[["rw","ρw, g/cm³","0.9982"],["mmin","m min, g","1500"]],a_por:[["rb","ρб, g/cm³","1.00"]],a_comp:[["d","d, mm","71.4"]],a_wres:[["d","d, mm","71.4"]],a_shear:[["d","d, mm","71.4"]],e_strat:[["V","V, ml","100"]],s_swell:[["A","A (< 0,16 mm), %","8.0"]],g_mixgrad:[["m","m, g","10000"]],p_grain:[["m","m, g","50"]],a_tsr:[["d","d, mm","150"]],a_bend:[["b","b, cm","4"],["h","h, cm","4"],["l","l, cm","12"]],c_cube:[["alpha","α","0.95"]],f_core:[["rlab","ρm.lab, g/cm³","2.36"],["hpr","h proj., mm","50"]]};
+var PARAMS={a_dens:[["rw","ρw, g/cm³","0.9982"]],a_true:[["rw","ρw, g/cm³","0.9982"],["mmin","m min, g","1500"]],a_por:[["rb","ρб, g/cm³","1.00"]],a_comp:[["d","d, mm","71.4"]],a_wres:[["d","d, mm","71.4"]],a_shear:[["d","d, mm","71.4"]],e_strat:[["V","V, ml","100"]],s_swell:[["A","A (< 0,16 mm), %","8.0"]],g_mixgrad:[["m","m, g","10000"]],p_grain:[["m","m, g","50"]],a_tsr:[["d","d, mm","150"]],a_bend:[["b","b, cm","4"],["h","h, cm","4"],["l","l, cm","12"]],c_cube:[["alpha","α","0.95"]],f_core:[["rlab","ρm.lab, g/cm³","2.36"],["hpr","h proj., mm","50"]]};
 /* send to calculation tabs */
 var XFER={
- a_grad:["gr",function(S,g,p){var t=num(p.tot);if(isFinite(t))S.gr.total=String(p.tot).replace(",",".");S.gr.mu="g";for(var r=0;r<Math.min(12,g.R);r++){S.gr.ret[r]=g.s(r,1)}}],
+ a_grad:["gr",function(S,g){var t=g.s(0,1);if(isFinite(num(t)))S.gr.total=t;S.gr.mu="g";for(var r=1;r<Math.min(13,g.R);r++){S.gr.ret[r-1]=g.s(r,1)}}],
  a_dens:["ab",function(S,g,p){for(var r=0;r<Math.min(3,g.R);r++){S.ab.w[r][0]=g.s(r,1);S.ab.w[r][2]=g.s(r,2);S.ab.w[r][1]=g.s(r,3)}if(p.rw)S.ab.rw=dot(p.rw);S.ab.mu="g"}],
  a_wsat:["ab",function(S,g){for(var r=0;r<Math.min(3,g.R);r++){S.ab.w[r]=[g.s(r,1),g.s(r,2),g.s(r,3),g.s(r,4)]}S.ab.mu="g"}],
  a_comp:["ab",function(S,g,p){for(var s=0;s<3;s++)for(var r=0;r<Math.min(3,g.R);r++)S.ab.p[s][r]=g.s(r,s+1);if(p.d)S.ab.d=dot(p.d);S.ab.lu="kN"}],
@@ -672,9 +672,9 @@ function fullTable(st,T){var editable=function(c){return T.kv?c===1:c>0};
 function stepInputs(st,T,txt){if(!T)return"";var chips=[],re=/`([^`]+)`/g,m;while((m=re.exec(txt)))chips.push(m[1]);if(!chips.length)return"";var l=L(),h="";
  chips.forEach(function(ch){
   if(T.kv){T.rows.forEach(function(r,ri){if(String(r[0]).trim()===ch)h+='<label class="f">'+esc(ch)+cell(st,T,ri,1)+'</label>'})}
-  else{var c=-1;T.h.forEach(function(x,i){if(i&&keyOf(x)===ch)c=i});if(c<0)return;h+='<div class="g-in"><b>'+esc(T.h[c])+'</b><div class="fields">'+T.rows.map(function(r,ri){return'<label class="f">'+esc(isFinite(num(r[0]))?l.sample+" "+r[0]:r[0])+cell(st,T,ri,c)+'</label>'}).join("")+'</div></div>'}});
+  else{var c=-1;T.h.forEach(function(x,i){if(i&&keyOf(x)===ch)c=i});if(c<0){T.rows.forEach(function(r,ri){if(String(r[0]).indexOf("("+ch+")")>=0)h+='<label class="f">'+esc(r[0])+cell(st,T,ri,1)+'</label>'});return}h+='<div class="g-in"><b>'+esc(T.h[c])+'</b><div class="fields">'+T.rows.map(function(r,ri){return/\(g₁\)/.test(String(r[0]))?"":'<label class="f">'+esc(isFinite(num(r[0]))?(/^[A-Za-zÀ-ÿА-Яа-я]{3,}/.test(T.h[0])?keyOf(T.h[0]):l.sample)+" "+r[0]:r[0])+cell(st,T,ri,c)+'</label>'}).join("")+'</div></div>'}});
  return h?'<div class="g-rec"><p class="g-k">'+esc(l.enter)+'</p>'+h+'</div>':""}
-function vRun(s,tid){CURS=s;var l=L(),t=testById(tid);if(!t){ST.view={v:"home"};return vHome()}CURS=s;var st=tstate(s,tid);if(tid==="a_grad"&&st.p&&(st.p.tot==null||st.p.tot==="")){var sb=s.st.a_bind;if(sb&&sb.v&&sb.v["0_2"]!=null&&sb.v["0_2"]!==""&&(!sb.p||!sb.p.opt||sb.p.opt==="calc"))st.p.tot=sb.v["0_2"]}if(tid==="a_wsat"){var sd=s.st.a_dens;if(sd&&sd.v)[[1,1],[2,3],[3,2]].forEach(function(p){for(var r=0;r<6;r++){var src=sd.v[r+"_"+p[1]];if(src!=null&&src!==""&&(st.v[r+"_"+p[0]]==null||st.v[r+"_"+p[0]]===""))st.v[r+"_"+p[0]]=src}})}var A=steps(t),n=A.length;if(st.step>=n)st.step=n-1;var cur=A[st.step],T=inpTable(t),idx=idxOf(tid);
+function vRun(s,tid){CURS=s;var l=L(),t=testById(tid);if(!t){ST.view={v:"home"};return vHome()}CURS=s;var st=tstate(s,tid);if(tid==="a_grad"&&(st.v["0_1"]==null||st.v["0_1"]==="")){var sb=s.st.a_bind;if(sb&&sb.v&&sb.v["0_2"]!=null&&sb.v["0_2"]!==""&&(!sb.p||!sb.p.opt||sb.p.opt==="calc"))st.v["0_1"]=sb.v["0_2"]}if(tid==="a_wsat"){var sd=s.st.a_dens;if(sd&&sd.v)[[1,1],[2,3],[3,2]].forEach(function(p){for(var r=0;r<6;r++){var src=sd.v[r+"_"+p[1]];if(src!=null&&src!==""&&(st.v[r+"_"+p[0]]==null||st.v[r+"_"+p[0]]===""))st.v[r+"_"+p[0]]=src}})}var A=steps(t),n=A.length;if(st.step>=n)st.step=n-1;var cur=A[st.step],T=inpTable(t),idx=idxOf(tid);
  var h=(s.kind==="prog"?'<button class="lib-back" data-go2="'+s.id+'">← '+esc(l.prog)+'</button>':crumbs())+
   '<div class="card g-head"><h2>'+esc(t.t)+'</h2><p class="lib-norm">'+esc(t.norm)+'</p><div class="g-prog"><i style="width:'+Math.round((st.step+1)/n*100)+'%"></i></div><p class="hint">'+esc(l.step)+' '+(st.step+1)+' '+esc(l.of)+' '+n+'</p>'+
   '<div class="g-row"><button class="b sm ghost" id="g_fig">'+esc(FIGON[tid]!==false?l.hideFig:l.showFig)+'</button>'+(cur.k!=="eq"&&FIGON[tid]!==false?'<button class="b sm ghost" id="g_full">'+esc(FIGFULL[tid]?l.stepFig:l.fullFig)+'</button>':'')+'<button class="b sm ghost" data-gm="'+tid+'">'+esc(l.method)+'</button></div></div>'+
