@@ -220,7 +220,7 @@ ru:{title:"DorLabKZ · журнал испытаний",sub:"Асфальтоб�
  grH:"Зерновой состав минеральной части",grHint:"Введите массу остатков на ситах. Пределы проходов — из вашего рецепта (здесь пример).",total:"Масса навески",
  gcols:["Сито, мм","Остаток","Частный, %","Полный, %","Проход, %","Мин","Макс","Вывод"],bottom:"дно",loss:"Потери при рассеве",lossT:"сумма остатков сравнивается с навеской",axis:"сито, мм (лог.)",
  bcH:"Содержание битума (выжигание / экстрагирование)",m0:"Масса смеси до",m1b:"Масса мин. части после",target:"По рецепту, % сверх 100",tol:"Допуск ±, %",
- qOver:"Сверх 100 % мин. части",qMass:"По массе смеси",reqW:"Требование",
+ qOver:"Сверх 100 % мин. части (как в рецепте)",qMass:"По массе смеси (как в норме)",reqW:"Рецепт",bcTxt:{ok:"В допуске рецепта",bad:"Вне допуска рецепта",na:"Нет данных"},
  drH:"Стекание вяжущего (ЩМА, ГОСТ 31015)",drm:"Масса смеси m",drm1:"Стакан пустой m₁",drm2:"Стакан после удаления смеси m₂",drmax:"Не более, %",drV:"Стекание",
  prH:"Данные протокола",lab:"Лаборатория",no:"№ протокола",date:"Дата испытания",obj:"Объект",src:"Место отбора пробы",who:"Лаборант",
  copy:"Копировать протокол",reset:"Сбросить к примеру",copyHint:"Скопированный текст вставляется в Word или Excel как таблица.",copied:"Протокол скопирован. Вставьте в Word или Excel.",copyFail:"Не удалось скопировать автоматически — выделите текст ниже:",resetDone:"Данные заменены примером.",
@@ -252,7 +252,7 @@ fr:{title:"DorLabKZ · journal d'essais",sub:"Enrobé, bitume, granulométrie et
  grH:"Granulométrie de la partie minérale",grHint:"Saisis la masse des refus sur chaque tamis. Les limites des passants viennent de ta formule (ici un exemple).",total:"Masse de l'échantillon",
  gcols:["Tamis, mm","Refus","Partiel, %","Cumulé, %","Passant, %","Min","Max","Conclusion"],bottom:"fond",loss:"Perte au tamisage",lossT:"somme des refus comparée à la masse de départ",axis:"tamis, mm (log)",
  bcH:"Teneur en bitume (calcination / extraction)",m0:"Masse du mélange avant",m1b:"Masse minérale après",target:"Formule, % en plus de 100",tol:"Tolérance ±, %",
- qOver:"En plus de 100 % de minéral",qMass:"En masse du mélange",reqW:"Exigence",
+ qOver:"Bitume par rapport aux cailloux et sable seuls (comme ta formule)",qMass:"Bitume par rapport au mélange entier (comme la norme)",reqW:"Ta formule",bcTxt:{ok:"Dans la tolérance de ta formule",bad:"Hors tolérance de ta formule",na:"Pas de données"},
  drH:"Égouttage du liant (SMA, ГОСТ 31015)",drm:"Masse du mélange m",drm1:"Bécher vide m₁",drm2:"Bécher après vidage m₂",drmax:"Au plus, %",drV:"Égouttage",
  prH:"Données du procès-verbal",lab:"Laboratoire",no:"N° du PV",date:"Date d'essai",obj:"Chantier",src:"Lieu de prélèvement",who:"Laborantin",
  copy:"Copier le PV",reset:"Revenir à l'exemple",copyHint:"Le texte copié se colle dans Word ou Excel sous forme de tableau.",copied:"PV copié. Colle-le dans Word ou Excel.",copyFail:"Copie automatique impossible — sélectionne le texte ci-dessous :",resetDone:"Données remplacées par l'exemple.",
@@ -284,7 +284,7 @@ en:{title:"DorLabKZ · test log",sub:"Asphalt concrete, bitumen, grading and SMA
  grH:"Grading of the mineral part",grHint:"Enter the mass retained on each sieve. Passing limits come from your job mix (example shown).",total:"Sample mass",
  gcols:["Sieve, mm","Retained","Partial, %","Cumulative, %","Passing, %","Min","Max","Verdict"],bottom:"pan",loss:"Sieving loss",lossT:"sum of retained vs. starting mass",axis:"sieve, mm (log)",
  bcH:"Binder content (ignition / extraction)",m0:"Mix mass before",m1b:"Mineral mass after",target:"Job mix, % over 100",tol:"Tolerance ±, %",
- qOver:"Over 100 % mineral",qMass:"By mass of mix",reqW:"Requirement",
+ qOver:"Over 100 % mineral (as in your recipe)",qMass:"By mass of mix (as in the standard)",reqW:"Your recipe",bcTxt:{ok:"Within your recipe tolerance",bad:"Outside your recipe tolerance",na:"No data"},
  drH:"Binder drainage (SMA, ГОСТ 31015)",drm:"Mix mass m",drm1:"Empty beaker m₁",drm2:"Beaker after emptying m₂",drmax:"At most, %",drV:"Drainage",
  prH:"Report details",lab:"Laboratory",no:"Report No.",date:"Test date",obj:"Project",src:"Sampling point",who:"Technician",
  copy:"Copy report",reset:"Reset to example",copyHint:"The copied text pastes into Word or Excel as a table.",copied:"Report copied. Paste it into Word or Excel.",copyFail:"Automatic copy failed — select the text below:",resetDone:"Data replaced with the example.",
@@ -769,7 +769,7 @@ function recalc(){
   g.rows.forEach(function(r,i){$("grc_"+i).textContent=f(r.c,1);$("grf_"+i).textContent=f(r.full,1);$("grp_"+i).textContent=r.s==="pan"?"":f(r.pass,1);$("grv_"+i).innerHTML=r.s==="pan"?"":pill(r.st)});
   $("gr_loss").textContent=L.loss+": "+f(g.loss,2)+" % ("+L.lossT+")";chart(g.rows);
   var bc=calcBC();last.bc=bc;
-  $("bc_out").innerHTML='<span>'+L.qOver+': <b style="font-family:var(--mono)">'+f(bc.q,2)+' %</b></span><span>'+L.qMass+': <b style="font-family:var(--mono)">'+f(bc.qm,2)+' %</b></span><span>'+L.reqW+': '+bc.req+'</span>'+pill(bc.st)+bcRange();
+  $("bc_out").innerHTML='<span>'+L.qOver+': <b style="font-family:var(--mono)">'+f(bc.q,2)+' %</b></span><span>'+L.qMass+': <b style="font-family:var(--mono)">'+f(bc.qm,2)+' %</b></span><span>'+L.reqW+': '+bc.req+'</span>'+'<span class="pill '+bc.st+'">'+((L.bcTxt&&L.bcTxt[bc.st])||t()[bc.st])+'</span>'+bcRange();
   var dr=calcDR();last.dr=dr;
   $("dr_out").innerHTML='<span>'+L.drV+': <b style="font-family:var(--mono)">'+f(dr.v,2)+' %</b></span><span>'+L.notMore+' '+esc(S.dr.max)+' %</span>'+pill(dr.st);
   var c=S.cv;
