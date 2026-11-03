@@ -677,7 +677,7 @@ function vRun(s,tid){CURS=s;var l=L(),t=testById(tid);if(!t){ST.view={v:"home"};
    mineCard(s,t,tid)+'<div class="g-ww"><p><span class="g-k">'+esc(l.why)+':</span> '+DorLib.md(t.goal||"")+'</p><p><span class="g-k">'+esc(l.when)+':</span> '+DorLib.md(t.when||"")+'</p></div>'+
    (PARAMS[tid]?'<h3>'+esc(l.param)+'</h3><div class="fields">'+PARAMS[tid].map(function(p){return'<label class="f">'+esc(p[0]==="d"?p[1]:p[1])+'<input class="num" inputmode="decimal" data-p="'+p[0]+'" value="'+esc(st.p[p[0]]!=null?st.p[p[0]]:pdef(p).replace(".",LANG==="en"?".":","))+'"></label>'}).join("")+'</div>':'')}
  else if(cur.k==="prep"||cur.k==="run"){var ti=durations(cur.x);
-  body='<p class="g-k">'+esc(cur.k==="prep"?l.prepH:l.runH)+'</p><p class="g-step">'+(DorLib.mdf||DorLib.md)(cur.x,LANG)+'</p>'+mineLine(s,tid,cur.x)+
+  body='<p class="g-k">'+esc(cur.k==="prep"?l.prepH:l.runH)+'</p><div class="g-step">'+stepHtml(cur.x)+'</div>'+mineLine(s,tid,cur.x)+
    (ti.length?'<div class="g-row">'+ti.map(function(d){return'<button class="b g-tbtn" data-tm="'+d[0]+'">⏱ '+esc(l.timer)+' '+esc(d[1])+'</button>'}).join("")+'</div>':'')+stepInputs(st,T,cur.x)}
  else if(cur.k==="meas"){body='<h3>'+esc(l.measH)+'</h3><p class="hint">'+esc(l.measHint)+'</p>'+srcCard(tid)+preCard(s,tid)+fullTable(st,T)}
  else{var f=CALC[tid],out=null;if(f&&T){try{out=f(grid(st,T),paramsOf(st,tid),resBag(s))}catch(e){out=null}}
@@ -878,7 +878,7 @@ function glOpen(key,tid){var h=GH[LANG]||GH.fr,li=LANG==="ru"?"ru":LANG==="en"?"
  else{en=sm.m[key];if(!en)return;var x=en[li];body='<h3>'+esc(x[0])+'</h3>'+[1,2,3,4].map(function(i){return'<p class="g-pk">'+esc(h[i-1])+'</p><p>'+esc(x[i])+'</p>'}).join("")}
  var old=document.getElementById("g_pop");if(old)old.remove();var d=document.createElement("div");d.id="g_pop";d.className="g-pop";d.innerHTML='<div class="g-popc card">'+body+'<button type="button" class="b" id="g_popx">'+esc(h[4])+'</button></div>';document.body.appendChild(d);
  d.onclick=function(e){if(e.target===d)d.remove()};document.getElementById("g_popx").onclick=function(){d.remove()}}
-var GLCSS=".g-term{background:none;border:0;border-bottom:2px dotted var(--accent,#A65B12);color:inherit;font:inherit;padding:0 1px;cursor:pointer}.g-term:hover{background:rgba(166,91,18,.12)}.g-pop{position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:14px}.g-popc{max-width:620px;max-height:86vh;overflow:auto;width:100%}.g-pk{font-weight:700;margin:10px 0 2px;color:var(--accent,#A65B12)}.g-pf{font-family:var(--mono,monospace);background:var(--soft,#F6F5F1);padding:8px;border-radius:6px}.g-pl{padding-left:18px}.g-pl li{margin:8px 0}";
+var GLCSS=".g-term{background:none;border:0;border-bottom:2px dotted var(--accent,#A65B12);color:inherit;font:inherit;padding:0 1px;cursor:pointer}.g-term:hover{background:rgba(166,91,18,.12)}.g-pop{position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:14px}.g-popc{max-width:620px;max-height:86vh;overflow:auto;width:100%}.g-lines{margin:8px 0 0;padding-left:22px}.g-lines li{margin:9px 0;line-height:1.55}.g-lines li::marker{color:var(--accent,#A65B12);font-weight:700}.g-sh{margin:0 0 4px;font-weight:600}.g-pk{font-weight:700;margin:10px 0 2px;color:var(--accent,#A65B12)}.g-pf{font-family:var(--mono,monospace);background:var(--soft,#F6F5F1);padding:8px;border-radius:6px}.g-pl{padding-left:18px}.g-pl li{margin:8px 0}";
 
 
 var REFRE=/([«“"])\s*(Prélèvement|Отбор проб|Sampling)\s*([»”"])/;
@@ -891,6 +891,12 @@ function openRef(id){var t=testById(id);if(!t)return;var w=window.open("","_blan
  H=lg==="ru"?["Оборудование","Подготовка","Порядок выполнения","Требования"]:lg==="en"?["Equipment","Preparation","Procedure","Requirements"]:["Matériel","Préparation","Déroulement","Exigences"];
  var css="body{font:16px/1.55 system-ui,Segoe UI,Arial,sans-serif;max-width:760px;margin:0 auto;padding:18px 16px 60px;color:#222;background:#fbfaf7}h1{font-size:22px}h2{font-size:17px;margin:22px 0 6px;color:#A65B12}li{margin:6px 0}.lib-chip{font-family:monospace;background:#f0eee8;padding:1px 5px;border-radius:4px}.n{color:#777;font-size:13px}";
  w.document.open();w.document.write('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(t.t)+'</title><style>'+css+'</style><h1>'+esc(t.t)+'</h1><p class="n">'+esc(t.norm||"")+'</p>'+(t.goal?'<p>'+m(t.goal)+'</p>':'')+ul(H[0],t.eq)+ul(H[1],t.prep)+ul(H[2],t.steps)+ul(H[3],t.req));w.document.close()}
+
+function stepHtml(x){var f=DorLib.mdf||DorLib.md,t=String(x==null?"":x),num=/\s*\((\d{1,2})\)\s+(?=\S)/g,hd="",parts,ol=false;
+ var ms=t.match(/\(\d{1,2}\)\s/g);
+ if(ms&&ms.length>=2&&/\(1\)\s/.test(t)){var i1=t.search(/\(1\)\s/);hd=t.slice(0,i1).trim();parts=t.slice(i1).split(/\s*\(\d{1,2}\)\s+/).filter(function(p){return p.trim()});ol=true}
+ else{parts=t.split(/(?<=[.!?])\s+(?=[A-ZА-ЯÉÈÊÀÂÎÔÛÇ*`«“"(])/).filter(function(p){return p.trim()});var mg=[];parts.forEach(function(p){if(mg.length&&(/^[`*(]*[^\s`]{1,12}[`*)]*[.;]?$/.test(p.trim())||p.trim().length<9))mg[mg.length-1]+=" "+p;else mg.push(p)});parts=mg;if(parts.length<2)return f(t,LANG)}
+ return(hd?'<p class="g-sh">'+f(hd,LANG)+'</p>':'')+'<'+(ol?'ol':'ul')+' class="g-lines">'+parts.map(function(p){return'<li>'+f(p.trim(),LANG)+'</li>'}).join("")+'</'+(ol?'ol':'ul')+'>'}
 function css(){if(!document.getElementById("guide_css")){var s=document.createElement("style");s.id="guide_css";s.textContent=CSS+GLCSS;document.head.appendChild(s)}}
 
 function render(el,lang){css();LANG=lang||"ru";ROOT=el;draw()}
