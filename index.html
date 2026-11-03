@@ -607,9 +607,9 @@ function render(){
    '<label class="f">'+L.rw+inp("ab_rw",a.rw)+'</label><label class="f">'+L.rho+inp("ab_rho",a.rho)+'</label><label class="f">'+L.rhom+inp("ab_rhom",a.rhom)+'</label>'+
    '<label class="f">'+L.q+inp("ab_q",a.q)+'</label><label class="f">'+L.d+inp("ab_d",a.d)+'</label>'+
    '<label class="f">'+L.massUnit+unitSel("ab_mu",a.mu,["g","kg"])+'</label><label class="f">'+L.loadUnit+unitSel("ab_lu",a.lu,["kN","kgf","tf","N"])+'</label></div><p class="hint">'+L.unitNote+'</p></div>'+
-   '<div class="card"><h3>'+L.weighH+', '+mu+'</h3><div class="tbl"><table><thead><tr><th>'+L.sample+'</th>'+L.wcols.map(function(c){return'<th class="n">'+c+'</th>'}).join("")+'</tr></thead><tbody>'+
-   a.w.map(function(r,i){return'<tr><td>№'+(i+1)+'</td>'+r.map(function(v,j){return'<td>'+inp("abw"+i+j,v)+'</td>'}).join("")+'</tr>'}).join("")+
-   '</tbody></table></div><p class="formula">ρm = m·ρw / (m₁ − m₂) · W = (m₃ − m) / (m₁ − m₂) · 100</p></div>'+
+   '<div class="card"><h3>'+L.weighH+', '+mu+'</h3><div class="tbl"><table><thead><tr><th>'+L.sample+'</th>'+L.wcols.map(function(c){return'<th class="n">'+c+'</th>'}).join("")+'<th class="n">W, %</th>'+'</tr></thead><tbody>'+
+   a.w.map(function(r,i){return'<tr><td>№'+(i+1)+'</td>'+r.map(function(v,j){return'<td>'+inp("abw"+i+j,v)+'</td>'}).join("")+'<td class="n res" id="abW'+i+'"></td></tr>'}).join("")+
+   '<tr><td>Ø</td><td></td><td></td><td></td><td></td><td class="n res" id="abWavg"></td></tr></tbody></table></div><p class="formula">ρm = m·ρw / (m₁ − m₂) · W = (m₃ − m) / (m₁ − m₂) · 100</p></div>'+
    '<div class="card"><h3>'+L.loadH+', '+lu+'</h3><div class="tbl"><table><thead><tr><th>'+L.sample+'</th>'+L.pcols.map(function(c){return'<th class="n">'+c+'</th>'}).join("")+'</tr></thead><tbody>'+
    a.p.map(function(r,i){return'<tr><td>№'+(i+1)+'</td>'+r.map(function(v,j){return'<td>'+inp("abp"+i+j,v)+'</td>'}).join("")+'</tr>'}).join("")+
    '</tbody></table></div><p class="formula">R = P[kN]·1000 / (π·d²/4) [MPa] · Kв = R<sub>sat</sub> / R20 · 1 tf = 9,807 kN · 1 kgf = 0,00981 kN</p></div>'+
@@ -758,7 +758,7 @@ function chart(rows){
   $("gr_chart").innerHTML=h}
 
 var last={};
-function recalc(){
+function recalc(){try{var wv=[];(S.ab.w||[]).forEach(function(r,i){var m=num(r[0]),m1=num(r[1]),m2=num(r[2]),m3=num(r[3]),v=m1-m2,e=document.getElementById("abW"+i),x=v>0&&isFinite(m3)?(m3-m)/v*100:NaN;if(isFinite(x))wv.push(x);if(e)e.textContent=isFinite(x)?f(x,1):"—"});var ea=document.getElementById("abWavg");if(ea)ea.textContent=wv.length?f(wv.reduce(function(a,b){return a+b},0)/wv.length,1):"—"}catch(e){}
   var L=t(),ab=calcAB(),req=S.ab.req[S.ab.type];last.ab=ab;
   AB_KEYS.forEach(function(r){$("abr_"+r[0]).textContent=f(ab[r[0]],r[1]);$("abv_"+r[0]).innerHTML=r[2]?pill(check(Number(f(ab[r[0]],r[1])),req[r[2]])):""});
   var bt=calcBit(),breq=S.bit.req[S.bit.grade];last.bit=bt;
