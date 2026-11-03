@@ -198,8 +198,16 @@ var CALC={
  a_wres:function(g,p){var d=num(p.d)/10,F=Math.PI*d*d/4,R=[];for(var r=0;r<g.R;r++)R.push(avg(rowv(g,r).map(function(P){return P*1000/F/100})));
   var o=[["R20",fmt(R[0],2)+" MPa"],["Rw",fmt(R[1],2)+" MPa"],["R15",fmt(R[2],2)+" MPa"],["Kw","Rw / R20 = "+fmt(R[1]/R[0],2),1],["Kw.дл","R15 / R20 = "+fmt(R[2]/R[0],2),1]];o.v={Kw:R[1]/R[0],Kwl:R[2]/R[0],R20:R[0],Rw:R[1],Rl:R[2]};return o},
  a_split:function(g){var o=[],v=[];for(var r=0;r<g.R;r++){var x=g(r,1)*1000/(g(r,2)*g(r,3))/100;v.push(x);o.push(["№"+(r+1),"Rp = "+fmt(x,2)+" MPa"])}o.push(["Ø","Rp = "+fmt(avg(v),1)+" MPa",1]);o.v={Rp:avg(v)};return o},
- a_bind:function(g){var o=[],a=[],b=[];for(var r=0;r<g.R;r++){var q=(g(r,1)-g(r,2))/g(r,2)*100,m=(g(r,1)-g(r,2))/g(r,1)*100;a.push(q);b.push(m);o.push(["№"+(r+1),"Б = "+fmt(q,2)+" % · Бсм = "+fmt(m,2)+" %"])}
-  o.push(["Ø","Б = "+fmt(avg(a),2)+" % · Бсм = "+fmt(avg(b),2)+" %",1]);o.v={qb:avg(a)};return o},
+ a_bind:function(g,p){var mt=p.opt||"calc",o=[],a=[],b=[];
+  for(var r=0;r<g.R;r++){var q,qs,ok=true;
+   if(mt==="cent"){var M=g(r,1)-g(r,2),mn=(g(r,6)-g(r,5))+(g(r,4)-g(r,3));q=(M-mn)/mn*100;qs=(M-mn)/M*100}
+   else if(mt==="wash"){var x=g(r,4)-g(r,5),gb=g(r,2)*(x)/(g(r,3)-x);q=gb/(g(r,1)-gb)*100;qs=gb/g(r,1)*100}
+   else{q=(g(r,1)-g(r,2))/g(r,2)*100;qs=(g(r,1)-g(r,2))/g(r,1)*100}
+   if(isFinite(q)&&isFinite(qs)){a.push(q);b.push(qs);var dd=mt==="calc"?2:1;o.push(["№"+(r+1),"q′ = "+fmt(q,dd)+" % · q = "+fmt(qs,dd)+" %"])}}
+  if(!a.length){o.push(["Ø","q′ = —",1]);return o}
+  var dg=mt==="calc"?2:1;
+  if(a.length>=2){var df=Math.abs(a[0]-a[1]);o.push(["Δ 1–2",fmt(df,2)+(df<=0.2?" ≤ 0,2 ✓":" > 0,2 ✕")])}
+  o.push(["Ø","q′ = "+fmt(avg(a),dg)+" % (sur partie minérale) · q = "+fmt(avg(b),dg)+" % (sur mélange)",1]);o.v={qb:avg(a)};return o},
  a_marsh:function(g){var o=(function(g){var S=[],F=[];for(var r=0;r<g.R;r++){S.push(g(r,2)*g(r,3));F.push(g(r,4))}var s=avg(S),f=avg(F);return[["S'",S.map(function(x){return fmt(x,2)}).join(" · ")],["S","= "+fmt(s,1)+" kN",1],["F","= "+fmt(f,1)+" mm",1],["MQ","= "+fmt(s/f,2)+" kN/mm",1]]})(g),S=[],F=[];for(var r=0;r<g.R;r++){S.push(g(r,2)*g(r,3));F.push(g(r,4))}o.v={MS:avg(S),MF:avg(F),MQ:avg(S)/avg(F)};return o},
  a_drain:function(g){if(g.C<4){var y=(g(2,1)-g(0,1))/g(1,1)*100,o1=[["Д","("+fmt(g(2,1),2)+" − "+fmt(g(0,1),2)+") / "+fmt(g(1,1),1)+" · 100 = "+fmt(y,2)+" %",1]];o1.v={B:y};return o1}
   var o=[],v=[];for(var r=0;r<g.R;r++){var x=(g(r,3)-g(r,1))/(g(r,2)-g(r,1))*100;if(!isFinite(x))continue;v.push(x);o.push(["№"+(r+1),"B = ("+fmt(g(r,3),2)+" − "+fmt(g(r,1),2)+") / ("+fmt(g(r,2),2)+" − "+fmt(g(r,1),2)+") · 100 = "+fmt(x,2)+" %"])}
@@ -271,7 +279,7 @@ var XFER={
  a_wsat:["ab",function(S,g){for(var r=0;r<Math.min(3,g.R);r++){S.ab.w[r]=[g.s(r,1),g.s(r,2),g.s(r,3),g.s(r,4)]}S.ab.mu="g"}],
  a_comp:["ab",function(S,g,p){for(var s=0;s<3;s++)for(var r=0;r<Math.min(3,g.R);r++)S.ab.p[s][r]=g.s(r,s+1);if(p.d)S.ab.d=dot(p.d);S.ab.lu="kN"}],
  a_wres:["ab",function(S,g,p){for(var s=0;s<3;s++){S.ab.p[s][1]=g.s(0,s+1);S.ab.p[s][3]=g.s(1,s+1)}if(p.d)S.ab.d=dot(p.d);S.ab.lu="kN"}],
- a_bind:["gr",function(S,g){S.bc.m0=g.s(0,1);S.bc.m1=g.s(0,2)}],
+ a_bind:["gr",function(S,g,p){if(p&&p.opt&&p.opt!=="calc")return;S.bc.m0=g.s(0,1);S.bc.m1=g.s(0,2)}],
  a_drain:["gr",function(S,g){if(g.C<4){S.dr.m1=g.s(0,1);S.dr.m=g.s(1,1);S.dr.m2=g.s(2,1);return}var a=num(g.s(0,1)),b=num(g.s(0,2));S.dr.m1=g.s(0,1);S.dr.m=isFinite(a)&&isFinite(b)?String(Math.round((b-a)*100)/100):"";S.dr.m2=g.s(0,3)}],
  b_pen:["bit",function(S,g){S.bit.pen=[g.s(0,1),g.s(0,2),g.s(0,3)]}],
  b_rb:["bit",function(S,g){S.bit.kish=[g.s(0,1),g.s(1,1)]}],
@@ -554,7 +562,8 @@ function mineLine(s,tid,x){var M=mine(s);if(!M)return"";var T=MY[LANG]||MY.ru,ln
 var VK=[];
 function vkeys(s){if(!s||!s.mat)return[];var k=[],x=s.sel||{};k.push(s.mat);if(s.mat==="bitum")k.push("bitum:"+(x.bk==="bnd"?"bnd":x.bk==="bmp"?"bmp":"mast"));return k}
 function withV(t,vk){if(!t||!t.mv)return t;var r=null;for(var i=0;i<vk.length;i++){var o=t.mv[vk[i]];if(!o)continue;if(!r){r={};for(var k in t)if(k!=="mv")r[k]=t[k]}for(k in o)r[k]=o[k]}return r||t}
-function testById(id){return withV(DATA&&DATA.tests.filter(function(t){return t.id===id})[0],VK)}
+function testById(id){var t=withV(DATA&&DATA.tests.filter(function(t){return t.id===id})[0],VK);if(t&&t.opt){var cs=typeof CURS!=="undefined"&&CURS&&CURS.st&&CURS.st[id],k=(cs&&cs.p&&cs.p.opt)||"calc",o=t.opt[k]||t.opt.calc,m={},q;for(q in t)m[q]=t[q];for(q in o)if(q!=="t")m[q]=o[q];t=m}return t}
+function optPick(t,st){if(!t.opt)return"";var k=(st.p&&st.p.opt)||"calc";return'<div class="g-opt card"><p class="g-k">'+esc(t.optQ||"")+'</p><div class="g-row">'+Object.keys(t.opt).map(function(x){return'<button type="button" class="b'+(x===k?'':' ghost')+'" data-opt="'+x+'">'+(x===k?"● ":"○ ")+esc(t.opt[x].t)+'</button>'}).join("")+'</div></div>'}
 function idxOf(id){var i=-1;DATA.tests.forEach(function(t,k){if(t.id===id)i=k});return i}
 function go(v){ST.view=v;store();draw();try{ROOT.scrollIntoView({block:"start"})}catch(e){}}
 function draw(){if(!ROOT)return;var l=L();if(!window.DorLib){ROOT.innerHTML='<div class="card"><p class="hint">…</p></div>';return}
@@ -637,13 +646,13 @@ function stepInputs(st,T,txt){if(!T)return"";var chips=[],re=/`([^`]+)`/g,m;whil
   if(T.kv){T.rows.forEach(function(r,ri){if(String(r[0]).trim()===ch)h+='<label class="f">'+esc(ch)+cell(st,T,ri,1)+'</label>'})}
   else{var c=-1;T.h.forEach(function(x,i){if(i&&keyOf(x)===ch)c=i});if(c<0)return;h+='<div class="g-in"><b>'+esc(T.h[c])+'</b><div class="fields">'+T.rows.map(function(r,ri){return'<label class="f">'+esc(isFinite(num(r[0]))?l.sample+" "+r[0]:r[0])+cell(st,T,ri,c)+'</label>'}).join("")+'</div></div>'}});
  return h?'<div class="g-rec"><p class="g-k">'+esc(l.enter)+'</p>'+h+'</div>':""}
-function vRun(s,tid){var l=L(),t=testById(tid);if(!t){ST.view={v:"home"};return vHome()}CURS=s;var st=tstate(s,tid);if(tid==="a_wsat"){var sd=s.st.a_dens;if(sd&&sd.v)[[1,1],[2,3],[3,2]].forEach(function(p){for(var r=0;r<6;r++){var src=sd.v[r+"_"+p[1]];if(src!=null&&src!==""&&(st.v[r+"_"+p[0]]==null||st.v[r+"_"+p[0]]===""))st.v[r+"_"+p[0]]=src}})}var A=steps(t),n=A.length;if(st.step>=n)st.step=n-1;var cur=A[st.step],T=inpTable(t),idx=idxOf(tid);
+function vRun(s,tid){CURS=s;var l=L(),t=testById(tid);if(!t){ST.view={v:"home"};return vHome()}CURS=s;var st=tstate(s,tid);if(tid==="a_wsat"){var sd=s.st.a_dens;if(sd&&sd.v)[[1,1],[2,3],[3,2]].forEach(function(p){for(var r=0;r<6;r++){var src=sd.v[r+"_"+p[1]];if(src!=null&&src!==""&&(st.v[r+"_"+p[0]]==null||st.v[r+"_"+p[0]]===""))st.v[r+"_"+p[0]]=src}})}var A=steps(t),n=A.length;if(st.step>=n)st.step=n-1;var cur=A[st.step],T=inpTable(t),idx=idxOf(tid);
  var h=(s.kind==="prog"?'<button class="lib-back" data-go2="'+s.id+'">← '+esc(l.prog)+'</button>':crumbs())+
   '<div class="card g-head"><h2>'+esc(t.t)+'</h2><p class="lib-norm">'+esc(t.norm)+'</p><div class="g-prog"><i style="width:'+Math.round((st.step+1)/n*100)+'%"></i></div><p class="hint">'+esc(l.step)+' '+(st.step+1)+' '+esc(l.of)+' '+n+'</p>'+
   '<div class="g-row"><button class="b sm ghost" id="g_fig">'+esc(FIGON[tid]!==false?l.hideFig:l.showFig)+'</button>'+(cur.k!=="eq"&&FIGON[tid]!==false?'<button class="b sm ghost" id="g_full">'+esc(FIGFULL[tid]?l.stepFig:l.fullFig)+'</button>':'')+'<button class="b sm ghost" data-gm="'+tid+'">'+esc(l.method)+'</button></div></div>'+
   (FIGON[tid]!==false?'<div class="card lib-fig g-fig" id="g_figbox" role="button" tabindex="0" title="'+esc(l.zoom)+'">'+figStep(t,cur,st.step,A,idx)+'<p class="hint g-zh">⤢ '+esc(l.zoom)+'</p></div>':'');
  var body="";
- if(cur.k==="eq"){body='<h3>'+esc(l.eqH)+'</h3><p class="hint">'+esc(l.eqHint)+'</p><ul class="g-chk">'+(t.eq||[]).map(function(e,i){return'<li><label><input type="checkbox" data-chk="'+i+'"'+(st.chk[i]?" checked":"")+'> <span>'+(DorLib.mdf||DorLib.md)(e,LANG)+'</span></label></li>'}).join("")+'</ul>'+
+ if(cur.k==="eq"){body=optPick(t,st)+'<h3>'+esc(l.eqH)+'</h3><p class="hint">'+esc(l.eqHint)+'</p><ul class="g-chk">'+(t.eq||[]).map(function(e,i){return'<li><label><input type="checkbox" data-chk="'+i+'"'+(st.chk[i]?" checked":"")+'> <span>'+(DorLib.mdf||DorLib.md)(e,LANG)+'</span></label></li>'}).join("")+'</ul>'+
    mineCard(s,t,tid)+'<div class="g-ww"><p><span class="g-k">'+esc(l.why)+':</span> '+DorLib.md(t.goal||"")+'</p><p><span class="g-k">'+esc(l.when)+':</span> '+DorLib.md(t.when||"")+'</p></div>'+
    (PARAMS[tid]?'<h3>'+esc(l.param)+'</h3><div class="fields">'+PARAMS[tid].map(function(p){return'<label class="f">'+esc(p[0]==="d"?p[1]:p[1])+'<input class="num" inputmode="decimal" data-p="'+p[0]+'" value="'+esc(st.p[p[0]]!=null?st.p[p[0]]:pdef(p).replace(".",LANG==="en"?".":","))+'"></label>'}).join("")+'</div>':'')}
  else if(cur.k==="prep"||cur.k==="run"){var ti=durations(cur.x);
@@ -660,7 +669,7 @@ function vRun(s,tid){var l=L(),t=testById(tid);if(!t){ST.view={v:"home"};return 
  h+='<div class="card g-body">'+body+'</div><div class="g-nav">'+(st.step>0?'<button class="b ghost" id="g_prev">'+esc(l.prev)+'</button>':'<span></span>')+
   (last?(nxt?'<button class="b" id="g_fin" data-next="'+nxt+'">'+esc(l.next2)+' →</button>':'<button class="b" id="g_fin">'+esc(l.finish)+'</button>'):'<button class="b" id="g_next">'+esc(l.next)+'</button>')+'</div>'+(function(){var sk=st.skip||{},ks=Object.keys(sk).filter(function(k){return sk[k]&&+k!==st.step}),b='';if(!last)b+='<button class="b ghost sm" id="g_skip">⏭ '+esc(l.skip)+'</button>';if(s.kind==="prog"&&!st.done)b+='<button class="b ghost sm" id="g_later">⏳ '+esc(l.later)+'</button>';if(ks.length)b+='<button class="b ghost sm" id="g_bks">↩ '+esc(l.backSkip)+' ('+ks.length+')</button>';return(sk[st.step]?'<p class="hint">'+esc(l.skipped)+'</p>':'')+(b?'<div class="g-row g-later">'+b+'</div>':'')})();
  return h}
-function paramsOf(st,tid){var p={};(PARAMS[tid]||[]).forEach(function(x){p[x[0]]=st.p[x[0]]!=null?st.p[x[0]]:pdef(x)});return p}
+function paramsOf(st,tid){var p={opt:(st.p&&st.p.opt)||"calc"};(PARAMS[tid]||[]).forEach(function(x){p[x[0]]=st.p[x[0]]!=null?st.p[x[0]]:pdef(x)});return p}
 
 /* ---------------- recipe ---------------- */
 var BIT_DEF={"КЗтипА":5.0,"КЗтипБ":5.5,"МЗтипА":5.0,"МЗтипБ":5.5,"МЗтипВ":6.5,"МЗтипГ":7.0,"МЗтипД":8.0,"МЗтипБх":5.5,"МЗтипВх":6.5,"МЗтипГхДх":7.5,"КЗпористый":4.0,"КЗвысокопористый":3.0,"Высокопористый песчаный":3.5,"ЩМА10":6.5,"ЩМА15":6.2,"ЩМА20":6.0,"ПМА5":8.0,"ПМА10":7.0,"ПМА15":6.5};
@@ -722,6 +731,7 @@ function wire(){var l=L(),v=ST.view;
   var fb=$("g_figbox");if(fb){var zo=function(){var o=document.createElement("div");o.className="g-zoom";o.innerHTML='<button class="b sm" aria-label="×">✕</button><div class="g-zi">'+fb.querySelector("svg").outerHTML+'</div>';o.onclick=function(e){if(e.target===o||e.target.tagName==="BUTTON")o.remove()};document.body.appendChild(o)};fb.onclick=zo;fb.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();zo()}}}
   var pv=$("g_prev");if(pv)pv.onclick=function(){st.step=Math.max(0,st.step-1);touch();draw();ROOT.scrollIntoView()};
   var nx=$("g_next");if(nx)nx.onclick=function(){if(st.skip)delete st.skip[st.step];st.step=Math.min(A.length-1,st.step+1);touch();draw();ROOT.scrollIntoView()};
+  ROOT.querySelectorAll("[data-opt]").forEach(function(b){b.onclick=function(){st.p.opt=b.dataset.opt;st.step=0;st.v={};touch();draw()}});
   var sp=$("g_skip");if(sp)sp.onclick=function(){st.skip=st.skip||{};st.skip[st.step]=1;st.step=Math.min(A.length-1,st.step+1);touch();draw();ROOT.scrollIntoView()};
   var lt=$("g_later");if(lt)lt.onclick=function(){var k=s.tests.indexOf(v.t);if(k>=0){s.tests.splice(k,1);s.tests.push(v.t)}touch();var n2=null;for(var i=0;i<s.tests.length;i++){var c=s.tests[i];if(c!==v.t&&!(s.st[c]&&s.st[c].done)){n2=c;break}}go(n2?{v:"run",s:s.id,t:n2}:{v:"prog",s:s.id})};
   var bk=$("g_bks");if(bk)bk.onclick=function(){var sk=st.skip||{},ks=Object.keys(sk).filter(function(k){return sk[k]&&+k!==st.step}).map(Number).sort(function(a,b){return a-b});if(ks.length){st.step=ks[0];touch();draw();ROOT.scrollIntoView()}};
