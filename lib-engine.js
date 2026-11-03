@@ -624,7 +624,7 @@ var SCN={
  bath:["Выдерживание в воде","Bain thermostaté","Water bath"],heat:["Нагрев","Chauffage","Heating"],mix:["Перемешивание","Mélange","Mixing"],
  comp:["Укладка и уплотнение","Mise en place et compactage","Placing and compaction"],press:["Нагружение","Chargement","Loading"],sv:["Просеивание","Tamisage","Sieving"],
  wash:["Промывка","Lavage","Washing"],smp:["Отбор и сокращение пробы","Prélèvement et réduction","Sampling and reduction"],cool:["Охлаждение","Refroidissement","Cooling"],
- ext:["Извлечение, снятие","Démoulage, retrait","Removal"],meas:["Измерение","Mesure","Measuring"],rec:["Запись результатов","Relevé des valeurs","Recording"],
+ flaskw:["Взвешивание колбы","Pesée de la fiole","Weighing the flask"],vacbell:["Вакуум","Vide","Vacuum"], ext:["Извлечение, снятие","Démoulage, retrait","Removal"],meas:["Измерение","Mesure","Measuring"],rec:["Запись результатов","Relevé des valeurs","Recording"],
  calc:["Расчёт","Calcul","Calculation"],pour:["Заливка, добавление","Versement, ajout","Pouring, adding"],obs:["Осмотр, оценка","Examen, appréciation","Inspection"],
  plc:["Установка, подготовка","Mise en place du montage","Setting up"],vac:["Вакуум","Mise sous vide","Vacuum"],frz:["Заморозка, оттаивание","Gel, dégel","Freezing, thawing"],
  rep:["Повтор","Répétition","Repeat"],wt:["Выдержка по времени","Temps d'attente","Waiting time"],gen:["Операция","Opération","Operation"]};
@@ -637,6 +637,12 @@ function thing(t,x,y){var f=subjOf(t),fam=t.fam;
  return spec(x-18,y-36,36,36,f)}
 function arrowU(x,y,len,lab){return L(x,y,x,y-len,"sa")+P("M"+(x-6)+" "+(y-len+10)+" L"+x+" "+(y-len)+" L"+(x+6)+" "+(y-len+10),"sa")+(lab?tx(x+9,y-len/2,lab,{c:"sv"}):"")}
 function arc(cx,cy,r){return P("M"+(cx-r)+" "+cy+" A"+r+" "+r+" 0 1 1 "+(cx+r*0.7)+" "+(cy+r*0.7)+" M"+(cx+r*0.7)+" "+(cy+r*0.7)+" l-2 -11 m2 11 l-11 0","sa")}
+function recSheet(t){var inp=t&&t.ex&&t.ex.inp,h=(inp&&inp.h)||["m, g"],rows=inp&&inp.r?inp.r.map(function(r){return r.c||r}):[],kv=h.length===2&&rows.length&&!/^[\d\s.,−-]*$/.test(String(rows[0][0])),o="",sl=function(x,m){x=String(x);m=m||14;return x.length>m?x.slice(0,m-1)+"…":x};
+ if(kv){var n=Math.min(rows.length,5),rh=Math.floor(176/Math.max(n,1));o+=R(120,64,520,rh*n+4,"sk",6);for(var i=0;i<n;i++){o+=L(120,64+i*rh+4,640,64+i*rh+4,i?"sd":"sl")+tx(136,64+i*rh+rh/2+8,sl(rows[i][0],30),{c:"sdt",s:15})+R(480,64+i*rh+10,140,rh-12,"sdisp",3)}o+=L(470,64,470,64+rh*n+4,"sl");return o+P("M690 90 l-70 100 l-6 18 l18 -8 l72 -100 z","sk")}
+ var c=Math.min(h.length,6),w=Math.floor(560/c);o+=R(100,70,w*c,168,"sk",6)+L(100,108,100+w*c,108,"sl");for(var j=0;j<c;j++){if(j)o+=L(100+j*w,70,100+j*w,238,"sl");o+=tx(100+j*w+w/2,96,sl(h[j]),{c:"sdt",a:"middle",s:c>4?13:15})}
+ for(var r=0;r<3;r++){o+=L(100,144+r*32,100+w*c,144+r*32,"sd");if(rows[r])o+=tx(100+w/2,130+r*32,sl(rows[r][0]),{c:"sdt",a:"middle",s:14})}
+ return o+P("M700 90 l-60 90 l-6 16 l16 -8 l62 -90 z","sk")}
+function calcF(t){var f=t&&t.f&&t.f[0];if(!f)return"";var w=String(f).split(" "),ln=[],c="";w.forEach(function(x){if((c+" "+x).length>26&&c){ln.push(c);c=x}else c=c?c+" "+x:x});if(c)ln.push(c);return ln.slice(0,4).map(function(q,i){return tx(470,112+i*26,q,{c:"sv",s:16})}).join("")}
 function SC(n,t){var f=subjOf(t),fl=t.fam==="bit"||t.fam==="asph"?"fasp":"swat",s="";
  switch(n){
  case"wg":return bal(380,170,"0,00 g")+thing(t,380,170)+arrowD(300,80,60)+co(344,196,260,236,W("весы","balance","balance"));
@@ -653,8 +659,8 @@ function SC(n,t){var f=subjOf(t),fl=t.fam==="bit"||t.fam==="asph"?"fasp":"swat",
  case"cool":return R(250,214,240,8,"fhatch")+thing(t,370,214)+P("M300 150 q20 -14 40 0 t40 0 M300 120 q20 -14 40 0 t40 0 M420 150 q20 -14 40 0 t40 0","sa")+therm(540,100,110);
  case"ext":return mould(330,110,120,130,f)+arrowU(390,100,50)+thing(t,390,62)+co(336,220,210,220,W("форма","moule","mould"));
  case"meas":return spec(350,100,70,110,f)+dimV(450,100,210,"h")+dimH(350,420,236,"d")+R(300,96,10,120,"sk")+R(300,96,40,8,"sk")+R(300,208,40,8,"sk");
- case"rec":return R(260,76,240,160,"sk",6)+L(260,108,500,108,"sl")+L(340,76,340,236,"sl")+L(420,76,420,236,"sl")+L(260,144,500,144,"sd")+L(260,180,500,180,"sd")+tx(380,98,"m, g",{c:"sdt",a:"middle"})+tx(300,130,"1",{c:"sdt",a:"middle"})+tx(300,166,"2",{c:"sdt",a:"middle"})+tx(300,202,"3",{c:"sdt",a:"middle"})+P("M540 90 l-70 100 l-6 18 l18 -8 l72 -100 z","sk");
- case"calc":return R(320,66,120,170,"sk",10)+R(332,78,96,34,"sdisp",3)+tx(420,102,"= ?",{c:"sdispt",a:"end",s:14})+(function(){var q="";for(var i=0;i<3;i++)for(var j=0;j<4;j++)q+=C(346+i*34,134+j*26,8,j===3&&i===2?"sacc":"sin");return q})();
+ case"rec":return recSheet(t);
+ case"calc":return calcF(t)+R(320,66,120,170,"sk",10)+R(332,78,96,34,"sdisp",3)+tx(420,102,"= ?",{c:"sdispt",a:"end",s:14})+(function(){var q="";for(var i=0;i<3;i++)for(var j=0;j<4;j++)q+=C(346+i*34,134+j*26,8,j===3&&i===2?"sacc":"sin");return q})();
  case"pour":return'<g transform="rotate(-38 330 120)">'+beaker(290,90,76,90,50,fl)+'</g>'+P("M300 150 q26 24 60 62","swatm")+beaker(380,150,90,100,50,fl)+P("M345 170 v30","swatm");
  case"obs":return C(370,140,58,"sk")+C(370,140,50,"sin")+thing(t,370,170)+L(412,182,470,236,"sk4");
  case"plc":return R(430,100,170,130,"sk",8)+R(444,114,142,102,"sin",4)+thing(t,270,222)+arrowR(310,190,100)+co(520,100,600,70,W("прибор","appareil","apparatus"));
@@ -662,6 +668,8 @@ function SC(n,t){var f=subjOf(t),fl=t.fam==="bit"||t.fam==="asph"?"fasp":"swat",
  case"frz":return freezer(310,62,"−18 °C")+thing(t,400,138);
  case"rep":return arc(380,150,64)+thing(t,380,168)+tx(380,244,"×2–3",{c:"sv",a:"middle"});
  case"wt":return'<g transform="translate(380 150) scale(3.4)">'+stopwatch(0,0,"")+'</g>';
+ case"flaskw":return bal(380,176,"0,0 g")+flask(380,81,0,"fasp")+co(380,150,250,120,W("колба / пикнометр","fiole / pycnomètre","flask / pycnometer"))+co(344,206,260,236,W("весы кл. II, 0,1 г","balance cl. II, 0,1 g","class II balance, 0.1 g"));
+ case"vacbell":return desic(300,70,{spec:false,t:"3,7 kPa"})+stopwatch(600,170,"")+tx(600,214,"15 min",{c:"sv",a:"middle"})+co(300,170,140,150,W("колба с образцом и водой","fiole avec échantillon et eau","flask with sample and water"));
  default:return R(250,214,260,8,"fhatch")+thing(t,380,214)+arrowD(380,76,60)+tx(380,252,"…",{c:"sv",a:"middle"})}}
 function chips(txt){txt=String(txt).replace(/[`*]/g,"");var u="°C|°С|%|мм\\/мин|mm\\/min|см\\/мин|cm\\/min|МПа\\/с|MPa\\/s|об\\/мин|мин|min|ч|h|сут\\w*|jours?|days?|ударов|coups|blows|циклов|cycles|оборотов|tours|кг|kg|г|g|мм|mm|см|cm|мл|ml|см³|cm³|кПа|kPa|МПа|MPa|Па|Pa|с|s";
  var re=new RegExp("(?:[−-]\\s?)?\\d[\\d.,]*(?:\\s?[–±−-]\\s?\\d[\\d.,]*)?\\s?(?:"+u+")(?![A-Za-zА-Яа-яЁё²³])","g"),o=[],m;
@@ -672,7 +680,12 @@ function stepSheet(inner,title,n,total,cp,norm){var s='<svg viewBox="0 0 760 300
  var x=40;cp.forEach(function(c){var w=c.length*11+26;s+=R(x,246,w,32,"sdisp",16)+tx(x+w/2,268,c,{c:"sdispt",a:"middle",s:19});x+=w+10});
  s+=tx(742,284,"DorLabKZ · "+norm,{c:"sstamp",a:"end",s:11})+'</svg>';return LG==="en"?s.replace(/(\d),(\d)/g,"$1.$2"):s}
 /* kind: "prep" | "run" | "meas" | "res"; i = index inside the group; txt = step text in the language shown */
-function stepFig(t,kind,i,total,n,txt,lang){var keep=LANG;LANG=lang||"ru";LG=LANG;var li=LANG==="fr"?1:LANG==="en"?2:0,m=SM[t.id]||{},c=kind==="meas"?"rec":kind==="res"?"calc":((kind==="prep"?m.p:m.s)||[])[i]||"gen";
+function pickScene(t,s,c){var id=t.id,vac=/vide|вакуум|vacuum|\bPa\b|\bПа\b/i.test(s),wgh=/dans l.eau|в воде|in water/i.test(s)&&/pes|взвес|weigh|`m/i.test(s);
+ if(id==="a_true"){if(vac&&!/`g/.test(s))return"vacbell";if(/`g[₁₂₃]?`/.test(s)||(/pycnom|fiole|колб|пикнометр|flask/i.test(s)&&/pes|взвес|weigh/i.test(s)))return"flaskw"}
+ if(id==="a_dens"||id==="a_wsat"||id==="a_swell"||id==="a_wres"){if(wgh)return"wgh";if(vac)return"vacbell"}
+ if(id==="a_por"||id==="a_form"&&/`F`|MPa|МПа/.test(s)&&c==="gen")return c;
+ return c}
+function stepFig(t,kind,i,total,n,txt,lang){var keep=LANG;LANG=lang||"ru";LG=LANG;var li=LANG==="fr"?1:LANG==="en"?2:0,m=SM[t.id]||{},c=kind==="meas"?"rec":kind==="res"?"calc":((kind==="prep"?m.p:m.s)||[])[i]||"gen";if(kind==="prep"||kind==="run")c=pickScene(t,String(txt||""),c);
  var h=stepSheet(SC(c,t),SCN[c][li],n,total,kind==="meas"||kind==="res"?[]:chips(txt),t.norm.split(" / ")[0].slice(0,30));LANG=keep;return uniq(h,"_s")}
 
 function figOf(x,idx,lang){var keep=LANG;LANG=lang||"ru";LG=LANG;var U=ui(LANG),fn=S[x.sch];var h=fn?sheet(fn(),x.norm.split(" / ")[0].slice(0,34),U.fig+" "+(idx+1),x.t):"";LANG=keep;return uniq(h,"_g")}

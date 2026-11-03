@@ -169,16 +169,37 @@ function kRatio(g,lab,key){var a=rowAvg(g,0),b=rowAvg(g,1),k=b/a,o=[[String(g.la
 function col(g,c){var a=[];for(var r=0;r<g.R;r++)a.push(g(r,c));return a}
 function rowv(g,r){var a=[];for(var c=1;c<g.C;c++)a.push(g(r,c));return a}
 var CALC={
- a_dens:function(g,p){var rw=num(p.rw)||1,o=[],v=[];for(var r=0;r<g.R;r++){var x=g(r,1)*rw/(g(r,3)-g(r,2));v.push(x);o.push(["№"+(r+1),"ρm = "+fmt(x,3)+" g/cm³"])}
-  var s=Math.max.apply(null,v.filter(isFinite))-Math.min.apply(null,v.filter(isFinite));o.push(["Ø","ρm = "+fmt(avg(v),2)+" g/cm³",1]);if(isFinite(s))o.push(["Δ",fmt(s,3)+(s<=0.02?" ≤ 0,02 ✓":" > 0,02 ✕")]);return o},
- a_wsat:function(g){var o=[],v=[];for(var r=0;r<g.R;r++){var x=(g(r,4)-g(r,1))/(g(r,2)-g(r,3))*100;v.push(x);o.push(["№"+(r+1),"W = "+fmt(x,2)+" %"])}o.push(["Ø","W = "+fmt(avg(v),1)+" %",1]);o.v={W:avg(v)};return o},
+ a_form:function(g){var d=g(0,1),rho=g(1,1),pp=g(2,1),g0=g(3,1),h0=g(4,1),A=Math.PI*d*d/4,m=A/100*(d/10)*rho,F=pp*A,o=[],tol=d<60?1:d<90?1.5:2;
+  if(!isFinite(A)||!isFinite(rho)||!isFinite(pp))return[["d · ρ · p","—"]];
+  o.push(["A","π · "+fmt(d/10,2)+"² / 4 = "+fmt(A/100,2)+" cm²"]);o.push(["m","A · h · ρ = "+fmt(A/100,2)+" · "+fmt(d/10,2)+" · "+fmt(rho,2)+" = "+fmt(m,1)+" g",1]);
+  o.push(["F","p · A = "+fmt(pp,0)+" · "+fmt(A,0)+" = "+fmt(F/1000,1)+" kN = "+fmt(F/9807,2)+" tf",1]);
+  if(isFinite(g0)&&isFinite(h0)){var dh=h0-d,gc=g0*d/h0;o.push(["Δh",fmt(dh,1)+" mm "+(Math.abs(dh)<=tol?"≤ ±"+fmt(tol,1)+" ✓":"> ±"+fmt(tol,1)+" ✕")]);o.push(["g","g₀ · d / h₀ = "+fmt(g0,1)+" · "+fmt(d,1)+" / "+fmt(h0,1)+" = "+fmt(gc,1)+" g",1])}
+  return o},
+ a_dens:function(g,p){var rw=num(p.rw)||0.9982,o=[],v=[];for(var r=0;r<g.R;r++){var x=g(r,1)*rw/(g(r,3)-g(r,2));if(isFinite(x)){v.push(x);o.push(["№"+(r+1),"ρm = "+fmt(g(r,1),1)+" · "+fmt(rw,4)+" / ("+fmt(g(r,3),1)+" − "+fmt(g(r,2),1)+") = "+fmt(x,3)+" g/cm³"])}}
+  if(!v.length){o.push(["Ø","ρm = —",1]);return o}
+  var s=Math.max.apply(null,v)-Math.min.apply(null,v),res=avg(v);
+  if(v.length>=3){o.push(["Δ max−min",fmt(s,3)+(s<=0.03?" ≤ 0,030 ✓":" > 0,030 ✕ → n = 6")]);if(s>0.03&&v.length<6){o.push(["Ø","ρm = —",1]);return o}}
+  else if(v.length<2){o.push(["!","n ≥ 2 (carottes) / 3 (éprouvettes)"])}
+  o.push(["Ø","ρm = "+fmt(res,3)+" g/cm³",1]);o.v={rm:res};return o},
+ a_true:function(g,p){var rw=num(p.rw)||0.9982,mm=num(p.mmin)||1500,o=[],v=[],mo=[];
+  for(var r=0;r<g.R;r++){var m=g(r,1)-g(r,2),x=m*rw/(m+g(r,3)-g(r,4));
+   if(isFinite(x)){v.push(x);mo.push(m);o.push(["№"+(r+1),"ρ = "+fmt(m,1)+" · "+fmt(rw,4)+" / ("+fmt(m,1)+" + "+fmt(g(r,3),1)+" − "+fmt(g(r,4),1)+") = "+fmt(x,3)+" g/cm³"+(m<mm?"  ⚠ m < "+fmt(mm,0)+" g":"")])}}
+  if(v.length<2){o.push(["Ø","ρ = —",1]);return o}
+  var d=Math.abs(v[0]-v[1]),res;
+  if(d<=0.02){res=(v[0]+v[1])/2;o.push(["Δ 1–2",fmt(d,3)+" ≤ 0,020 ✓"])}
+  else if(v.length>=4){res=avg(v.slice(0,4));o.push(["Δ 1–2",fmt(d,3)+" > 0,020 ✕ → n = 4"])}
+  else{o.push(["Δ 1–2",fmt(d,3)+" > 0,020 ✕ → n = 4"]);o.push(["Ø","ρ = —",1]);return o}
+  o.push(["Ø","ρ = "+fmt(res,3)+" g/cm³",1]);o.v={rho:res};return o},
+ a_wsat:function(g){var o=[],w=[],h=[];for(var r=0;r<g.R;r++){var V=g(r,2)-g(r,3),W=(g(r,4)-g(r,1))/V*100,H=((g(r,4)-g(r,5))-V)/V*100;if(isFinite(W)){w.push(W);o.push(["№"+(r+1),"V = "+fmt(V,1)+" cm³ · W = "+fmt(W,2)+" %"+(isFinite(H)?" · H = "+fmt(H,2)+" %":"")]);if(isFinite(H))h.push(H)}}
+  if(!w.length){o.push(["Ø","W = —",1]);return o}
+  o.push(["Ø","W = "+fmt(avg(w),1)+" %",1]);o.v={W:avg(w)};if(h.length){o.push(["Ø","H = "+fmt(avg(h),1)+" %",1]);o.v.H=avg(h)}return o},
  a_swell:function(g){var o=[],v=[];for(var r=0;r<g.R;r++){var v0=g(r,1)-g(r,2),x=((g(r,3)-g(r,4))-v0)/v0*100;v.push(x);o.push(["№"+(r+1),"Н = "+fmt(x,2)+" %"])}o.push(["Ø","Н = "+fmt(avg(v),1)+" %",1]);return o},
  a_comp:function(g,p){var d=num(p.d)/10,F=Math.PI*d*d/4,o=[["F","π·"+fmt(d,2)+"²/4 = "+fmt(F,2)+" cm²"]];for(var r=0;r<g.R;r++){var R=rowv(g,r).map(function(P){return P*1000/F/100});o.push([String(g.lab(r)),R.map(function(x){return fmt(x,2)}).join(" · ")+" → R = "+fmt(avg(R),1)+" MPa",1]);var tl=parseInt(String(g.lab(r)),10);if(tl===50||tl===20||tl===0){o.v=o.v||{};o.v["R"+tl]=avg(R)}}return o},
  a_wres:function(g,p){var d=num(p.d)/10,F=Math.PI*d*d/4,R=[];for(var r=0;r<g.R;r++)R.push(avg(rowv(g,r).map(function(P){return P*1000/F/100})));
   var o=[["R20",fmt(R[0],2)+" MPa"],["Rw",fmt(R[1],2)+" MPa"],["R15",fmt(R[2],2)+" MPa"],["Kw","Rw / R20 = "+fmt(R[1]/R[0],2),1],["Kw.дл","R15 / R20 = "+fmt(R[2]/R[0],2),1]];o.v={Kw:R[1]/R[0],Kwl:R[2]/R[0],R20:R[0],Rw:R[1],Rl:R[2]};return o},
  a_split:function(g){var o=[],v=[];for(var r=0;r<g.R;r++){var x=g(r,1)*1000/(g(r,2)*g(r,3))/100;v.push(x);o.push(["№"+(r+1),"Rp = "+fmt(x,2)+" MPa"])}o.push(["Ø","Rp = "+fmt(avg(v),1)+" MPa",1]);o.v={Rp:avg(v)};return o},
  a_bind:function(g){var o=[],a=[],b=[];for(var r=0;r<g.R;r++){var q=(g(r,1)-g(r,2))/g(r,2)*100,m=(g(r,1)-g(r,2))/g(r,1)*100;a.push(q);b.push(m);o.push(["№"+(r+1),"Б = "+fmt(q,2)+" % · Бсм = "+fmt(m,2)+" %"])}
-  o.push(["Ø","Б = "+fmt(avg(a),2)+" % · Бсм = "+fmt(avg(b),2)+" %",1]);return o},
+  o.push(["Ø","Б = "+fmt(avg(a),2)+" % · Бсм = "+fmt(avg(b),2)+" %",1]);o.v={qb:avg(a)};return o},
  a_marsh:function(g){var o=(function(g){var S=[],F=[];for(var r=0;r<g.R;r++){S.push(g(r,2)*g(r,3));F.push(g(r,4))}var s=avg(S),f=avg(F);return[["S'",S.map(function(x){return fmt(x,2)}).join(" · ")],["S","= "+fmt(s,1)+" kN",1],["F","= "+fmt(f,1)+" mm",1],["MQ","= "+fmt(s/f,2)+" kN/mm",1]]})(g),S=[],F=[];for(var r=0;r<g.R;r++){S.push(g(r,2)*g(r,3));F.push(g(r,4))}o.v={MS:avg(S),MF:avg(F),MQ:avg(S)/avg(F)};return o},
  a_drain:function(g){if(g.C<4){var y=(g(2,1)-g(0,1))/g(1,1)*100,o1=[["Д","("+fmt(g(2,1),2)+" − "+fmt(g(0,1),2)+") / "+fmt(g(1,1),1)+" · 100 = "+fmt(y,2)+" %",1]];o1.v={B:y};return o1}
   var o=[],v=[];for(var r=0;r<g.R;r++){var x=(g(r,3)-g(r,1))/(g(r,2)-g(r,1))*100;if(!isFinite(x))continue;v.push(x);o.push(["№"+(r+1),"B = ("+fmt(g(r,3),2)+" − "+fmt(g(r,1),2)+") / ("+fmt(g(r,2),2)+" − "+fmt(g(r,1),2)+") · 100 = "+fmt(x,2)+" %"])}
@@ -219,7 +240,15 @@ var CALC={
  c_cube:function(g,p){var a=num(p.alpha)||1,v=[];for(var r=0;r<g.R;r++)v.push(a*g(r,1)*1000/(g(r,2)*g(r,2)));return[["R",v.map(function(x){return fmt(x,1)}).join(" · ")+" → "+fmt(avg(v),1)+" MPa",1]]},
  c_slump:function(g){return[["ОК",fmt(Math.round(avg(col(g,1))),0)+" cm",1]]},
  f_core:function(g,p){var rl=num(p.rlab),hp=num(p.hpr),o=[],K=[];for(var r=0;r<g.R;r++){var k=g(r,1)/rl;if(isFinite(k))K.push(k);o.push(["№"+(r+1),"Ky = "+fmt(k,2)+" · Δh = "+fmt(g(r,2)-hp,0)+" mm"])}if(K.length){o.push(["min","Ky = "+fmt(Math.min.apply(null,K),2),1]);o.v={Ky:Math.min.apply(null,K)}}return o},
- a_por:function(g){var rm=g(0,1),rt=g(1,1),rmin=g(2,1),q=g(3,1),V=(1-rm/rt)*100,mm=rm*100/(100+q),VM=(1-mm/rmin)*100;var o=[["Vост","(1 − "+fmt(rm,3)+" / "+fmt(rt,3)+") · 100 = "+fmt(V,1)+" %",1],["ρmᵐⁱⁿ",fmt(rm,3)+" · 100 / (100 + "+fmt(q,1)+") = "+fmt(mm,3)+" g/cm³"],["Vмин","(1 − "+fmt(mm,3)+" / "+fmt(rmin,3)+") · 100 = "+fmt(VM,1)+" %",1]];o.v={Vres:V,VMA:VM};return o},
+ a_por:function(g,p,R){R=R||{};var P=function(r,k){var x=g(r,1);return isFinite(x)?x:R[k]},rm=P(0,"rm"),rt=P(1,"rho"),q=P(2,"qb"),rb=num(p.rb)||1,rmin=g(3,1),o=[],inv=false;
+  if(!isFinite(rm)||!isFinite(rt)||!isFinite(q))return[["ρm · ρ · qб","—"]];
+  if(!isFinite(rmin)){rmin=100/((100+q)/rt-q/rb);inv=true}
+  var V=(1-rm/rt)*100,mm=rm/(1+0.01*q),VM=(1-mm/rmin)*100;
+  o.push(["Vост (13)","(1 − "+fmt(rm,3)+" / "+fmt(rt,3)+") · 100 = "+fmt(V,1)+" %",1]);o.push(["ρmᵐ (5)",fmt(rm,3)+" / (1 + 0,01 · "+fmt(q,2)+") = "+fmt(mm,3)+" g/cm³"]);
+  o.push(["ρм"+(inv?" (8)":" (9)"),inv?"100 / ((100 + "+fmt(q,2)+") / "+fmt(rt,3)+" − "+fmt(q,2)+" / "+fmt(rb,2)+") = "+fmt(rmin,3)+" g/cm³":fmt(rmin,3)+" g/cm³"]);
+  o.push(["Vмин (12)","(1 − "+fmt(mm,3)+" / "+fmt(rmin,3)+") · 100 = "+fmt(VM,1)+" %",1]);
+  if(rm>=rt||rt>=rmin)o.push(["⚠","ρm < ρ < ρм ?"]);
+  o.v={Vres:V,VMA:VM};return o},
  a_shear:function(g,p){var d=num(p.d)/10,F=Math.PI*d*d/4,Ac=[],Am=[],Pc=[],n=g.R/2;for(var r=0;r<g.R;r++){var A=g(r,1)*g(r,2)/2;if(!isFinite(A))continue;if(r<n){Ac.push(A);Pc.push(g(r,1))}else Am.push(A)}
   var ac=avg(Ac),am=avg(Am),tg=3*(am-ac)/(3*am-2*ac),Rc=avg(Pc)*1000/F/100,C=(3-2*tg)*Rc/6;
   var o=[["Ac",Ac.map(function(x){return fmt(x,2)}).join(" · ")+" → "+fmt(ac,2)+" J"],["Am",Am.map(function(x){return fmt(x,2)}).join(" · ")+" → "+fmt(am,2)+" J"],["tg φ","3·("+fmt(am,2)+" − "+fmt(ac,2)+") / (3·"+fmt(am,2)+" − 2·"+fmt(ac,2)+") = "+fmt(tg,2),1],["Rс","P / F = "+fmt(Rc,2)+" MPa"],["Cл","(1/6)·(3 − 2·"+fmt(tg,3)+")·"+fmt(Rc,2)+" = "+fmt(C,2)+" MPa",1]];o.v={tg:tg,C:C};return o},
@@ -235,7 +264,7 @@ var CALC={
  a_bend:function(g,p){var b=num(p.b),h=num(p.h),l=num(p.l),o=[],R=[],e=[],E=[];for(var r=0;r<g.R;r++){var P=g(r,1),f=g(r,2);if(!isFinite(P))continue;R.push(3*P*l/(2*b*h*h)/100);e.push(6*f*h/(l*l));E.push(P*l*l*l/100/(4*f*b*h*h*h))}
   return[["Rизг",R.map(function(x){return fmt(x,2)}).join(" · ")+" → "+fmt(avg(R),2)+" MPa",1],["εпр",fmt(avg(e),4),1],["E",fmt(avg(E),0)+" MPa",1]]}
 };
-var PARAMS={a_dens:[["rw","ρw, g/cm³","0.9982"]],a_comp:[["d","d, mm","71.4"]],a_wres:[["d","d, mm","71.4"]],a_shear:[["d","d, mm","71.4"]],e_strat:[["V","V, ml","100"]],s_swell:[["A","A (< 0,16 mm), %","8.0"]],g_mixgrad:[["m","m, g","10000"]],p_grain:[["m","m, g","50"]],a_tsr:[["d","d, mm","150"]],a_bend:[["b","b, cm","4"],["h","h, cm","4"],["l","l, cm","12"]],c_cube:[["alpha","α","0.95"]],f_core:[["rlab","ρm.lab, g/cm³","2.36"],["hpr","h proj., mm","50"]]};
+var PARAMS={a_dens:[["rw","ρw, g/cm³","0.9982"]],a_true:[["rw","ρw, g/cm³","0.9982"],["mmin","m min, g","1500"]],a_por:[["rb","ρб, g/cm³","1.00"]],a_comp:[["d","d, mm","71.4"]],a_wres:[["d","d, mm","71.4"]],a_shear:[["d","d, mm","71.4"]],e_strat:[["V","V, ml","100"]],s_swell:[["A","A (< 0,16 mm), %","8.0"]],g_mixgrad:[["m","m, g","10000"]],p_grain:[["m","m, g","50"]],a_tsr:[["d","d, mm","150"]],a_bend:[["b","b, cm","4"],["h","h, cm","4"],["l","l, cm","12"]],c_cube:[["alpha","α","0.95"]],f_core:[["rlab","ρm.lab, g/cm³","2.36"],["hpr","h proj., mm","50"]]};
 /* send to calculation tabs */
 var XFER={
  a_dens:["ab",function(S,g,p){for(var r=0;r<Math.min(3,g.R);r++){S.ab.w[r][0]=g.s(r,1);S.ab.w[r][2]=g.s(r,2);S.ab.w[r][1]=g.s(r,3)}if(p.rw)S.ab.rw=dot(p.rw);S.ab.mu="g"}],
@@ -253,7 +282,7 @@ var XFER={
 var ASPHM={hot:1,cold:1,pma:1,sma:1};
 var T2={
  ru:{selH:"Уточните материал",selHint:"Выберите как в рецепте или проекте — по этому подбираются испытания и нормы для проверки.",limH:"Нормы для вашего материала",limHint:"Результаты ваших испытаний будут сравниваться с этими значениями.",
-  chkH:"Проверка по норме",ok:"соответствует",bad:"не соответствует",min:"не менее",max:"не более",noSpecs:"Таблицы норм ещё не загружены в базу — проверка появится после обновления методик.",change:"Изменить материал",
+  chkH:"Проверка по норме",ok:"соответствует",bad:"не соответствует",min:"не менее",max:"не более",noSpecs:"Таблицы норм ещё не загружены в базу — проверка появится после обновления методик.",change:"Изменить материал",ph0:"Отбор проб и температура",ph1:"Материалы",ph2:"Образцы",ph3:"Смесь в рыхлом виде и расчёты",ph4:"На покрытии",genH:"Общая подготовка: что приготовить до начала",genHint:"По каждому испытанию — оборудование и условия, которые нужно подготовить заранее (вода, температуры, количества). Здесь ничего вводить не нужно.",
   f:{kind:"Вид",type:"Тип",mark:"Марка",size:"Крупность",zone:"Дорожно-климатическая зона",bit:"Битум",bin:"Вяжущее"},
   kind:{hd:"высокоплотный",dense:"плотный",por:"пористый",hpc:"высокопористый щебёночный",hps:"высокопористый песчаный"},
   size:{coarse:"крупнозернистый",fine:"мелкозернистый",sand:"песчаный"},zone:{"3":"III","45":"IV, V"},
@@ -263,7 +292,7 @@ var T2={
   k:{R50:"Прочность R50, МПа",R20:"Прочность R20, МПа",R0:"Прочность R0, МПа",Rw:"R20 водонасыщенных, МПа",Rl:"R20 после длит. водонасыщения, МПа",Kw:"Водостойкость",Kwl:"Водостойкость при длит. водонасыщении",tg:"tg φ",C:"Сцепление при сдвиге Cл, МПа",Rp:"Трещиностойкость Rр (0 °C), МПа",W:"Водонасыщение, %",Vres:"Остаточная пористость, %",VMA:"Пористость минеральной части, %",MS:"Устойчивость по Маршаллу, кН",MF:"Текучесть, мм",MQ:"Условная жёсткость, кН/мм",B:"Стекание вяжущего, %",Cv:"Коэффициент вариации Cv",T:"Температура смеси, °C",Ky:"Коэффициент уплотнения Ky",N:"Слеживаемость, ударов",rut:"Глубина колеи, мм",adh:"Сцепление битума со щебнем, балл",flaky:"Лещадность щебня, %"},
   kSite:{W:"Водонасыщение кернов, %",Vres:"Остаточная пористость кернов, %",T:"Температура в начале уплотнения, °C"}},
  fr:{selH:"Précise le matériau",selHint:"Choisis comme dans la recette ou le projet — cela fixe les essais et les normes de contrôle.",limH:"Normes pour ton matériau",limHint:"Les résultats de tes essais seront comparés à ces valeurs.",
-  chkH:"Contrôle par rapport à la norme",ok:"conforme",bad:"non conforme",min:"au moins",max:"au plus",noSpecs:"Les tableaux de normes ne sont pas encore dans la base — le contrôle apparaîtra après la mise à jour des méthodes.",change:"Changer de matériau",
+  chkH:"Contrôle par rapport à la norme",ok:"conforme",bad:"non conforme",min:"au moins",max:"au plus",noSpecs:"Les tableaux de normes ne sont pas encore dans la base — le contrôle apparaîtra après la mise à jour des méthodes.",change:"Changer de matériau",ph0:"Prélèvement et température",ph1:"Matériaux",ph2:"Éprouvettes",ph3:"Mélange en vrac et calculs",ph4:"Sur la chaussée",genH:"Préparation générale : à préparer avant de commencer",genHint:"Essai par essai, le matériel et les conditions à prévoir à l'avance (eau, températures, quantités). Rien à saisir ici.",
   f:{kind:"Catégorie",type:"Type",mark:"Grade (марка)",size:"Granularité",zone:"Zone climatique routière",bit:"Bitume",bin:"Liant"},
   kind:{hd:"très dense",dense:"dense",por:"poreux",hpc:"très poreux à gravillons",hps:"très poreux sableux"},
   size:{coarse:"gros grains",fine:"grains fins",sand:"sableux"},zone:{"3":"III","45":"IV, V"},
@@ -273,7 +302,7 @@ var T2={
   k:{R50:"Résistance R50, MPa",R20:"Résistance R20, MPa",R0:"Résistance R0, MPa",Rw:"R20 saturés, MPa",Rl:"R20 après saturation longue, MPa",Kw:"Tenue à l'eau",Kwl:"Tenue à l'eau (saturation longue)",tg:"tg φ",C:"Cohésion au cisaillement C, MPa",Rp:"Fendage Rр (0 °C), MPa",W:"Absorption d'eau, %",Vres:"Porosité résiduelle, %",VMA:"Vides du squelette minéral, %",MS:"Stabilité Marshall, kN",MF:"Fluage, mm",MQ:"Rigidité conventionnelle, kN/mm",B:"Égouttage du liant, %",Cv:"Coefficient de variation Cv",T:"Température du mélange, °C",Ky:"Coefficient de compactage Ky",N:"Mottage, coups",rut:"Profondeur d'ornière, mm",adh:"Adhésivité bitume–gravillon, points",flaky:"Gravillons plats, %"},
   kSite:{W:"Absorption d'eau des carottes, %",Vres:"Porosité résiduelle des carottes, %",T:"Température au début du compactage, °C"}},
  en:{selH:"Specify the material",selHint:"Choose as in the recipe or design — this sets the tests and the limits to check against.",limH:"Limits for your material",limHint:"Your test results will be compared with these values.",
-  chkH:"Check against the standard",ok:"complies",bad:"does not comply",min:"at least",max:"at most",noSpecs:"The limit tables are not in the database yet — the check will appear after the methods update.",change:"Change material",
+  chkH:"Check against the standard",ok:"complies",bad:"does not comply",min:"at least",max:"at most",noSpecs:"The limit tables are not in the database yet — the check will appear after the methods update.",change:"Change material",ph0:"Sampling and temperature",ph1:"Materials",ph2:"Specimens",ph3:"Loose mix and calculations",ph4:"On the pavement",genH:"General preparation: get ready before you start",genHint:"Test by test, the equipment and conditions to prepare in advance (water, temperatures, quantities). Nothing to enter here.",
   f:{kind:"Kind",type:"Type",mark:"Grade (марка)",size:"Grain size",zone:"Road-climatic zone",bit:"Bitumen",bin:"Binder"},
   kind:{hd:"high-density",dense:"dense",por:"porous",hpc:"highly porous, crushed-stone",hps:"highly porous, sand"},
   size:{coarse:"coarse-grained",fine:"fine-grained",sand:"sand"},zone:{"3":"III","45":"IV, V"},
@@ -310,16 +339,21 @@ function selDesc(m,x){if(x&&SEL1[m])return sel2Desc(m,x);if(!x||!ASPHM[m])return
  else if(m==="pma"){a.push(t.type+" "+(x.type==="A"?"А":x.type));a.push(t.size[x.size]);a.push(x.bin)}
  else{a.push(t.smaW+"-"+x.kind);a.push(t.bmp[x.bit])}
  return a.join(" · ")}
-function progFor(m,p,x){var dense=m!=="hot"||x.kind==="hd"||x.kind==="dense",B=["b_pen","b_rb","b_duct","b_adh"],BP=["b_pen","b_rb","b_duct","b_elast","b_adh"],AG=["g_sieve","g_crush","g_flaky","s_sieve","p_grain"],
- SITE=["a_sample","a_mixtemp","f_core","a_dens","a_wsat","a_por","f_ruler"],CORE=["a_form","a_dens","a_true","a_por","a_wsat","a_comp"];
- if(m==="hot"){if(p==="design")return B.concat(AG,CORE,["a_wres","a_wlong","a_adhmix"],dense?["a_shear","a_split"]:[],dense&&x.mark==="I"&&x.size!=="coarse"?["a_marsh"]:[]);
-  if(p==="lot")return["a_sample","a_mixtemp"].concat(CORE,["a_wres","a_bind","a_grad","a_wlong","a_adhmix","a_homog"],dense?["a_shear","a_split"]:[]);return SITE}
- if(m==="cold"){if(p==="design")return["b_cvisc","b_viscc","b_solv","g_sieve","s_sieve","p_grain"].concat(CORE,["a_wres","a_cake"]);
-  if(p==="lot")return["a_sample","a_mixtemp","a_form","a_dens","a_wsat","a_comp","a_bind","a_grad","a_cake","a_homog"];return["a_sample","f_core","a_dens","a_wsat","f_ruler"]}
- if(m==="pma"){if(p==="design")return BP.concat(AG,CORE,["a_shear","a_split","a_wlong","a_adhmix","a_marsh","a_rut"]);
-  if(p==="lot")return["a_sample","a_mixtemp"].concat(CORE,["a_bind","a_grad","a_shear","a_split","a_wlong","a_adhmix","a_homog"]);return SITE}
- if(p==="design")return BP.concat(AG,CORE,["a_shear","a_split","a_wlong","a_drain","a_rut"]);
- if(p==="lot")return["a_sample","a_mixtemp"].concat(CORE,["a_bind","a_grad","a_drain","a_shear","a_split","a_wlong","a_homog"]);return SITE}
+function progFor(m,p,x){var dense=m!=="hot"||x.kind==="hd"||x.kind==="dense",B=["b_pen","b_rb","b_duct","b_adh"],BP=["b_pen","b_rb","b_duct","b_elast","b_adh"],AG=["g_sieve","g_crush","g_flaky","s_sieve","p_grain"],TD=["g_true","s_true","p_true"],
+ /* ordre du labo : 1) matériaux, 2) TOUT sur les éprouvettes, 3) mélange en vrac, puis calculs */
+ SPEC=["a_form","a_dens","a_wsat","a_comp"],
+ SITE=["a_sample","a_mixtemp","f_core","a_dens","a_wsat","a_true","a_por","f_ruler"];
+ if(m==="hot"){if(p==="design")return B.concat(AG,TD,SPEC,["a_wres","a_wlong"],dense?["a_shear","a_split"]:[],dense&&x.mark==="I"&&x.size!=="coarse"?["a_marsh"]:[],["a_true","a_por","a_adhmix"]);
+  if(p==="lot")return["a_sample","a_mixtemp"].concat(SPEC,["a_wres","a_wlong"],dense?["a_shear","a_split"]:[],["a_true","a_por","a_bind","a_grad","a_adhmix","a_homog"]);return SITE}
+ if(m==="cold"){if(p==="design")return["b_cvisc","b_viscc","b_solv","g_sieve","s_sieve","p_grain"].concat(TD,SPEC,["a_wres","a_true","a_por","a_cake"]);
+  if(p==="lot")return["a_sample","a_mixtemp","a_form","a_dens","a_wsat","a_comp","a_true","a_por","a_bind","a_grad","a_cake","a_homog"];return["a_sample","f_core","a_dens","a_wsat","a_true","a_por","f_ruler"]}
+ if(m==="pma"){if(p==="design")return BP.concat(AG,TD,SPEC,["a_shear","a_split","a_wlong","a_marsh","a_rut","a_true","a_por","a_adhmix"]);
+  if(p==="lot")return["a_sample","a_mixtemp"].concat(SPEC,["a_shear","a_split","a_wlong","a_true","a_por","a_bind","a_grad","a_adhmix","a_homog"]);return SITE}
+ if(p==="design")return BP.concat(AG,TD,SPEC,["a_shear","a_split","a_wlong","a_rut","a_true","a_por","a_drain"]);
+ if(p==="lot")return["a_sample","a_mixtemp"].concat(SPEC,["a_shear","a_split","a_wlong","a_true","a_por","a_bind","a_grad","a_drain","a_homog"]);return SITE}
+/* phases of a programme (headers in the list) */
+var PH_SAMPLE={a_sample:1,a_mixtemp:1,a_pavtemp:1},PH_SPEC={a_form:1,a_dens:1,a_wsat:1,a_swell:1,a_comp:1,a_wres:1,a_wlong:1,a_wacc:1,a_wacc60:1,a_shear:1,a_split:1,a_bend:1,a_marsh:1,a_rut:1,a_frost:1,a_tsr:1,f_core:1},PH_LOOSE={a_true:1,a_por:1,a_bind:1,a_grad:1,a_adhmix:1,a_drain:1,a_homog:1,a_cake:1};
+function phaseOf(id){return PH_SAMPLE[id]?0:PH_SPEC[id]?2:PH_LOOSE[id]?3:id==="f_ruler"?4:1}
 /* limits for a programme session: {key:{min,max}} (+ _note) */
 function LIM(s){if(s&&s.sel&&SEL1[s.mat])return DATA&&DATA.specs?LIM2(s):null;var SP=DATA&&DATA.specs;if(!SP||!s||!s.sel||!ASPHM[s.mat])return null;var x=s.sel,m=s.mat,site=s.purpose==="site",o={},z=x.zone==="45"?1:0;
  function set(k,a,b){if(a==null&&b==null)return;o[k]={min:a==null?null:a,max:b==null?null:b}}
@@ -553,19 +587,41 @@ function vMat(){var l=L(),t2=L2(),m=ST.view.m;
 function vProg(s){var l=L(),dn=s.tests.filter(function(t){return s.st[t]&&s.st[t].done}).length,pc=Math.round(dn/s.tests.length*100);
  var h=crumbs()+'<div class="card"><h2>'+esc(l.prog)+'</h2><p><b>'+esc(l.mats[s.mat])+'</b>'+(s.purpose?' · '+esc(l["p"+s.purpose.charAt(0).toUpperCase()+s.purpose.slice(1)]):'')+'</p>'+(s.sel?'<p class="g-desc">'+esc(selDesc(s.mat,s.sel))+' <button class="link" data-chg="'+s.id+'">'+esc(L2().change)+'</button></p>':'')+'<p class="hint">'+esc(l.progHint)+'</p>'+
   '<div class="g-prog" role="progressbar" aria-valuenow="'+pc+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+pc+'%"></i></div><p class="hint">'+dn+' / '+s.tests.length+' '+esc(l.doneOf)+'</p></div>';
- h+='<ol class="g-plist">'+s.tests.map(function(id,i){var t=testById(id);if(!t)return"";var st=s.st[id],state=st&&st.done?"done":st&&(st.step||Object.keys(st.v).length)?"go":"";
-  return'<li class="card '+state+'"><div class="g-pn">'+(i+1)+'</div><div class="g-pb"><b>'+esc(t.t)+'</b> <span class="g-tag '+(PERIODIC[id]?"per":"must")+'">'+esc(PERIODIC[id]?l.period:l.must)+'</span>'+
+ var l2=L2(),gen="",lastPh=-1;
+ [0,1,2,3,4].forEach(function(ph){var items=s.tests.filter(function(id){return phaseOf(id)===ph&&testById(id)});if(!items.length)return;
+  gen+='<h4>'+esc(l2["ph"+ph])+'</h4>'+items.map(function(id){var t=testById(id);return'<p><b>'+esc(t.t)+'</b></p><ul>'+(t.eq||[]).map(function(x){return'<li>'+DorLib.md(x)+'</li>'}).join("")+'</ul>'}).join("")});
+ if(gen)h+='<details class="card g-gen"><summary><b>'+esc(l2.genH)+'</b></summary><p class="hint">'+esc(l2.genHint)+'</p>'+gen+'</details>';
+ var order=s.tests.map(function(id,i){return{id:id,i:i}}).sort(function(a,b){return phaseOf(a.id)-phaseOf(b.id)||a.i-b.i}).map(function(o){return o.id});
+ h+='<ol class="g-plist">'+order.map(function(id,i){var t=testById(id);if(!t)return"";var st=s.st[id],state=st&&st.done?"done":st&&(st.step||Object.keys(st.v).length)?"go":"";
+  var ph=phaseOf(id),head=ph!==lastPh?'<li style="list-style:none;margin:18px 0 6px;font-weight:700;font-size:1.05em">'+esc(l2["ph"+ph])+'</li>':"";lastPh=ph;
+  return head+'<li class="card '+state+'"><div class="g-pn">'+(i+1)+'</div><div class="g-pb"><b>'+esc(t.t)+'</b> <span class="g-tag '+(PERIODIC[id]?"per":"must")+'">'+esc(PERIODIC[id]?l.period:l.must)+'</span>'+
    '<p><span class="g-k">'+esc(l.why)+':</span> '+DorLib.md(t.goal||"")+'</p><p><span class="g-k">'+esc(l.when)+':</span> '+DorLib.md(t.when||"")+'</p><p class="ln hint">'+esc(t.norm)+'</p></div>'+
    '<button class="b'+(state==="done"?' ghost':'')+'" data-run="'+id+'">'+esc(state==="done"?l.doneT:state==="go"?l.contT:l.startT)+'</button></li>'}).join("")+'</ol>';
  if(s.sel&&hasSel(s.mat))h+=limCard(s);
  return h}
 /* one drawing per action */
 function figStep(t,cur,pos,A,idx){if(cur.k==="eq"||FIGFULL[t.id]||!DorLib.stepFig)return DorLib.fig(t,idx,LANG);
+ var pp=prepOf(t);if(pp!==t.prep){var t2={};for(var kk in t)t2[kk]=t[kk];t2.prep=pp;t=t2}
  var np=(t.prep||[]).length,i=cur.k==="prep"?pos-1:cur.k==="run"?pos-1-np:0;
  return DorLib.stepFig(t,cur.k,i,A.length,pos+1,cur.x||"",LANG)}
 /* steps of a test */
-function steps(t){var l=L(),a=[];a.push({k:"eq"});(t.prep||[]).forEach(function(x){a.push({k:"prep",x:x})});(t.steps||[]).forEach(function(x){a.push({k:"run",x:x})});
+function prepOf(t){var c=typeof CURS!=="undefined"?CURS:null,i0=c&&c.kind==="prog"&&c.tests?c.tests.indexOf("a_form"):-1,i1=c&&c.tests&&t?c.tests.indexOf(t.id):-1;
+ return t&&t.prepProg&&i0>=0&&i1>i0?t.prepProg:(t&&t.prep)||[]}
+function steps(t){var l=L(),a=[];a.push({k:"eq"});prepOf(t).forEach(function(x){a.push({k:"prep",x:x})});(t.steps||[]).forEach(function(x){a.push({k:"run",x:x})});
  if(t.ex&&t.ex.inp)a.push({k:"meas"});a.push({k:"res"});return a}
+var SRC={
+ a_form:{fr:["d : diamètre du moule choisi (gravé sur le moule).","ρ : masse volumique attendue de la recette (fiche « Masse volumique apparente » d'une gâchée précédente, sinon 2,36).","g₀ et h₀ : pesez la prise sur la balance, puis mesurez la hauteur de la 1re éprouvette au pied à coulisse après démoulage."],ru:["d: диаметр выбранной формы (выбит на форме).","ρ: ожидаемая плотность по рецепту (из карточки «Средняя плотность» прошлого замеса, иначе 2,36).","g₀ и h₀: взвесьте навеску на весах, затем измерьте высоту 1-го образца штангенциркулем после распалубки."],en:["d: diameter of the chosen mould (engraved on it).","ρ: expected density from the recipe (from an earlier batch’s “bulk density” sheet, otherwise 2.36).","g₀ and h₀: weigh the portion on the balance, then measure the height of the 1st specimen with a caliper after ejecting."]},
+ a_dens:{fr:["Éprouvettes : celles faites dans la fiche « Confection des éprouvettes d'enrobé ».","m (à l'air) : balance, éprouvette sèche. Pesée dans l'eau et pesée après essuyage : balance hydrostatique, eau à 20 °C.","Écrire les masses dans l'ordre des colonnes du tableau."],ru:["Образцы: изготовленные в карточке «Изготовление образцов асфальтобетона».","m (на воздухе): весы, сухой образец. Взвешивание в воде и после обтирания: гидростатические весы, вода 20 °C.","Массы записывайте в порядке столбцов таблицы."],en:["Specimens: those made in the “Making asphalt specimens” sheet.","m (in air): balance, dry specimen. Weighing in water and after wiping: hydrostatic balance, water at 20 °C.","Enter the masses in the order of the table columns."]},
+ a_wsat:{fr:["Mêmes éprouvettes que dans la fiche « Masse volumique apparente » : reprendre m, m₁, m₂ de cette fiche.","m₃ : après saturation sous vide (balance, éprouvette essuyée). m₄ : pesée dans l'eau après saturation."],ru:["Те же образцы, что в карточке «Средняя плотность»: m, m₁, m₂ возьмите оттуда.","m₃: после вакуумного насыщения (весы, образец обтерт). m₄: взвешивание в воде после насыщения."],en:["Same specimens as the “Bulk density” sheet: take m, m₁, m₂ from there.","m₃: after vacuum saturation (balance, wiped specimen). m₄: weighing in water after saturation."]},
+ a_true:{fr:["Toutes les pesées : balance classe II, au 0,1 g.","g₁ : fiole vide (faite avant de commencer). g : fiole + mélange. g₃ : fiole + mélange + eau, après le vide. g₂ : fiole lavée + eau seule.","Échantillon : le mélange en vrac mis de côté au prélèvement (fiche « Prélèvement »)."],ru:["Все взвешивания: весы класса II, до 0,1 г.","g₁: пустая колба (до начала). g: колба + смесь. g₃: колба + смесь + вода, после вакуума. g₂: промытая колба + вода.","Проба: рыхлая смесь, отложенная при отборе (карточка «Отбор проб»)."],en:["All weighings: class II balance, to 0.1 g.","g₁: empty flask (before starting). g: flask + mix. g₃: flask + mix + water, after vacuum. g₂: washed flask + water only.","Sample: the loose mix set aside at sampling (“Sampling” sheet)."]},
+ a_por:{fr:["Rien à mesurer : les valeurs viennent des fiches terminées.","ρm ← fiche « Masse volumique apparente » ; ρ ← fiche « Masse volumique réelle (pycnomètre) » ; qб ← fiche « Teneur en liant ».","Une case vide = la valeur est reprise automatiquement (affichée au-dessus)."],ru:["Измерять ничего не нужно: значения берутся из завершённых карточек.","ρm ← «Средняя плотность»; ρ ← «Истинная плотность (пикнометр)»; qб ← «Содержание вяжущего».","Пустая ячейка = значение берётся автоматически (показано выше)."],en:["Nothing to measure: values come from the finished sheets.","ρm ← “Bulk density”; ρ ← “True density (pycnometer)”; qб ← “Binder content”.","An empty cell = the value is taken automatically (shown above)."]},
+ a_comp:{fr:["Éprouvettes faites dans « Confection des éprouvettes », conditionnées à chaque température.","P : effort de rupture lu sur le cadran/écran de la presse (kN), une valeur par éprouvette."],ru:["Образцы из карточки «Изготовление образцов», выдержанные при каждой температуре.","P: разрушающая нагрузка по шкале/экрану пресса (кН), по одному значению на образец."],en:["Specimens from “Making asphalt specimens”, conditioned at each temperature.","P: failure load read on the press dial/screen (kN), one value per specimen."]},
+ a_split:{fr:["Éprouvettes de « Confection des éprouvettes », 1 h dans l'eau glacée.","P : effort de rupture lu sur la presse (N) ; h et d : pied à coulisse sur chaque éprouvette."],ru:["Образцы из «Изготовления образцов», 1 ч в ледяной воде.","P: разрушающая нагрузка по прессу (Н); h и d: штангенциркулем на каждом образце."],en:["Specimens from “Making asphalt specimens”, 1 h in ice water.","P: failure load read on the press (N); h and d: caliper on each specimen."]},
+ a_bind:{fr:["Prise de mélange en vrac mise de côté au prélèvement.","Toutes les pesées : balance au 0,01 g (calcination) ; ce résultat alimente la fiche « Porosité »."],ru:["Проба рыхлой смеси, отложенная при отборе.","Взвешивания: весы с точностью 0,01 г (прокаливание); результат идёт в карточку «Пористость»."],en:["Loose-mix portion set aside at sampling.","Weighings: balance to 0.01 g (burn-off); this result feeds the “Porosity” sheet."]}
+};
+function srcCard(tid){var a=SRC[tid]&&SRC[tid][LANG];if(!a)return"";var h={fr:"Où prendre les valeurs",ru:"Где взять значения",en:"Where to get the values"}[LANG]||"";return'<div class="g-src"><p class="g-k">'+esc(h)+'</p><ul>'+a.map(function(x){return'<li>'+esc(x)+'</li>'}).join("")+'</ul></div>'}
+function resBag(s){var R={};if(!s||!s.st)return R;(s.tests||[]).forEach(function(id){var st=s.st[id],f=CALC[id],t=testById(id),T=t&&inpTable(t);if(!st||!f||!T||id==="a_por")return;try{var o=f(grid(st,T),paramsOf(st,id),{});if(o&&o.v)for(var k in o.v)if(isFinite(o.v[k]))R[k]=o.v[k]}catch(e){}});return R}
+function preCard(s,tid){if(tid!=="a_por")return"";var R=resBag(s),a=[["ρm",R.rm],["ρ",R.rho],["qб",R.qb]].map(function(x){return x[0]+" = "+(isFinite(x[1])?fmt(x[1],x[0]==="qб"?2:3):"—")});return'<p class="hint g-pre">'+esc(a.join("  ·  "))+'</p>'}
 function inpTable(t){var e=t.ex&&t.ex.inp;if(!e)return null;var rows=e.r.map(function(r){return r.c||r});
  var kv=e.h.length===2&&rows.every(function(r){return!isFinite(num(r[0]))});
  return{h:e.h,rows:rows,kv:kv}}
@@ -593,8 +649,8 @@ function vRun(s,tid){var l=L(),t=testById(tid);if(!t){ST.view={v:"home"};return 
  else if(cur.k==="prep"||cur.k==="run"){var ti=durations(cur.x);
   body='<p class="g-k">'+esc(cur.k==="prep"?l.prepH:l.runH)+'</p><p class="g-step">'+(DorLib.mdf||DorLib.md)(cur.x,LANG)+'</p>'+mineLine(s,tid,cur.x)+
    (ti.length?'<div class="g-row">'+ti.map(function(d){return'<button class="b g-tbtn" data-tm="'+d[0]+'">⏱ '+esc(l.timer)+' '+esc(d[1])+'</button>'}).join("")+'</div>':'')+stepInputs(st,T,cur.x)}
- else if(cur.k==="meas"){body='<h3>'+esc(l.measH)+'</h3><p class="hint">'+esc(l.measHint)+'</p>'+fullTable(st,T)}
- else{var f=CALC[tid],out=null;if(f&&T){try{out=f(grid(st,T),paramsOf(st,tid))}catch(e){out=null}}
+ else if(cur.k==="meas"){body='<h3>'+esc(l.measH)+'</h3><p class="hint">'+esc(l.measHint)+'</p>'+srcCard(tid)+preCard(s,tid)+fullTable(st,T)}
+ else{var f=CALC[tid],out=null;if(f&&T){try{out=f(grid(st,T),paramsOf(st,tid),resBag(s))}catch(e){out=null}}
   body='<h3>'+esc(l.resH)+'</h3>'+(out?'<ul class="g-res">'+out.map(function(o){return'<li'+(o[2]?' class="b"':'')+'><span>'+esc(o[0])+'</span><span>'+esc(o[1])+'</span></li>'}).join("")+'</ul>':'<p class="hint">'+esc(l.noCalc)+'</p>')+(s.kind==="prog"?checks(s,out):"")+
    (t.f?'<div class="g-f">'+t.f.map(function(x){return'<div class="lib-f">'+esc(x)+'</div>'}).join("")+'</div>':'')+
    (t.req?'<ul class="g-req">'+t.req.map(function(x){return'<li>'+DorLib.md(x)+'</li>'}).join("")+'</ul>':'')+
