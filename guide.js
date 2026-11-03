@@ -591,7 +591,7 @@ function draw(){if(!ROOT)return;var l=L();if(!window.DorLib){ROOT.innerHTML='<di
  DorLib.data(LANG,function(d){DATA=d;if(!d){ROOT.innerHTML='<div class="card"><p class="err">'+esc(DorLib.failMsg?DorLib.failMsg(LANG):DorLib.ui(LANG).fail)+'</p></div>';return}
   var v=ST.view||{v:"home"},h;VK=vkeys((v.v==="prog"||v.v==="run")&&sess(v.s)?sess(v.s):null);
   if(v.v==="pick")h=vPick();else if(v.v==="mat")h=vMat();else if(v.v==="prog"&&sess(v.s))h=vProg(sess(v.s));else if(v.v==="run"&&sess(v.s))h=vRun(sess(v.s),v.t);else if(v.v==="rec")h=vRec();else{ST.view={v:"home"};h=vHome()}
-  ROOT.innerHTML='<div class="g-wrap">'+h+'</div>';wire();try{termify()}catch(e){}})}
+  ROOT.innerHTML='<div class="g-wrap">'+h+'</div>';wire();try{termify()}catch(e){}try{refLinks()}catch(e){}})}
 function crumbs(){var l=L();return'<button class="lib-back" data-go="home">← '+esc(l.home)+'</button>'}
 function vHome(){var l=L();
  var cards=[["pick","⚗",l.start1,l.start1d],["mat","▤",l.start2,l.start2d],["rec","⚖",l.start3,l.start3d]];
@@ -880,6 +880,17 @@ function glOpen(key,tid){var h=GH[LANG]||GH.fr,li=LANG==="ru"?"ru":LANG==="en"?"
  d.onclick=function(e){if(e.target===d)d.remove()};document.getElementById("g_popx").onclick=function(){d.remove()}}
 var GLCSS=".g-term{background:none;border:0;border-bottom:2px dotted var(--accent,#A65B12);color:inherit;font:inherit;padding:0 1px;cursor:pointer}.g-term:hover{background:rgba(166,91,18,.12)}.g-pop{position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:14px}.g-popc{max-width:620px;max-height:86vh;overflow:auto;width:100%}.g-pk{font-weight:700;margin:10px 0 2px;color:var(--accent,#A65B12)}.g-pf{font-family:var(--mono,monospace);background:var(--soft,#F6F5F1);padding:8px;border-radius:6px}.g-pl{padding-left:18px}.g-pl li{margin:8px 0}";
 
+
+var REFRE=/([«“"])\s*(Prélèvement|Отбор проб|Sampling)\s*([»”"])/;
+function refId(){var v=ST.view,t=v&&v.t,p=t?String(t).charAt(0):"a",id=p+"_sample";return DATA&&DATA.tests.some(function(x){return x.id===id})?id:"a_sample"}
+function refLinks(){if(!ROOT)return;var w=document.createTreeWalker(ROOT,NodeFilter.SHOW_TEXT,null),n,list=[];while(n=w.nextNode()){if(REFRE.test(n.nodeValue)&&!/^(BUTTON|A|TEXTAREA|SCRIPT|STYLE)$/.test(n.parentNode.nodeName)&&!(n.parentNode.closest&&n.parentNode.closest("button,a")))list.push(n)}
+ list.forEach(function(n){var m=REFRE.exec(n.nodeValue),i=m.index,a=document.createElement("a");a.href="#";a.className="g-ref";a.setAttribute("data-ref",refId());a.title="↗";a.textContent=m[0]+" ↗";a.style.cssText="color:var(--accent,#A65B12);text-decoration:underline;cursor:pointer;font-weight:600";
+  var after=n.splitText(i);after.nodeValue=after.nodeValue.slice(m[0].length);n.parentNode.insertBefore(a,after)});
+ ROOT.querySelectorAll("a.g-ref").forEach(function(a){a.onclick=function(e){e.preventDefault();openRef(a.getAttribute("data-ref"))}})}
+function openRef(id){var t=testById(id);if(!t)return;var w=window.open("","_blank");if(!w)return;var m=function(x){return DorLib.md(x)},ul=function(h,arr){return arr&&arr.length?"<h2>"+esc(h)+"</h2><ul>"+arr.map(function(x){return"<li>"+m(x)+"</li>"}).join("")+"</ul>":""},lg=LANG,
+ H=lg==="ru"?["Оборудование","Подготовка","Порядок выполнения","Требования"]:lg==="en"?["Equipment","Preparation","Procedure","Requirements"]:["Matériel","Préparation","Déroulement","Exigences"];
+ var css="body{font:16px/1.55 system-ui,Segoe UI,Arial,sans-serif;max-width:760px;margin:0 auto;padding:18px 16px 60px;color:#222;background:#fbfaf7}h1{font-size:22px}h2{font-size:17px;margin:22px 0 6px;color:#A65B12}li{margin:6px 0}.lib-chip{font-family:monospace;background:#f0eee8;padding:1px 5px;border-radius:4px}.n{color:#777;font-size:13px}";
+ w.document.open();w.document.write('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(t.t)+'</title><style>'+css+'</style><h1>'+esc(t.t)+'</h1><p class="n">'+esc(t.norm||"")+'</p>'+(t.goal?'<p>'+m(t.goal)+'</p>':'')+ul(H[0],t.eq)+ul(H[1],t.prep)+ul(H[2],t.steps)+ul(H[3],t.req));w.document.close()}
 function css(){if(!document.getElementById("guide_css")){var s=document.createElement("style");s.id="guide_css";s.textContent=CSS+GLCSS;document.head.appendChild(s)}}
 
 function render(el,lang){css();LANG=lang||"ru";ROOT=el;draw()}
