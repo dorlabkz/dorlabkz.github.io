@@ -562,7 +562,28 @@ function mineLine(s,tid,x){var M=mine(s);if(!M)return"";var T=MY[LANG]||MY.ru,ln
 var VK=[];
 function vkeys(s){if(!s||!s.mat)return[];var k=[],x=s.sel||{};k.push(s.mat);if(s.mat==="bitum")k.push("bitum:"+(x.bk==="bnd"?"bnd":x.bk==="bmp"?"bmp":"mast"));return k}
 function withV(t,vk){if(!t||!t.mv)return t;var r=null;for(var i=0;i<vk.length;i++){var o=t.mv[vk[i]];if(!o)continue;if(!r){r={};for(var k in t)if(k!=="mv")r[k]=t[k]}for(k in o)r[k]=o[k]}return r||t}
-function testById(id){var t=withV(DATA&&DATA.tests.filter(function(t){return t.id===id})[0],VK);if(t&&t.opt){var cs=typeof CURS!=="undefined"&&CURS&&CURS.st&&CURS.st[id],k=(cs&&cs.p&&cs.p.opt)||"calc",o=t.opt[k]||t.opt.calc,m={},q;for(q in t)m[q]=t[q];for(q in o)if(q!=="t")m[q]=o[q];t=m}return t}
+var BTMP={"35-50":"155–165","51-70":"150–160","71-100":"145–155","101-130":"140–150","131-200":"130–140","mg131-200":"130–140"},
+ MOLDS={sand:{d:"50,5",g:"220–240",tol:"±1,0",D:5},fine:{d:"71,4",g:"640–670",tol:"±1,5",D:20},coarse:{d:"101,0",g:"1900–2000",tol:"±2,0",D:40}},
+ MASSG={sand:"500",fine:"1000",coarse:"2000"};
+function selNow(){var s=typeof CURS!=="undefined"&&CURS;return s&&s.sel?s:null}
+function nstr(x,s){var m=s.mat,e=s.sel||{},sz=(m==="hot"||m==="pma")&&MOLDS[e.size]?e.size:null,lg=typeof LANG!=="undefined"?LANG:"fr",
+ u=lg==="ru"?{g:"г",mm:"мм",mix:"ваша смесь: зёрна до "}:lg==="en"?{g:"g",mm:"mm",mix:"your mix: grains up to "}:{g:"g",mm:"mm",mix:"ton mélange : grains jusqu'à "},cm=lg==="en"?".":",";
+ if(m==="hot"&&BTMP[e.bit]){var T="**"+BTMP[e.bit]+" °C**";
+  x=x.replace(/130–165 ?°C [^(;]{0,60}\(\s*36–50\D{1,6}\*{0,2}155–165[\s\S]{0,260}?131–200\D{1,6}\*{0,2}130–140(?: ?°C)?\*{0,2}\s*\)/g,T)
+   .replace(/36–50\D{1,6}\*{0,2}155–165[\s\S]{0,260}?131–200\D{1,6}\*{0,2}130–140(?: ?°C)?\*{0,2}/g,T)
+   .replace(/130–165 ?°C (?:selon la pénétration du bitume|по пенетрации битума|depending on bitumen penetration|по пенетрации|by penetration|selon la pénétration)/g,T)}
+ if(sz){var M=MOLDS[sz],N="\\*{0,2}\\d+ ?(?:g|г)\\*{0,2}(?: ?\\([^)]*\\))?";
+  x=x.replace(new RegExp("(?:[^:—;(]{0,40}5 \\(4\\) ?(?:mm|мм) ?— ?)?"+N+"[^.]{0,80}?"+N+"[^.]{0,80}?"+N,"g"),function(a){return a.indexOf("500")<0||a.indexOf("2000")<0?a:(a.charAt(0)===" "?" ":"")+"**"+MASSG[sz]+" "+u.g+"** ("+u.mix+M.D+" "+u.mm+")"})
+   .replace(/⌀ 50,5 — \*{0,2}220–240 ?(?:g|г)\*{0,2} ?; ?⌀ 71,4 — \*{0,2}640–670 ?(?:g|г)\*{0,2} ?; ?⌀ 101,0 — \*{0,2}1900–2000 ?(?:g|г)\*{0,2}/g,"⌀ "+M.d+" "+u.mm+" — **"+M.g+" "+u.g+"** ("+u.mix+M.D+" "+u.mm+")")
+   .replace(/⌀ 50[,.]5 — \*{0,2}220–240 ?(?:g|г)\*{0,2}; ⌀ 71[,.]4 — \*{0,2}640–670 ?(?:g|г)\*{0,2}; ⌀ 101[,.]0 — \*{0,2}1900–2000 ?(?:g|г)\*{0,2}/g,"⌀ "+M.d+" "+u.mm+" — **"+M.g+" "+u.g+"** ("+u.mix+M.D+" "+u.mm+")")
+   .replace(/(?:[^:;]{0,40}?)5 (?:mm|мм) — `d = 50[,.]5 (?:mm|мм)`[\s\S]{0,80}?`d = 101[,.]0 (?:mm|мм)`/g,function(a){return(a.charAt(0)===" "?" ":"")+"`d = "+M.d+" "+u.mm+"` ("+u.mix+M.D+" "+u.mm+")"})
+   .replace(/220–240 \/ 640–670 \/ 1900–2000 ?(?:g|г)/g,M.g+" "+u.g)
+   .replace(/\(±1,0 \/ ±1,5 \/ ±2,0 (?:mm|мм)\)/g,"("+M.tol+" "+u.mm+")")
+   .replace(/\(±1,0 \/ ±1,5 \/ ±2,0 (?:mm|мм) (?:pour|для) ⌀ 50,5 \/ 71,4 \/ 101,0\)|\(±1\.0 \/ ±1\.5 \/ ±2\.0 mm for ⌀ 50\.5 \/ 71\.4 \/ 101\.0\)/g,"("+M.tol+" "+u.mm+")")}
+ return x}
+function nwalk(o,s){if(typeof o==="string")return nstr(o,s);if(Array.isArray(o))return o.map(function(v){return nwalk(v,s)});return o}
+function nadapt(t){var s=selNow();if(!t||!s||!s.sel)return t;var m={},q;for(q in t)m[q]=(q==="prep"||q==="eq"||q==="steps"||q==="when")?nwalk(t[q],s):t[q];return m}
+function testById(id){var t=withV(DATA&&DATA.tests.filter(function(t){return t.id===id})[0],VK);if(t&&t.opt){var cs=typeof CURS!=="undefined"&&CURS&&CURS.st&&CURS.st[id],k=(cs&&cs.p&&cs.p.opt)||"calc",o=t.opt[k]||t.opt.calc,m={},q;for(q in t)m[q]=t[q];for(q in o)if(q!=="t")m[q]=o[q];t=m}return nadapt(t)}
 function optPick(t,st){if(!t.opt)return"";var k=(st.p&&st.p.opt)||"calc";return'<div class="g-opt card"><p class="g-k">'+esc(t.optQ||"")+'</p><div class="g-row">'+Object.keys(t.opt).map(function(x){return'<button type="button" class="b'+(x===k?'':' ghost')+'" data-opt="'+x+'">'+(x===k?"● ":"○ ")+esc(t.opt[x].t)+'</button>'}).join("")+'</div></div>'}
 function idxOf(id){var i=-1;DATA.tests.forEach(function(t,k){if(t.id===id)i=k});return i}
 function go(v){ST.view=v;store();draw();try{ROOT.scrollIntoView({block:"start"})}catch(e){}}
