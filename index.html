@@ -154,6 +154,8 @@ label.f.wide{grid-column:1/-1}
 .mxt td input{min-width:56px}
 .pdfsheet{--bg:#fff;--sheet:#fff;--ink:#111;--muted:#444;--line:#bbb;--soft:#f2f2f2;--ok:#1E7A46;--bad:#B8322A;--na:#666;--accent:#A65B12;background:#fff;color:#111;width:186mm;display:grid;gap:10px;font-family:var(--body);font-size:12px}
 .pdfsheet .tbl{overflow:visible}
+/* PDF: html2canvas cannot parse color-mix(), so the pills get plain colors in the PDF sheet */
+.pdfsheet .pill.ok{background:#e3f1e8}.pdfsheet .pill.bad{background:#f6e4e2}.pdfsheet .pill.na{background:#eeeeee}.pdfsheet .pill.wait{background:#f4e9df}
 @media (max-width:520px){.sign{grid-template-columns:1fr}.card{padding:14px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -703,7 +705,7 @@ function wire(){if(window.DorBrand)DorBrand.wire();document.querySelectorAll("[d
   ["m","f","s"].forEach(function(k){on("cv_"+k,function(v){S.cv[k]=v});on("cv_"+k+"f",function(v){S.cv[k+"f"]=v},"change");on("cv_"+k+"t",function(v){S.cv[k+"t"]=v},"change")});
   $("p_copy").onclick=copyProto;
   if($("p_reset"))$("p_reset").onclick=function(){if(CLOUD&&LAB){newTest();return}var l=S.lang,tb=S.tab;S=example();S.lang=l;S.tab=tb;save();render();$("p_msg").textContent=t().resetDone};
-  if($("p_pdf"))$("p_pdf").onclick=function(){pdfWorker().w.save()};
+  if($("p_pdf"))$("p_pdf").onclick=function(){var m=$("p_msg");pdfWorker().w.save().catch(function(e){m.textContent=errText(e)})};
   if($("p_pdfshare"))$("p_pdfshare").onclick=sharePdf;
 }
 
