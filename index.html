@@ -703,7 +703,7 @@ function wire(){if(window.DorBrand)DorBrand.wire();document.querySelectorAll("[d
   ["m","f","s"].forEach(function(k){on("cv_"+k,function(v){S.cv[k]=v});on("cv_"+k+"f",function(v){S.cv[k+"f"]=v},"change");on("cv_"+k+"t",function(v){S.cv[k+"t"]=v},"change")});
   $("p_copy").onclick=copyProto;
   if($("p_reset"))$("p_reset").onclick=function(){if(CLOUD&&LAB){newTest();return}var l=S.lang,tb=S.tab;S=example();S.lang=l;S.tab=tb;save();render();$("p_msg").textContent=t().resetDone};
-  if($("p_pdf"))$("p_pdf").onclick=function(){pdfWorker().w.save()};
+  if($("p_pdf"))$("p_pdf").onclick=function(){if(window.DorBrand)DorBrand.print();};
   if($("p_pdfshare"))$("p_pdfshare").onclick=sharePdf;
 }
 
