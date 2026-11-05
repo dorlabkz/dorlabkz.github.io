@@ -126,10 +126,11 @@ function wire(){var d=$("br_det");if(!d)return;
  var pd=$("br_pdf");if(pd)pd.onclick=function(){var q=$("p_pdf");if(q)q.click()}}
 function printNow(){if(window.DorApp&&DorApp.proto)DorApp.proto();var src=$("proto");if(!src)return;
  var css=[].map.call(document.querySelectorAll("style"),function(s){return s.textContent}).join("\n");
- var fr=document.createElement("iframe");fr.style.cssText="position:fixed;right:0;bottom:0;width:0;height:0;border:0";document.body.appendChild(fr);
+ [].forEach.call(document.querySelectorAll("iframe[data-dorprint]"),function(o){o.remove()});
+ var fr=document.createElement("iframe");fr.setAttribute("data-dorprint","1");fr.style.cssText="position:fixed;left:-10000px;top:0;width:210mm;height:297mm;border:0";document.body.appendChild(fr);
  var w=fr.contentWindow,dd=w.document;dd.open();
  dd.write('<!doctype html><html><head><meta charset="utf-8"><title>'+esc(document.title)+'</title><style>'+css+'\n'+(isOff()?printCss():'@page{size:A4;margin:12mm}')+'html,body{background:#fff!important;margin:0}.pdfsheet{width:auto}</style></head><body><div class="pdfsheet">'+src.innerHTML+'</div></body></html>');dd.close();
- var go=function(){try{w.focus();w.print()}catch(e){}setTimeout(function(){fr.remove()},60000)};
+ var go=function(){try{w.addEventListener("afterprint",function(){setTimeout(function(){fr.remove()},500)});w.focus();w.print()}catch(e){}};
  var imgs=dd.images,left=imgs.length;if(!left)setTimeout(go,150);else[].forEach.call(imgs,function(im){if(im.complete){if(--left===0)setTimeout(go,150)}else im.onload=im.onerror=function(){if(--left===0)setTimeout(go,150)}})}
 var CSS=".brcard summary{cursor:pointer;list-style:revert}.brcard h3{margin:14px 0 6px}"+
 ".brimg{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0}.brimg>span{min-width:180px;font-size:14px;color:var(--muted)}.brimg img{max-height:56px;max-width:140px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:2px}.brimg label.b{cursor:pointer}"+
