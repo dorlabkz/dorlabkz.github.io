@@ -81,6 +81,7 @@ button.b.primary{background:var(--accent);border-color:var(--accent);color:var(-
 .summary{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font-size:13px}
 .chart{width:100%;height:auto;display:block}
 .chart text{fill:var(--muted);font:11px var(--mono)}
+.pchart{display:grid;gap:4px;break-inside:avoid;page-break-inside:avoid}.pchart img{width:100%;aspect-ratio:640/240;display:block}
 .note{border-left:3px solid var(--accent);padding:8px 12px;background:var(--soft);font-size:12.5px;color:var(--muted);border-radius:0 6px 6px 0}
 /* Method guide */
 details.method{border:1px solid var(--line);border-radius:10px;background:var(--soft)}
@@ -579,7 +580,7 @@ function kl(){return KND[S.lang]||KND.ru}
 function curKind(){return KINDS.indexOf(S.kind)>=0?S.kind:TAB2K[S.lastCalc]||"asph"}
 function kindChips(){var K=kl(),c=curKind();return'<div class="kchips" role="group" aria-label="'+K.h+'"><span class="hint">'+K.h+':</span>'+KINDS.map(function(k){return'<button type="button" class="b sm'+(c===k?" primary":"")+'" data-kind="'+k+'" aria-pressed="'+(c===k)+'">'+K[k]+'</button>'}).join("")+'</div>'}
 function matLine(){var L=t(),ks=protoRows().map(function(r){return r[5]}),has=function(re){return ks.some(function(k){return re.test(k)})},a=[];if(has(/^(ab_|bc|dr)/))a.push(L.mixWord+" — "+L.types[S.ab.type]);if(has(/^bit_/))a.push(L.matBit+" БНД "+S.bit.grade);if(has(/^(gr|mx)$/))a.push(L.matMin+(S.mx&&S.mx.title?" — "+esc(S.mx.title):""));return a.join("; ")||"—"}
-window.DorApp={get S(){return S},save:function(){save()},render:function(){render()},go:function(k){S.tab=k;save();render();window.scrollTo(0,0)},preset:function(id){return mixPreset(id)},MIXES:MIXES,proto:function(){renderProto()},rows:function(lang,all){var k=S.lang;if(lang)S.lang=lang;try{return protoRows(all)}finally{S.lang=k}},get last(){return last}};
+window.DorApp={get S(){return S},save:function(){save()},render:function(){render()},go:function(k){S.tab=k;save();render();window.scrollTo(0,0)},preset:function(id){return mixPreset(id)},MIXES:MIXES,proto:function(){renderProto()},charts:function(off){return protoCharts(off)},rows:function(lang,all){var k=S.lang;if(lang)S.lang=lang;try{return protoRows(all)}finally{S.lang=k}},get last(){return last}};
 
 /* =================== HELPERS =================== */
 function check(v,r){
@@ -666,6 +667,8 @@ function render(){
    '<label class="f wide">'+L.norms+'<input id="p_norms" value="'+esc(p.norms)+'"></label>'+
    '<label class="f wide">'+L.notes+'<textarea id="p_notes" rows="3">'+esc(p.notes)+'</textarea></label>'+
    '<label class="f wide">'+L.conclOv+'<textarea id="p_concl" rows="2">'+esc(p.concl)+'</textarea></label>'+
+   '<label class="f wide brchk"><input type="checkbox" id="p_chGr"'+(p.chGr?" checked":"")+'>📈 '+L.grH+'</label>'+
+   '<label class="f wide brchk"><input type="checkbox" id="p_chMx"'+(p.chMx?" checked":"")+'>📈 '+L.mxH+'</label>'+
    '</div><div class="btns"><button class="b primary" id="p_copy">'+L.copy+'</button>'+(window.html2pdf?'<button class="b" id="p_pdf">'+L.pdf+'</button>'+(CLOUD&&LAB&&!isViewer()?'<button class="b" id="p_pdfshare">'+L.pdfShare+'</button>':''):'')+(isViewer()?'':'<button class="b" id="p_reset">'+(CLOUD&&LAB?L.newTest:L.reset)+'</button>')+'</div><p class="hint" id="p_msg">'+L.copyHint+'</p></div>'+(window.DorBrand?DorBrand.editor():'')+
    prCloudHtml()+'<div class="card" id="proto"></div></section>';
   if(CLOUD&&LAB)h+=jrHtml()+docsHtml();
@@ -709,6 +712,7 @@ function wire(){if(window.DorBrand)DorBrand.wire();document.querySelectorAll("[d
   ["m0","m1","target","tol"].forEach(function(k){on("bc_"+k,function(v){S.bc[k]=v})});
   ["m","m1","m2","max"].forEach(function(k){on("dr_"+k,function(v){S.dr[k]=v})});
   ["lab","no","date","obj","src","who","norms","notes","concl"].forEach(function(k){on("p_"+k,function(v){S.p[k]=v})});
+  ["chGr","chMx"].forEach(function(k){var c=$("p_"+k);if(c)c.onchange=function(){S.p[k]=c.checked;recalc()}});
   ["m","f","s"].forEach(function(k){on("cv_"+k,function(v){S.cv[k]=v});on("cv_"+k+"f",function(v){S.cv[k+"f"]=v},"change");on("cv_"+k+"t",function(v){S.cv[k+"t"]=v},"change")});
   $("p_copy").onclick=copyProto;
   if($("p_reset"))$("p_reset").onclick=function(){if(CLOUD&&LAB){newTest();return}var l=S.lang,tb=S.tab;S=example();S.lang=l;S.tab=tb;save();render();$("p_msg").textContent=t().resetDone};
@@ -805,6 +809,13 @@ function rowsPick(){try{if(!last.ab)last.ab=calcAB();if(!last.bit)last.bit=calcB
    Object.keys(grp).map(function(g){return'<fieldset><legend>'+g+'</legend>'+grp[g].map(function(r){return'<label><input type="checkbox" data-row="'+r[5]+'"'+(rowIn(r[5])?" checked":"")+'> '+r[1]+'</label>'}).join("")+'</fieldset>'}).join("")+
    '<div class="btns"><button type="button" class="b sm" id="rp_all">'+K.rowsAll+'</button><button type="button" class="b sm" id="rp_def">'+K.rowsDef+'</button></div></details>'}
 function pv(k,def){return S.p[k]||t()[def]||""}
+/* charts ticked in the protocol tab, copied with plain colors and fonts (the PDF capture cannot read CSS variables inside an SVG) */
+function protoCharts(off){var L=t(),h="",C=off?{line:"#bbb",muted:"#555",accent:"#000",bad:"#000",font:"Times New Roman,Times,serif"}:{line:"#bbb",muted:"#555",accent:"#A65B12",bad:"#B8322A",font:"IBM Plex Mono,Consolas,monospace"};
+  [["chGr","gr_chart",L.grH],["chMx","mx_chart",L.mxH]].forEach(function(c){var svg=$(c[1]);if(!S.p[c[0]]||!svg||!svg.innerHTML)return;
+    var g=svg.innerHTML.replace(/var\(--(line|muted|accent|bad)\)/g,function(_,k){return C[k]});
+    var src='<svg xmlns="http://www.w3.org/2000/svg" width="640" height="240" viewBox="0 0 640 240"><rect width="640" height="240" fill="#fff"/><g fill="'+C.muted+'" font-size="11" font-family="'+C.font+'">'+g+'</g></svg>';
+    h+='<div class="pchart"><b style="font-size:'+(off?"12pt":"13px")+'">'+esc(c[2])+'</b><img alt="" src="data:image/svg+xml;charset=utf-8,'+encodeURIComponent(src)+'"></div>'});
+  return h}
 function renderProto(){if(window.DorBrand&&DorBrand.official&&DorBrand.official()){$("proto").innerHTML=DorBrand.officialHtml();return}
   var L=t(),rows=protoRows(),bad=rows.filter(function(r){return r[4]==="bad"}).length,na=rows.filter(function(r){return r[4]==="na"}).length;
   var d=S.p.date?new Date(S.p.date+"T00:00").toLocaleDateString(({en:"en-GB",fr:"fr-FR",kk:"ru-RU",zh:"zh-CN"})[S.lang]||"ru-RU"):"—";
@@ -812,7 +823,7 @@ function renderProto(){if(window.DorBrand&&DorBrand.official&&DorBrand.official(
    '<div class="kv"><span>'+L.date+'</span><span>'+d+'</span><span>'+L.obj+'</span><span>'+esc(pv("obj","example"))+'</span><span>'+L.src+'</span><span>'+esc(pv("src","srcDef"))+'</span>'+
    '<span>'+L.material+'</span><span>'+matLine()+'</span><span>'+L.norms+'</span><span>'+esc(S.p.norms||NORMS_DEF)+'</span>'+(window.DorBrand?DorBrand.kv():'')+'</div>'+
    '<div class="tbl"><table><thead><tr>'+L.pcolsP.map(function(c,i){return'<th'+(i===2?' class="n"':'')+'>'+c+'</th>'}).join("")+'</tr></thead><tbody>'+
-   rows.map(function(r){return'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td class="n">'+r[2]+'</td><td>'+r[3]+'</td><td>'+pill(r[4])+'</td></tr>'}).join("")+'</tbody></table></div>'+
+   rows.map(function(r){return'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td class="n">'+r[2]+'</td><td>'+r[3]+'</td><td>'+pill(r[4])+'</td></tr>'}).join("")+'</tbody></table></div>'+protoCharts(false)+
    (S.p.notes?'<div><b style="font-size:13px">'+L.notesW+'</b><p class="notes">'+esc(S.p.notes)+'</p></div>':'')+
    '<p class="final" style="color:var('+(S.p.concl?"--ink":bad?"--bad":"--ok")+')">'+L.concl+': '+(S.p.concl?esc(S.p.concl):(bad?L.failN+" ("+bad+" "+L.ind+")":L.passAll))+'</p>'+
    (na?'<p class="hint">'+na+' '+L.naNote+'</p>':'')+
@@ -861,7 +872,7 @@ function wireMx(){var x=S.mx;if(!$("mx_id"))return;
 function pdfWorker(){var el=document.createElement("div");el.className="pdfsheet";renderProto();el.innerHTML=$("proto").innerHTML;
   var fn=(t().protoT+" "+(S.p.no||"")).trim().replace(/[\\/:*?"<>|№]+/g,"").replace(/\s+/g,"_")+".pdf";
   var off=window.DorBrand&&DorBrand.official&&DorBrand.official(),w=html2pdf().set({margin:off?[20,20,18,15]:[12,12,14,12],filename:fn,image:{type:"jpeg",quality:0.96},
-    html2canvas:{scale:Math.max(1,Math.min(2,14000/Math.max(1,$("proto").scrollHeight))),backgroundColor:"#ffffff",scrollX:0,scrollY:0,onclone:function(d){d.documentElement.removeAttribute("data-ui");back()}},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},pagebreak:{mode:["css","legacy"],avoid:["tr","table",".ofgrp",".ofsig",".ofs","img","p",".card"]}}).from(el);
+    html2canvas:{scale:Math.max(1,Math.min(2,14000/Math.max(1,$("proto").scrollHeight))),backgroundColor:"#ffffff",scrollX:0,scrollY:0,onclone:function(d){d.documentElement.removeAttribute("data-ui");back()}},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},pagebreak:{mode:["css","legacy"],avoid:["tr","table",".ofgrp",".ofsig",".ofs","img","p",".card",".pchart"]}}).from(el);
   /* PDF: sheet width = A4 minus side margins; dark theme off while the page is measured and copied */
   el.style.width=(off?175:186)+"mm";/* PDF: each sieve item (rowspan rows) in its own tbody so it moves to the next page as one block */
   el.querySelectorAll("table").forEach(function(tb){var T=tb.tBodies[0];if(!T||!T.querySelector("tr.svh"))return;var cur=null;[].slice.call(T.rows).forEach(function(r){var h=r.classList.contains("svh");if(h||!cur||(cur.className==="ofgrp"&&!r.classList.contains("sv"))){cur=document.createElement("tbody");if(h)cur.className="ofgrp";tb.insertBefore(cur,T)}cur.appendChild(r)});tb.removeChild(T)});

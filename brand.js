@@ -72,6 +72,7 @@ function officialHtml(){var A=window.DorApp,S=A.S,rows=A.rows("ru"),last=A.last,
    q[0].map(function(z,j){return'<tr class="sv'+(j===n-1?' svl':'')+'"><td>'+z+'</td><td class="c">'+q[1][j]+'</td><td class="c">'+q[2][j]+'</td></tr>'}).join("");return}
   h+='<tr><td class="c">'+(i+1)+'.</td><td>'+name+'</td><td class="c">'+esc(ndOf(k))+'</td><td class="c">'+norm+'</td><td class="c">'+val+'</td></tr>'});
  h+='</tbody></table>';
+ if(A.charts)h+=A.charts(true);
  if(p.concl)h+='<p><b>Заключение:</b> '+esc(p.concl)+'</p>';
  if(p.notes)h+='<p>'+esc(p.notes).replace(/\n/g,"<br>")+'</p>';
  var mm=Math.max(15,Math.min(60,+String(B.stampMm).replace(",",".")||38));
